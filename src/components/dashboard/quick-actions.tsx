@@ -1,0 +1,306 @@
+"use client";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Plus,
+  Calendar,
+  FileText,
+  Stethoscope,
+  Users,
+  MessageSquare,
+  Bell,
+  Clock,
+  AlertTriangle,
+  Search,
+  Download,
+  Upload,
+} from "lucide-react";
+
+/**
+ * Quick action button interface
+ */
+interface QuickAction {
+  id: string;  title: string;
+  description: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  variant: "default" | "secondary" | "outline";
+  badge?: string;
+  href?: string;
+  onClick?: () => void;
+}
+
+/**
+ * Mock quick actions data
+ */
+const primaryActions: QuickAction[] = [
+  {
+    id: "new-patient",
+    title: "Add New Patient",
+    description: "Register a new patient",
+    icon: Plus,
+    variant: "default",
+    href: "/dashboard/patients/new",
+  },
+  {
+    id: "schedule-appointment",
+    title: "Schedule Appointment",
+    description: "Book patient appointment",
+    icon: Calendar,
+    variant: "secondary",
+    href: "/dashboard/appointments/new",
+  },
+  {
+    id: "create-prescription",
+    title: "New Prescription",
+    description: "Generate prescription",
+    icon: Stethoscope,
+    variant: "outline",
+    badge: "AI",
+    href: "/dashboard/prescriptions/new",
+  },
+  {
+    id: "medical-records",
+    title: "Medical Records",
+    description: "Access patient files",
+    icon: FileText,
+    variant: "outline",
+    href: "/dashboard/records",
+  },
+];
+
+const secondaryActions: QuickAction[] = [
+  {
+    id: "patient-search",
+    title: "Search Patients",
+    description: "Find patient records",
+    icon: Search,
+    variant: "outline",
+    href: "/dashboard/patients/search",
+  },
+  {
+    id: "emergency-alerts",
+    title: "Emergency Alerts",
+    description: "Critical notifications",
+    icon: AlertTriangle,
+    variant: "outline",
+    badge: "3",
+    href: "/dashboard/alerts",
+  },
+  {
+    id: "messages",
+    title: "Messages",
+    description: "Staff communications",
+    icon: MessageSquare,
+    variant: "outline",
+    badge: "12",
+    href: "/dashboard/messages",
+  },
+  {
+    id: "notifications",
+    title: "Notifications",
+    description: "System updates",
+    icon: Bell,
+    variant: "outline",
+    badge: "5",
+    href: "/dashboard/notifications",
+  },
+];
+
+const utilityActions: QuickAction[] = [
+  {
+    id: "export-data",
+    title: "Export Reports",
+    description: "Download patient data",
+    icon: Download,
+    variant: "outline",
+    onClick: () => console.log("Export initiated"),
+  },
+  {
+    id: "import-data",
+    title: "Import Records",
+    description: "Upload medical files",
+    icon: Upload,
+    variant: "outline",
+    onClick: () => console.log("Import initiated"),
+  },
+  {
+    id: "shift-handover",
+    title: "Shift Handover",
+    description: "Transfer responsibilities",
+    icon: Clock,
+    variant: "outline",
+    href: "/dashboard/handover",
+  },
+  {
+    id: "team-schedule",
+    title: "Team Schedule",
+    description: "View staff availability",
+    icon: Users,
+    variant: "outline",
+    href: "/dashboard/schedule",
+  },
+];
+
+/**
+ * Quick Actions Component
+ *
+ * Provides easy access to frequently used functions including:
+ * - Primary actions (new patient, appointments, prescriptions)
+ * - Secondary actions (search, alerts, communications)
+ * - Utility actions (import/export, scheduling, handover)
+ * - Badge indicators for pending items
+ */
+export function QuickActions() {
+  const handleActionClick = (action: QuickAction) => {
+    if (action.onClick) {
+      action.onClick();
+    } else if (action.href) {
+      // In a real app, you would use Next.js router here
+      console.log(`Navigate to: ${action.href}`);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Primary Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Frequently used functions and shortcuts
+          </p>
+        </CardHeader>
+
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3">
+            {primaryActions.map((action) => {
+              const IconComponent = action.icon;
+
+              return (
+                <Button
+                  key={action.id}
+                  variant={action.variant}
+                  className="h-auto p-4 flex items-center justify-start gap-3"
+                  onClick={() => handleActionClick(action)}
+                >
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
+                    <IconComponent className="h-4 w-4" />
+                  </div>
+
+                  <div className="flex-1 text-left">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm">
+                        {action.title}
+                      </span>
+                      {action.badge && (
+                        <Badge variant="secondary" className="text-xs">
+                          {action.badge}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {action.description}
+                    </div>
+                  </div>
+                </Button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Secondary Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">
+            Communications
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <div className="grid grid-cols-2 gap-2">
+            {secondaryActions.map((action) => {
+              const IconComponent = action.icon;
+
+              return (
+                <Button
+                  key={action.id}
+                  variant={action.variant}
+                  size="sm"
+                  className="h-auto p-3 flex flex-col items-center gap-2 relative"
+                  onClick={() => handleActionClick(action)}
+                >
+                  {action.badge && (
+                    <Badge
+                      variant="destructive"
+                      className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
+                    >
+                      {action.badge}
+                    </Badge>
+                  )}
+
+                  <IconComponent className="h-5 w-5" />
+                  <span className="text-xs font-medium text-center">
+                    {action.title}
+                  </span>
+                </Button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Utility Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Utilities</CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <div className="space-y-2">
+            {utilityActions.map((action) => {
+              const IconComponent = action.icon;
+
+              return (
+                <Button
+                  key={action.id}
+                  variant={action.variant}
+                  size="sm"
+                  className="w-full justify-start gap-2"
+                  onClick={() => handleActionClick(action)}
+                >
+                  <IconComponent className="h-4 w-4" />
+                  <span className="text-sm">{action.title}</span>
+                </Button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Emergency Contact */}
+      <Card className="border-red-200 bg-red-50/50">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-red-100">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+            </div>
+            <div className="flex-1">
+              <div className="text-sm font-medium text-red-800">
+                Emergency Contact
+              </div>
+              <div className="text-xs text-red-600">
+                Call 911 or use hospital hotline
+              </div>
+            </div>
+            <Button variant="destructive" size="sm">
+              Call
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
