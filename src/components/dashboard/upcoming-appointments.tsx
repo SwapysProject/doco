@@ -1,46 +1,51 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
   Calendar,
   Clock,
   MapPin,
   Video,
   Phone,
   User,
-  MoreHorizontal
-} from "lucide-react"
+  MoreHorizontal,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
 /**
  * Appointment type definition
  */
-type AppointmentType = "consultation" | "follow-up" | "surgery" | "emergency"
-type AppointmentStatus = "scheduled" | "confirmed" | "in-progress" | "completed" | "cancelled"
+type AppointmentType = "consultation" | "follow-up" | "surgery" | "emergency";
+type AppointmentStatus =
+  | "scheduled"
+  | "confirmed"
+  | "in-progress"
+  | "completed"
+  | "cancelled";
 
 /**
  * Appointment data interface
  */
 interface Appointment {
-  id: string
-  patientName: string
-  patientId: string
-  time: string
-  duration: number // in minutes
-  type: AppointmentType
-  status: AppointmentStatus
-  location: string
-  isVirtual?: boolean
-  notes?: string
-  avatar?: string
+  id: string;
+  patientName: string;
+  patientId: string;
+  time: string;
+  duration: number; // in minutes
+  type: AppointmentType;
+  status: AppointmentStatus;
+  location: string;
+  isVirtual?: boolean;
+  notes?: string;
+  avatar?: string;
 }
 
 /**
@@ -56,7 +61,7 @@ const upcomingAppointments: Appointment[] = [
     type: "consultation",
     status: "confirmed",
     location: "Room A-102",
-    notes: "Routine checkup"
+    notes: "Routine checkup",
   },
   {
     id: "A002",
@@ -67,7 +72,7 @@ const upcomingAppointments: Appointment[] = [
     type: "follow-up",
     status: "scheduled",
     location: "Room A-105",
-    notes: "Post-surgery follow-up"
+    notes: "Post-surgery follow-up",
   },
   {
     id: "A003",
@@ -79,7 +84,7 @@ const upcomingAppointments: Appointment[] = [
     status: "confirmed",
     location: "Virtual",
     isVirtual: true,
-    notes: "Diabetes management review"
+    notes: "Diabetes management review",
   },
   {
     id: "A004",
@@ -90,7 +95,7 @@ const upcomingAppointments: Appointment[] = [
     type: "surgery",
     status: "scheduled",
     location: "OR-2",
-    notes: "Minor surgical procedure"
+    notes: "Minor surgical procedure",
   },
   {
     id: "A005",
@@ -101,9 +106,9 @@ const upcomingAppointments: Appointment[] = [
     type: "follow-up",
     status: "confirmed",
     location: "Room B-201",
-    notes: "Treatment progress review"
-  }
-]
+    notes: "Treatment progress review",
+  },
+];
 
 /**
  * Returns the appropriate appointment type badge styling
@@ -112,28 +117,28 @@ function getAppointmentTypeBadge(type: AppointmentType) {
   const typeConfig = {
     consultation: {
       className: "bg-blue-500/10 text-blue-700 hover:bg-blue-500/20",
-      label: "Consultation"
+      label: "Consultation",
     },
     "follow-up": {
       className: "bg-green-500/10 text-green-700 hover:bg-green-500/20",
-      label: "Follow-up"
+      label: "Follow-up",
     },
     surgery: {
       className: "bg-red-500/10 text-red-700 hover:bg-red-500/20",
-      label: "Surgery"
+      label: "Surgery",
     },
     emergency: {
       className: "bg-orange-500/10 text-orange-700 hover:bg-orange-500/20",
-      label: "Emergency"
-    }
-  }
+      label: "Emergency",
+    },
+  };
 
-  const config = typeConfig[type]
+  const config = typeConfig[type];
   return (
     <Badge variant="secondary" className={config.className}>
       {config.label}
     </Badge>
-  )
+  );
 }
 
 /**
@@ -143,37 +148,37 @@ function getStatusBadge(status: AppointmentStatus) {
   const statusConfig = {
     scheduled: {
       className: "bg-gray-500/10 text-gray-700 hover:bg-gray-500/20",
-      label: "Scheduled"
+      label: "Scheduled",
     },
     confirmed: {
       className: "bg-green-500/10 text-green-700 hover:bg-green-500/20",
-      label: "Confirmed"
+      label: "Confirmed",
     },
     "in-progress": {
       className: "bg-blue-500/10 text-blue-700 hover:bg-blue-500/20",
-      label: "In Progress"
+      label: "In Progress",
     },
     completed: {
       className: "bg-purple-500/10 text-purple-700 hover:bg-purple-500/20",
-      label: "Completed"
+      label: "Completed",
     },
     cancelled: {
       className: "bg-red-500/10 text-red-700 hover:bg-red-500/20",
-      label: "Cancelled"
-    }
-  }
+      label: "Cancelled",
+    },
+  };
 
-  const config = statusConfig[status]
+  const config = statusConfig[status];
   return (
     <Badge variant="outline" className={config.className}>
       {config.label}
     </Badge>
-  )
+  );
 }
 
 /**
  * Upcoming Appointments Component
- * 
+ *
  * Displays today's scheduled appointments with:
  * - Time and duration information
  * - Patient details and appointment type
@@ -182,8 +187,8 @@ function getStatusBadge(status: AppointmentStatus) {
  * - Status tracking and management
  */
 export function UpcomingAppointments() {
-  const currentTime = new Date()
-  const todayString = currentTime.toDateString()
+  const currentTime = new Date();
+  const todayString = currentTime.toDateString();
 
   return (
     <Card>
@@ -201,12 +206,12 @@ export function UpcomingAppointments() {
           Manage Schedule
         </Button>
       </CardHeader>
-      
+
       <CardContent>
         <div className="space-y-4">
           {upcomingAppointments.map((appointment) => (
-            <div 
-              key={appointment.id} 
+            <div
+              key={appointment.id}
               className="flex items-center gap-4 p-4 rounded-lg border bg-muted/25 hover:bg-muted/50 transition-colors"
             >
               {/* Time Column */}
@@ -223,15 +228,18 @@ export function UpcomingAppointments() {
               {/* Patient Info */}
               <div className="flex items-center gap-3 flex-1">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage 
-                    src={appointment.avatar || `/api/placeholder/40/40`} 
-                    alt={appointment.patientName} 
+                  <AvatarImage
+                    src={appointment.avatar || `/api/placeholder/40/40`}
+                    alt={appointment.patientName}
                   />
                   <AvatarFallback className="text-sm">
-                    {appointment.patientName.split(' ').map(n => n[0]).join('')}
+                    {appointment.patientName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
                   </AvatarFallback>
                 </Avatar>
-                
+
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <h4 className="font-medium text-foreground truncate">
@@ -239,13 +247,13 @@ export function UpcomingAppointments() {
                     </h4>
                     {getAppointmentTypeBadge(appointment.type)}
                   </div>
-                  
+
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <User className="h-3 w-3" />
                       {appointment.patientId}
                     </span>
-                    
+
                     <span className="flex items-center gap-1">
                       {appointment.isVirtual ? (
                         <>
@@ -260,7 +268,7 @@ export function UpcomingAppointments() {
                       )}
                     </span>
                   </div>
-                  
+
                   {appointment.notes && (
                     <p className="text-xs text-muted-foreground mt-1 truncate">
                       {appointment.notes}
@@ -272,7 +280,7 @@ export function UpcomingAppointments() {
               {/* Status and Actions */}
               <div className="flex items-center gap-3">
                 {getStatusBadge(appointment.status)}
-                
+
                 <div className="flex gap-1">
                   {appointment.isVirtual ? (
                     <Button size="sm" variant="outline" className="h-8 w-8 p-0">
@@ -283,27 +291,23 @@ export function UpcomingAppointments() {
                       <Phone className="h-4 w-4" />
                     </Button>
                   )}
-                  
+
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 w-8 p-0"
+                      >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    
+
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        Start Appointment
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        Reschedule
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        View Patient Details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        Add Notes
-                      </DropdownMenuItem>
+                      <DropdownMenuItem>Start Appointment</DropdownMenuItem>
+                      <DropdownMenuItem>Reschedule</DropdownMenuItem>
+                      <DropdownMenuItem>View Patient Details</DropdownMenuItem>
+                      <DropdownMenuItem>Add Notes</DropdownMenuItem>
                       <DropdownMenuItem className="text-destructive">
                         Cancel Appointment
                       </DropdownMenuItem>
@@ -330,5 +334,5 @@ export function UpcomingAppointments() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

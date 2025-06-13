@@ -1,40 +1,34 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table"
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu"
-import { 
-  MoreHorizontal, 
-  Eye, 
-  Edit, 
-  FileText, 
-  Users 
-} from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Eye, Edit, FileText, Users } from "lucide-react";
 
 /**
  * Format date consistently for SSR/client hydration
  */
 function formatDate(dateString: string): string {
-  const date = new Date(dateString)
-  const month = (date.getMonth() + 1).toString().padStart(2, '0')
-  const day = date.getDate().toString().padStart(2, '0')
-  const year = date.getFullYear()
-  return `${month}/${day}/${year}`
+  const date = new Date(dateString);
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  const year = date.getFullYear();
+  return `${month}/${day}/${year}`;
 }
 
 const recentPatients = [
@@ -47,7 +41,7 @@ const recentPatients = [
     status: "Stable",
     lastVisit: "2025-06-12",
     nextAppointment: "2025-06-20",
-    avatar: "/api/placeholder/32/32"
+    avatar: "/api/placeholder/32/32",
   },
   {
     id: "P002",
@@ -58,7 +52,7 @@ const recentPatients = [
     status: "Monitoring",
     lastVisit: "2025-06-11",
     nextAppointment: "2025-06-18",
-    avatar: "/api/placeholder/32/32"
+    avatar: "/api/placeholder/32/32",
   },
   {
     id: "P003",
@@ -69,7 +63,7 @@ const recentPatients = [
     status: "Stable",
     lastVisit: "2025-06-10",
     nextAppointment: "2025-06-25",
-    avatar: "/api/placeholder/32/32"
+    avatar: "/api/placeholder/32/32",
   },
   {
     id: "P004",
@@ -80,7 +74,7 @@ const recentPatients = [
     status: "Critical",
     lastVisit: "2025-06-13",
     nextAppointment: "2025-06-14",
-    avatar: "/api/placeholder/32/32"
+    avatar: "/api/placeholder/32/32",
   },
   {
     id: "P005",
@@ -91,22 +85,22 @@ const recentPatients = [
     status: "Stable",
     lastVisit: "2025-06-09",
     nextAppointment: "2025-06-22",
-    avatar: "/api/placeholder/32/32"
-  }
-]
+    avatar: "/api/placeholder/32/32",
+  },
+];
 
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
     case "stable":
-      return "bg-green-500/10 text-green-700 hover:bg-green-500/20"
+      return "bg-green-500/10 text-green-700 hover:bg-green-500/20";
     case "monitoring":
-      return "bg-yellow-500/10 text-yellow-700 hover:bg-yellow-500/20"
+      return "bg-yellow-500/10 text-yellow-700 hover:bg-yellow-500/20";
     case "critical":
-      return "bg-red-500/10 text-red-700 hover:bg-red-500/20"
+      return "bg-red-500/10 text-red-700 hover:bg-red-500/20";
     default:
-      return "bg-gray-500/10 text-gray-700 hover:bg-gray-500/20"
+      return "bg-gray-500/10 text-gray-700 hover:bg-gray-500/20";
   }
-}
+};
 
 export function RecentPatients() {
   return (
@@ -140,11 +134,16 @@ export function RecentPatients() {
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={patient.avatar} alt={patient.name} />
                       <AvatarFallback className="bg-primary/10 text-primary">
-                        {patient.name.split(' ').map(n => n[0]).join('')}
+                        {patient.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium text-foreground">{patient.name}</p>
+                      <p className="font-medium text-foreground">
+                        {patient.name}
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         {patient.age}y, {patient.gender}
                       </p>
@@ -153,7 +152,8 @@ export function RecentPatients() {
                 </TableCell>
                 <TableCell>
                   <span className="text-sm">{patient.condition}</span>
-                </TableCell>                <TableCell>
+                </TableCell>{" "}
+                <TableCell>
                   <Badge className={getStatusColor(patient.status)}>
                     {patient.status}
                   </Badge>
@@ -197,5 +197,5 @@ export function RecentPatients() {
         </Table>
       </CardContent>
     </Card>
-  )
+  );
 }

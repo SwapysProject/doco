@@ -22,7 +22,8 @@ import {
  * Quick action button interface
  */
 interface QuickAction {
-  id: string;  title: string;
+  id: string;
+  title: string;
   description: string;
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   variant: "default" | "secondary" | "outline";

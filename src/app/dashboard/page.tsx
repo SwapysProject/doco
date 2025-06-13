@@ -15,8 +15,10 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">
             Doctor Dashboard
-          </h1>          <p className="text-muted-foreground">
-            Welcome back, Dr. Smith. Here&apos;s your patient overview for today.
+          </h1>{" "}
+          <p className="text-muted-foreground">
+            Welcome back, Dr. Smith. Here&apos;s your patient overview for
+            today.
           </p>
         </div>
 
