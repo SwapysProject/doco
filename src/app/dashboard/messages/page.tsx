@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { JSX } from 'react';
 import { Send, Search, Phone, Video, MoreVertical, User, Stethoscope, Check, CheckCheck } from 'lucide-react';
+import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 
 // Type definitions
 interface Contact {
@@ -237,6 +238,8 @@ const MessagesPage: React.FC = () => {
   };
 
   return (
+    <>
+    <DashboardLayout>
     <div className="flex h-screen bg-background">
       {/* Contacts Sidebar */}
       <div className="w-80 border-r border-border flex flex-col bg-card">
@@ -415,6 +418,8 @@ const MessagesPage: React.FC = () => {
         )}
       </div>
     </div>
+    </DashboardLayout>
+    </>
   );
 };
 

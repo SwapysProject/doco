@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import type { JSX } from 'react';
+import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { 
   Bell, 
   BellRing, 
@@ -235,6 +236,8 @@ const NotificationsPage: React.FC = () => {
   };
 
   return (
+    <>
+    <DashboardLayout>
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
@@ -406,6 +409,8 @@ const NotificationsPage: React.FC = () => {
         </div>
       </div>
     </div>
+    </DashboardLayout>
+    </>
   );
 };
 
