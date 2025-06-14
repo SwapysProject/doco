@@ -6,7 +6,14 @@ export interface Medication {
   name: string;
   genericName?: string;
   strength: string;
-  form: "tablet" | "capsule" | "liquid" | "injection" | "cream" | "inhaler" | "drops";
+  form:
+    | "tablet"
+    | "capsule"
+    | "liquid"
+    | "injection"
+    | "cream"
+    | "inhaler"
+    | "drops";
   quantity: number;
   dosage: string;
   frequency: string;

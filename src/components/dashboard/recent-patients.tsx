@@ -89,7 +89,9 @@ const recentPatients = [
   },
 ];
 
-const getStatusColor = (status: string) => {
+const getStatusColor = (status: string | undefined | null) => {
+  if (!status) return "bg-gray-500/10 text-gray-700 hover:bg-gray-500/20";
+
   switch (status.toLowerCase()) {
     case "stable":
       return "bg-green-500/10 text-green-700 hover:bg-green-500/20";

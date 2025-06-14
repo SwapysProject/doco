@@ -1,7 +1,7 @@
-"use client"
+"use client";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
-import React, { useState, useEffect } from 'react';
-import { 
+import React, { useState, useEffect } from "react";
+import {
   Search,
   Filter,
   Plus,
@@ -17,15 +17,12 @@ import {
   Clock,
   ArrowLeft,
   Edit,
-  FileText,
   Activity,
   Pill,
   User,
   MessageSquare,
-  Download,
-  Eye,
-  Loader2
-} from 'lucide-react';
+  Loader2,
+} from "lucide-react";
 
 // Patient interface to match your MongoDB structure
 interface Patient {
@@ -38,7 +35,7 @@ interface Patient {
   email: string;
   address: string;
   condition: string;
-  status: string;
+  status?: string; // Made optional since some patients might not have a status
   lastVisit: string;
   nextAppointment: string;
   bloodType: string;
@@ -59,24 +56,50 @@ interface Patient {
 }
 
 export default function PatientsPage() {
-  const [view, setView] = useState('list'); // 'list' or 'detail'
+  const [view, setView] = useState("list"); // 'list' or 'detail'
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addingPatient, setAddingPatient] = useState(false);
+
+  // Form state for new patient
+  const [newPatient, setNewPatient] = useState({
+    name: "",
+    age: "",
+    gender: "",
+    phone: "",
+    email: "",
+    address: "",
+    condition: "",
+    status: "stable",
+    lastVisit: "",
+    nextAppointment: "",
+    bloodType: "",
+    allergies: "",
+    medications: "",
+    vitals: {
+      bloodPressure: "",
+      heartRate: "",
+      temperature: "",
+      weight: "",
+      height: "",
+    },
+  });
 
   // Fetch patients from MongoDB
   const fetchPatients = async () => {
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await fetch('/api/patients-data', {
-        method: 'GET',
+
+      const response = await fetch("/api/patients-data", {
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
@@ -85,17 +108,17 @@ export default function PatientsPage() {
       }
 
       const data = await response.json();
-      
+
       // Transform MongoDB data to match frontend expectations
-      const transformedPatients = data.patients.map((patient: any) => ({
+      const transformedPatients = data.patients.map((patient: Patient) => ({
         ...patient,
         id: patient._id, // Add id field for compatibility
       }));
-      
+
       setPatients(transformedPatients);
     } catch (error) {
-      console.error('Error fetching patients:', error);
-      setError('Failed to load patients. Please try again.');
+      console.error("Error fetching patients:", error);
+      setError("Failed to load patients. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -106,48 +129,164 @@ export default function PatientsPage() {
     fetchPatients();
   }, []);
 
-  const filteredPatients = patients.filter(patient => {
-    const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         patient.condition.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         patient.phone.includes(searchTerm);
-    
-    const matchesStatus = filterStatus === 'all' || patient.status.toLowerCase() === filterStatus.toLowerCase();
-    
+  const filteredPatients = patients.filter((patient) => {
+    const matchesSearch =
+      patient.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.condition?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.phone?.includes(searchTerm);
+
+    const matchesStatus =
+      filterStatus === "all" ||
+      (patient.status
+        ? patient.status.toLowerCase() === filterStatus.toLowerCase()
+        : filterStatus === "unknown");
+
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | undefined | null) => {
+    if (!status)
+      return "text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-900/20";
+
     switch (status.toLowerCase()) {
-      case 'stable': return 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/20';
-      case 'monitoring': return 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/20';
-      case 'critical': return 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/20';
-      case 'active': return 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20';
-      default: return 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-900/20';
+      case "stable":
+        return "text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/20";
+      case "monitoring":
+        return "text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/20";
+      case "critical":
+        return "text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/20";
+      case "active":
+        return "text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20";
+      default:
+        return "text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-gray-900/20";
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string | undefined | null) => {
+    if (!status) return <Heart className="w-4 h-4" />;
+
     switch (status.toLowerCase()) {
-      case 'stable': return <CheckCircle className="w-4 h-4" />;
-      case 'monitoring': return <Clock className="w-4 h-4" />;
-      case 'critical': return <AlertTriangle className="w-4 h-4" />;
-      case 'active': return <Activity className="w-4 h-4" />;
-      default: return <Heart className="w-4 h-4" />;
+      case "stable":
+        return <CheckCircle className="w-4 h-4" />;
+      case "monitoring":
+        return <Clock className="w-4 h-4" />;
+      case "critical":
+        return <AlertTriangle className="w-4 h-4" />;
+      case "active":
+        return <Activity className="w-4 h-4" />;
+      default:
+        return <Heart className="w-4 h-4" />;
     }
   };
 
   const handlePatientClick = (patient: Patient) => {
     setSelectedPatient(patient);
-    setView('detail');
+    setView("detail");
   };
 
   const handleBackToList = () => {
-    setView('list');
+    setView("list");
     setSelectedPatient(null);
   };
 
   const handleRefresh = () => {
     fetchPatients();
+  };
+
+  const handleAddPatient = () => {
+    setShowAddModal(true);
+  };
+
+  const handleCloseAddModal = () => {
+    setShowAddModal(false);
+    // Reset form
+    setNewPatient({
+      name: "",
+      age: "",
+      gender: "",
+      phone: "",
+      email: "",
+      address: "",
+      condition: "",
+      status: "stable",
+      lastVisit: "",
+      nextAppointment: "",
+      bloodType: "",
+      allergies: "",
+      medications: "",
+      vitals: {
+        bloodPressure: "",
+        heartRate: "",
+        temperature: "",
+        weight: "",
+        height: "",
+      },
+    });
+  };
+
+  const handleSubmitPatient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAddingPatient(true);
+
+    try {
+      const patientData = {
+        ...newPatient,
+        age: parseInt(newPatient.age),
+        allergies: newPatient.allergies
+          .split(",")
+          .map((item) => item.trim())
+          .filter((item) => item),
+        medications: newPatient.medications
+          .split(",")
+          .map((item) => item.trim())
+          .filter((item) => item),
+        medicalHistory: [],
+      };
+
+      const response = await fetch("/api/patients-data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(patientData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Patient added successfully:", result);
+
+      // Refresh the patients list
+      await fetchPatients();
+
+      // Close modal and reset form
+      handleCloseAddModal();
+    } catch (error) {
+      console.error("Error adding patient:", error);
+      setError("Failed to add patient. Please try again.");
+    } finally {
+      setAddingPatient(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    if (field.startsWith("vitals.")) {
+      const vitalField = field.replace("vitals.", "");
+      setNewPatient((prev) => ({
+        ...prev,
+        vitals: {
+          ...prev.vitals,
+          [vitalField]: value,
+        },
+      }));
+    } else {
+      setNewPatient((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    }
   };
 
   // Loading state
@@ -171,7 +310,9 @@ export default function PatientsPage() {
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
             <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-foreground mb-2">Error Loading Patients</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-2">
+              Error Loading Patients
+            </h2>
             <p className="text-muted-foreground mb-4">{error}</p>
             <button
               onClick={handleRefresh}
@@ -185,7 +326,7 @@ export default function PatientsPage() {
     );
   }
 
-  if (view === 'detail' && selectedPatient) {
+  if (view === "detail" && selectedPatient) {
     return (
       <div className="min-h-screen bg-background">
         {/* Header */}
@@ -205,8 +346,12 @@ export default function PatientsPage() {
                     <User className="w-5 h-5" />
                   </div>
                   <div>
-                    <h1 className="text-2xl font-bold text-foreground">{selectedPatient.name}</h1>
-                    <p className="text-sm text-muted-foreground">Patient Details</p>
+                    <h1 className="text-2xl font-bold text-foreground">
+                      {selectedPatient.name}
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                      Patient Details
+                    </p>
                   </div>
                 </div>
               </div>
@@ -231,25 +376,43 @@ export default function PatientsPage() {
             <div className="lg:col-span-1 space-y-6">
               {/* Basic Info Card */}
               <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Patient Information</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">
+                  Patient Information
+                </h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Age</span>
-                    <span className="text-sm font-medium text-foreground">{selectedPatient.age} years</span>
+                    <span className="text-sm font-medium text-foreground">
+                      {selectedPatient.age} years
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Gender</span>
-                    <span className="text-sm font-medium text-foreground">{selectedPatient.gender}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Gender
+                    </span>
+                    <span className="text-sm font-medium text-foreground">
+                      {selectedPatient.gender}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Blood Type</span>
-                    <span className="text-sm font-medium text-foreground">{selectedPatient.bloodType}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Blood Type
+                    </span>
+                    <span className="text-sm font-medium text-foreground">
+                      {selectedPatient.bloodType}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Status</span>
-                    <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedPatient.status)}`}>
+                    <span className="text-sm text-muted-foreground">
+                      Status
+                    </span>
+                    <div
+                      className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                        selectedPatient.status
+                      )}`}
+                    >
                       {getStatusIcon(selectedPatient.status)}
-                      <span>{selectedPatient.status}</span>
+                      <span>{selectedPatient.status || "Unknown"}</span>
                     </div>
                   </div>
                 </div>
@@ -257,46 +420,76 @@ export default function PatientsPage() {
 
               {/* Contact Info Card */}
               <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Contact Information</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">
+                  Contact Information
+                </h3>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
                     <Phone className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-foreground">{selectedPatient.phone}</span>
+                    <span className="text-sm text-foreground">
+                      {selectedPatient.phone}
+                    </span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <Mail className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-foreground">{selectedPatient.email}</span>
+                    <span className="text-sm text-foreground">
+                      {selectedPatient.email}
+                    </span>
                   </div>
                   <div className="flex items-start space-x-3">
                     <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
-                    <span className="text-sm text-foreground">{selectedPatient.address}</span>
+                    <span className="text-sm text-foreground">
+                      {selectedPatient.address}
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Vitals Card */}
               <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Latest Vitals</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">
+                  Latest Vitals
+                </h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Blood Pressure</span>
-                    <span className="text-sm font-medium text-foreground">{selectedPatient.vitals.bloodPressure}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Blood Pressure
+                    </span>
+                    <span className="text-sm font-medium text-foreground">
+                      {selectedPatient.vitals.bloodPressure}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Heart Rate</span>
-                    <span className="text-sm font-medium text-foreground">{selectedPatient.vitals.heartRate}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Heart Rate
+                    </span>
+                    <span className="text-sm font-medium text-foreground">
+                      {selectedPatient.vitals.heartRate}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Temperature</span>
-                    <span className="text-sm font-medium text-foreground">{selectedPatient.vitals.temperature}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Temperature
+                    </span>
+                    <span className="text-sm font-medium text-foreground">
+                      {selectedPatient.vitals.temperature}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Weight</span>
-                    <span className="text-sm font-medium text-foreground">{selectedPatient.vitals.weight}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Weight
+                    </span>
+                    <span className="text-sm font-medium text-foreground">
+                      {selectedPatient.vitals.weight}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Height</span>
-                    <span className="text-sm font-medium text-foreground">{selectedPatient.vitals.height}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Height
+                    </span>
+                    <span className="text-sm font-medium text-foreground">
+                      {selectedPatient.vitals.height}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -306,74 +499,116 @@ export default function PatientsPage() {
             <div className="lg:col-span-2 space-y-6">
               {/* Appointments Card */}
               <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Appointments</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">
+                  Appointments
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-muted/50 rounded-lg p-4">
                     <div className="flex items-center space-x-2 mb-2">
                       <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-foreground">Last Visit</span>
+                      <span className="text-sm font-medium text-foreground">
+                        Last Visit
+                      </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">{selectedPatient.lastVisit}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedPatient.lastVisit}
+                    </p>
                   </div>
                   <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
                     <div className="flex items-center space-x-2 mb-2">
                       <Calendar className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-medium text-foreground">Next Appointment</span>
+                      <span className="text-sm font-medium text-foreground">
+                        Next Appointment
+                      </span>
                     </div>
-                    <p className="text-sm text-primary font-medium">{selectedPatient.nextAppointment}</p>
+                    <p className="text-sm text-primary font-medium">
+                      {selectedPatient.nextAppointment}
+                    </p>
                   </div>
                 </div>
               </div>
 
               {/* Current Medications */}
               <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Current Medications</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">
+                  Current Medications
+                </h3>
                 <div className="space-y-3">
-                  {selectedPatient.medications && selectedPatient.medications.length > 0 ? (
+                  {selectedPatient.medications &&
+                  selectedPatient.medications.length > 0 ? (
                     selectedPatient.medications.map((medication, index) => (
-                      <div key={index} className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg">
+                      <div
+                        key={index}
+                        className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg"
+                      >
                         <Pill className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm text-foreground">{medication}</span>
+                        <span className="text-sm text-foreground">
+                          {medication}
+                        </span>
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-muted-foreground">No medications recorded</p>
+                    <p className="text-sm text-muted-foreground">
+                      No medications recorded
+                    </p>
                   )}
                 </div>
               </div>
 
               {/* Allergies */}
               <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Allergies</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">
+                  Allergies
+                </h3>
                 <div className="flex flex-wrap gap-2">
-                  {selectedPatient.allergies && selectedPatient.allergies.length > 0 ? (
+                  {selectedPatient.allergies &&
+                  selectedPatient.allergies.length > 0 ? (
                     selectedPatient.allergies.map((allergy, index) => (
-                      <span key={index} className="px-3 py-1 bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 rounded-full text-xs font-medium">
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 rounded-full text-xs font-medium"
+                      >
                         {allergy}
                       </span>
                     ))
                   ) : (
-                    <p className="text-sm text-muted-foreground">No known allergies</p>
+                    <p className="text-sm text-muted-foreground">
+                      No known allergies
+                    </p>
                   )}
                 </div>
               </div>
 
               {/* Medical History */}
               <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Medical History</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">
+                  Medical History
+                </h3>
                 <div className="space-y-4">
-                  {selectedPatient.medicalHistory && selectedPatient.medicalHistory.length > 0 ? (
+                  {selectedPatient.medicalHistory &&
+                  selectedPatient.medicalHistory.length > 0 ? (
                     selectedPatient.medicalHistory.map((record, index) => (
-                      <div key={index} className="border-l-2 border-primary/20 pl-4 pb-4">
+                      <div
+                        key={index}
+                        className="border-l-2 border-primary/20 pl-4 pb-4"
+                      >
                         <div className="flex items-center justify-between mb-2">
-                          <h4 className="text-sm font-medium text-foreground">{record.condition}</h4>
-                          <span className="text-xs text-muted-foreground">{record.date}</span>
+                          <h4 className="text-sm font-medium text-foreground">
+                            {record.condition}
+                          </h4>
+                          <span className="text-xs text-muted-foreground">
+                            {record.date}
+                          </span>
                         </div>
-                        <p className="text-sm text-muted-foreground">{record.notes}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {record.notes}
+                        </p>
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-muted-foreground">No medical history recorded</p>
+                    <p className="text-sm text-muted-foreground">
+                      No medical history recorded
+                    </p>
                   )}
                 </div>
               </div>
@@ -397,20 +632,27 @@ export default function PatientsPage() {
                     <Users className="w-5 h-5" />
                   </div>
                   <div>
-                    <h1 className="text-2xl font-bold text-foreground">Patients</h1>
-                    <p className="text-sm text-muted-foreground">Manage and view patient information</p>
+                    <h1 className="text-2xl font-bold text-foreground">
+                      Patients
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                      Manage and view patient information
+                    </p>
                   </div>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <button 
+                <button
                   onClick={handleRefresh}
                   className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center space-x-2"
                 >
                   <Activity className="w-4 h-4" />
                   <span>Refresh</span>
                 </button>
-                <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center space-x-2">
+                <button
+                  onClick={handleAddPatient}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center space-x-2"
+                >
                   <Plus className="w-4 h-4" />
                   <span>Add Patient</span>
                 </button>
@@ -458,8 +700,12 @@ export default function PatientsPage() {
                   <Users className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{patients.length}</p>
-                  <p className="text-sm text-muted-foreground">Total Patients</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {patients.length}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Total Patients
+                  </p>
                 </div>
               </div>
             </div>
@@ -469,7 +715,13 @@ export default function PatientsPage() {
                   <CheckCircle className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{patients.filter(p => p.status === 'Stable').length}</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {
+                      patients.filter(
+                        (p) => p.status && p.status.toLowerCase() === "stable"
+                      ).length
+                    }
+                  </p>
                   <p className="text-sm text-muted-foreground">Stable</p>
                 </div>
               </div>
@@ -480,7 +732,14 @@ export default function PatientsPage() {
                   <Clock className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{patients.filter(p => p.status === 'Monitoring').length}</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {
+                      patients.filter(
+                        (p) =>
+                          p.status && p.status.toLowerCase() === "monitoring"
+                      ).length
+                    }
+                  </p>
                   <p className="text-sm text-muted-foreground">Monitoring</p>
                 </div>
               </div>
@@ -491,7 +750,13 @@ export default function PatientsPage() {
                   <AlertTriangle className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{patients.filter(p => p.status === 'Critical').length}</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {
+                      patients.filter(
+                        (p) => p.status && p.status.toLowerCase() === "critical"
+                      ).length
+                    }
+                  </p>
                   <p className="text-sm text-muted-foreground">Critical</p>
                 </div>
               </div>
@@ -501,7 +766,9 @@ export default function PatientsPage() {
           {/* Patients List */}
           <div className="bg-card border border-border rounded-lg overflow-hidden">
             <div className="px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-semibold text-foreground">Patient List</h2>
+              <h2 className="text-lg font-semibold text-foreground">
+                Patient List
+              </h2>
               <p className="text-sm text-muted-foreground">
                 {filteredPatients.length} of {patients.length} patients
               </p>
@@ -519,23 +786,39 @@ export default function PatientsPage() {
                         <User className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="font-medium text-foreground">{patient.name}</h3>
-                        <p className="text-sm text-muted-foreground">{patient.age} years • {patient.gender}</p>
+                        <h3 className="font-medium text-foreground">
+                          {patient.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {patient.age} years • {patient.gender}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-6">
                       <div className="text-right">
-                        <p className="text-sm font-medium text-foreground">{patient.condition}</p>
-                        <p className="text-xs text-muted-foreground">Last visit: {patient.lastVisit}</p>
+                        <p className="text-sm font-medium text-foreground">
+                          {patient.condition}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Last visit: {patient.lastVisit}
+                        </p>
                       </div>
-                      <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(patient.status)}`}>
+                      <div
+                        className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          patient.status
+                        )}`}
+                      >
                         {getStatusIcon(patient.status)}
-                        <span>{patient.status}</span>
+                        <span>{patient.status || "Unknown"}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <div className="text-right">
-                          <p className="text-xs text-muted-foreground">Next appointment</p>
-                          <p className="text-sm font-medium text-foreground">{patient.nextAppointment}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Next appointment
+                          </p>
+                          <p className="text-sm font-medium text-foreground">
+                            {patient.nextAppointment}
+                          </p>
                         </div>
                         <ChevronRight className="w-4 h-4 text-muted-foreground" />
                       </div>
@@ -549,20 +832,365 @@ export default function PatientsPage() {
           {filteredPatients.length === 0 && patients.length > 0 && (
             <div className="bg-card border border-border rounded-lg p-12 text-center">
               <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">No patients found</h3>
-              <p className="text-muted-foreground">Try adjusting your search or filter criteria</p>
+              <h3 className="text-lg font-medium text-foreground mb-2">
+                No patients found
+              </h3>
+              <p className="text-muted-foreground">
+                Try adjusting your search or filter criteria
+              </p>
             </div>
           )}
 
           {patients.length === 0 && !loading && (
             <div className="bg-card border border-border rounded-lg p-12 text-center">
               <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">No patients in database</h3>
-              <p className="text-muted-foreground">Add your first patient to get started</p>
+              <h3 className="text-lg font-medium text-foreground mb-2">
+                No patients in database
+              </h3>
+              <p className="text-muted-foreground">
+                Add your first patient to get started
+              </p>
             </div>
           )}
         </div>
       </div>
+
+      {/* Add Patient Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-card border border-border rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="px-6 py-4 border-b border-border">
+              <h2 className="text-lg font-semibold text-foreground">
+                Add New Patient
+              </h2>
+            </div>
+            <form onSubmit={handleSubmitPatient} className="p-6 space-y-6">
+              {/* Basic Information */}
+              <div className="space-y-4">
+                <h3 className="text-md font-medium text-foreground">
+                  Basic Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newPatient.name}
+                      onChange={(e) =>
+                        handleInputChange("name", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Age *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      value={newPatient.age}
+                      onChange={(e) => handleInputChange("age", e.target.value)}
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Gender *
+                    </label>
+                    <select
+                      required
+                      value={newPatient.gender}
+                      onChange={(e) =>
+                        handleInputChange("gender", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Blood Type
+                    </label>
+                    <select
+                      value={newPatient.bloodType}
+                      onChange={(e) =>
+                        handleInputChange("bloodType", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="">Select Blood Type</option>
+                      <option value="A+">A+</option>
+                      <option value="A-">A-</option>
+                      <option value="B+">B+</option>
+                      <option value="B-">B-</option>
+                      <option value="AB+">AB+</option>
+                      <option value="AB-">AB-</option>
+                      <option value="O+">O+</option>
+                      <option value="O-">O-</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="space-y-4">
+                <h3 className="text-md font-medium text-foreground">
+                  Contact Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Phone *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={newPatient.phone}
+                      onChange={(e) =>
+                        handleInputChange("phone", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={newPatient.email}
+                      onChange={(e) =>
+                        handleInputChange("email", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Address
+                  </label>
+                  <textarea
+                    value={newPatient.address}
+                    onChange={(e) =>
+                      handleInputChange("address", e.target.value)
+                    }
+                    rows={3}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+              </div>
+
+              {/* Medical Information */}
+              <div className="space-y-4">
+                <h3 className="text-md font-medium text-foreground">
+                  Medical Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Condition *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newPatient.condition}
+                      onChange={(e) =>
+                        handleInputChange("condition", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Status
+                    </label>
+                    <select
+                      value={newPatient.status}
+                      onChange={(e) =>
+                        handleInputChange("status", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="stable">Stable</option>
+                      <option value="monitoring">Monitoring</option>
+                      <option value="critical">Critical</option>
+                      <option value="active">Active</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Last Visit
+                    </label>
+                    <input
+                      type="date"
+                      value={newPatient.lastVisit}
+                      onChange={(e) =>
+                        handleInputChange("lastVisit", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Next Appointment
+                    </label>
+                    <input
+                      type="date"
+                      value={newPatient.nextAppointment}
+                      onChange={(e) =>
+                        handleInputChange("nextAppointment", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Allergies (comma-separated)
+                    </label>
+                    <textarea
+                      value={newPatient.allergies}
+                      onChange={(e) =>
+                        handleInputChange("allergies", e.target.value)
+                      }
+                      placeholder="e.g., Penicillin, Nuts, Shellfish"
+                      rows={2}
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Current Medications (comma-separated)
+                    </label>
+                    <textarea
+                      value={newPatient.medications}
+                      onChange={(e) =>
+                        handleInputChange("medications", e.target.value)
+                      }
+                      placeholder="e.g., Aspirin 81mg, Lisinopril 10mg"
+                      rows={2}
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Vitals */}
+              <div className="space-y-4">
+                <h3 className="text-md font-medium text-foreground">
+                  Vital Signs
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Blood Pressure
+                    </label>
+                    <input
+                      type="text"
+                      value={newPatient.vitals.bloodPressure}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "vitals.bloodPressure",
+                          e.target.value
+                        )
+                      }
+                      placeholder="120/80"
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Heart Rate
+                    </label>
+                    <input
+                      type="text"
+                      value={newPatient.vitals.heartRate}
+                      onChange={(e) =>
+                        handleInputChange("vitals.heartRate", e.target.value)
+                      }
+                      placeholder="72 bpm"
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Temperature
+                    </label>
+                    <input
+                      type="text"
+                      value={newPatient.vitals.temperature}
+                      onChange={(e) =>
+                        handleInputChange("vitals.temperature", e.target.value)
+                      }
+                      placeholder="98.6°F"
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Weight
+                    </label>
+                    <input
+                      type="text"
+                      value={newPatient.vitals.weight}
+                      onChange={(e) =>
+                        handleInputChange("vitals.weight", e.target.value)
+                      }
+                      placeholder="150 lbs"
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Height
+                    </label>
+                    <input
+                      type="text"
+                      value={newPatient.vitals.height}
+                      onChange={(e) =>
+                        handleInputChange("vitals.height", e.target.value)
+                      }
+                      placeholder="5'8&quot;"
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Form Actions */}
+              <div className="flex justify-end space-x-3 pt-4 border-t border-border">
+                <button
+                  type="button"
+                  onClick={handleCloseAddModal}
+                  className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-accent transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={addingPatient}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                >
+                  {addingPatient && (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  )}
+                  <span>{addingPatient ? "Adding..." : "Add Patient"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

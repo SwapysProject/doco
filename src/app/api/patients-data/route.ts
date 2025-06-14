@@ -1,20 +1,23 @@
 // src/app/api/patients-data/route.ts
-import { NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
-import { ObjectId } from 'mongodb';
+import { NextResponse } from "next/server";
+import clientPromise from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
 
 // GET: Fetch all patients
 export async function GET() {
   try {
     const client = await clientPromise;
-    const db = client.db('Patient');
-    const collection = db.collection('Patients Data');
+    const db = client.db("Patient");
+    const collection = db.collection("patients");
 
     const patients = await collection.find({}).toArray();
     return NextResponse.json({ patients }, { status: 200 });
   } catch (error) {
-    console.error('GET error:', error);
-    return NextResponse.json({ message: 'Failed to fetch patients' }, { status: 500 });
+    console.error("GET error:", error);
+    return NextResponse.json(
+      { message: "Failed to fetch patients" },
+      { status: 500 }
+    );
   }
 }
 
@@ -24,14 +27,36 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     const client = await clientPromise;
-    const db = client.db('Patient');
-    const collection = db.collection('Patients Data');
+    const db = client.db("Patient");
+    const collection = db.collection("patients");
 
-    const result = await collection.insertOne(body);
-    return NextResponse.json({ message: 'Patient added', id: result.insertedId }, { status: 201 });
+    // Generate a unique patient ID
+    const count = await collection.countDocuments();
+    const nextId = `P${String(count + 1).padStart(3, "0")}`;
+
+    // Add the generated ID to the patient data
+    const patientData = {
+      ...body,
+      id: nextId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const result = await collection.insertOne(patientData);
+    return NextResponse.json(
+      {
+        message: "Patient added successfully",
+        id: result.insertedId,
+        patientId: nextId,
+      },
+      { status: 201 }
+    );
   } catch (error) {
-    console.error('POST error:', error);
-    return NextResponse.json({ message: 'Failed to add patient' }, { status: 500 });
+    console.error("POST error:", error);
+    return NextResponse.json(
+      { message: "Failed to add patient" },
+      { status: 500 }
+    );
   }
 }
 
@@ -42,12 +67,15 @@ export async function PUT(request: Request) {
     const { _id, ...updateData } = body;
 
     if (!_id) {
-      return NextResponse.json({ message: 'Missing _id in request body' }, { status: 400 });
+      return NextResponse.json(
+        { message: "Missing _id in request body" },
+        { status: 400 }
+      );
     }
 
     const client = await clientPromise;
-    const db = client.db('Patient');
-    const collection = db.collection('Patients Data');
+    const db = client.db("Patient");
+    const collection = db.collection("patients");
 
     const result = await collection.updateOne(
       { _id: new ObjectId(_id) },
@@ -55,13 +83,19 @@ export async function PUT(request: Request) {
     );
 
     if (result.matchedCount === 0) {
-      return NextResponse.json({ message: 'Patient not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: "Patient not found" },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json({ message: 'Patient updated' }, { status: 200 });
+    return NextResponse.json({ message: "Patient updated" }, { status: 200 });
   } catch (error) {
-    console.error('PUT error:', error);
-    return NextResponse.json({ message: 'Failed to update patient' }, { status: 500 });
+    console.error("PUT error:", error);
+    return NextResponse.json(
+      { message: "Failed to update patient" },
+      { status: 500 }
+    );
   }
 }
 
@@ -72,22 +106,31 @@ export async function DELETE(request: Request) {
     const { _id } = body;
 
     if (!_id) {
-      return NextResponse.json({ message: 'Missing _id in request body' }, { status: 400 });
+      return NextResponse.json(
+        { message: "Missing _id in request body" },
+        { status: 400 }
+      );
     }
 
     const client = await clientPromise;
-    const db = client.db('Patient');
-    const collection = db.collection('Patients Data');
+    const db = client.db("Patient");
+    const collection = db.collection("patients");
 
     const result = await collection.deleteOne({ _id: new ObjectId(_id) });
 
     if (result.deletedCount === 0) {
-      return NextResponse.json({ message: 'Patient not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: "Patient not found" },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json({ message: 'Patient deleted' }, { status: 200 });
+    return NextResponse.json({ message: "Patient deleted" }, { status: 200 });
   } catch (error) {
-    console.error('DELETE error:', error);
-    return NextResponse.json({ message: 'Failed to delete patient' }, { status: 500 });
+    console.error("DELETE error:", error);
+    return NextResponse.json(
+      { message: "Failed to delete patient" },
+      { status: 500 }
+    );
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -145,7 +145,9 @@ function formatDate(dateString: string): string {
 /**
  * Get status color styling
  */
-function getStatusColor(status: string) {
+function getStatusColor(status: string | undefined | null) {
+  if (!status) return "bg-gray-500/10 text-gray-700 hover:bg-gray-500/20";
+
   switch (status.toLowerCase()) {
     case "active":
       return "bg-green-500/10 text-green-700 hover:bg-green-500/20";
@@ -171,14 +173,61 @@ function getStatusColor(status: string) {
  */
 export function PrescriptionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [prescriptions] = useState<Prescription[]>(mockPrescriptions);
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Load prescriptions from API
+  useEffect(() => {
+    const loadPrescriptions = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await fetch("/api/prescriptions");
+        const result = await response.json();
+
+        if (result.success && result.data) {
+          setPrescriptions(result.data);
+        } else {
+          console.log("No prescriptions found or API error, using mock data");
+          setPrescriptions(mockPrescriptions);
+        }
+      } catch (error) {
+        console.error("Failed to load prescriptions:", error);
+        setError("Failed to load prescriptions");
+        // Fallback to mock data
+        setPrescriptions(mockPrescriptions);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPrescriptions();
+  }, []);
+
+  // Refresh prescriptions (can be called when needed)
+  const refreshPrescriptions = async () => {
+    try {
+      const response = await fetch("/api/prescriptions");
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        setPrescriptions(result.data);
+      }
+    } catch (error) {
+      console.error("Failed to refresh prescriptions:", error);
+    }
+  };
   // Filter prescriptions based on search query
   const filteredPrescriptions = prescriptions.filter(
     (prescription) =>
-      prescription.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      prescription.diagnosis.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      prescription.id.toLowerCase().includes(searchQuery.toLowerCase())
+      (prescription.patientName || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      (prescription.diagnosis || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      (prescription.id || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -190,8 +239,11 @@ export function PrescriptionsPage() {
           <p className="text-muted-foreground">
             Manage and generate patient prescriptions
           </p>
-        </div>
+        </div>{" "}
         <div className="flex gap-2">
+          <Button variant="outline" onClick={refreshPrescriptions}>
+            Refresh
+          </Button>
           <Button asChild>
             <Link href="/dashboard/prescriptions/new">
               <Plus className="h-4 w-4 mr-2" />
@@ -212,9 +264,7 @@ export function PrescriptionsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{prescriptions.length}</div>
-            <p className="text-xs text-muted-foreground">
-              +2 from yesterday
-            </p>
+            <p className="text-xs text-muted-foreground">+2 from yesterday</p>
           </CardContent>
         </Card>
 
@@ -237,9 +287,7 @@ export function PrescriptionsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              AI Generated
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">AI Generated</CardTitle>
             <Bot className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -263,9 +311,7 @@ export function PrescriptionsPage() {
             <div className="text-2xl font-bold">
               {new Set(prescriptions.map((p) => p.patientId)).size}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Unique patients
-            </p>
+            <p className="text-xs text-muted-foreground">Unique patients</p>
           </CardContent>
         </Card>
       </div>
@@ -294,114 +340,151 @@ export function PrescriptionsPage() {
             <Stethoscope className="h-5 w-5" />
             Prescriptions List
           </CardTitle>
-        </CardHeader>
+        </CardHeader>{" "}
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Prescription ID</TableHead>
-                <TableHead>Patient</TableHead>
-                <TableHead>Diagnosis</TableHead>
-                <TableHead>Medications</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPrescriptions.map((prescription) => (
-                <TableRow key={prescription.id} className="hover:bg-muted/50">
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{prescription.id}</span>
-                      {prescription.isAiGenerated && (
-                        <Badge variant="secondary" className="text-xs">
-                          <Bot className="h-3 w-3 mr-1" />
-                          AI
-                        </Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src="/api/placeholder/32/32" />
-                        <AvatarFallback className="bg-primary/10 text-primary">
-                          {prescription.patientName
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium text-foreground">
-                          {prescription.patientName}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          ID: {prescription.patientId}
-                        </p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm">{prescription.diagnosis}</span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      {prescription.medications.slice(0, 2).map((med) => (
-                        <div key={med.id} className="text-sm">
-                          <span className="font-medium">{med.name}</span>
-                          <span className="text-muted-foreground ml-1">
-                            {med.strength}
-                          </span>
-                        </div>
-                      ))}
-                      {prescription.medications.length > 2 && (
-                        <div className="text-xs text-muted-foreground">
-                          +{prescription.medications.length - 2} more
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-muted-foreground">
-                      {formatDate(prescription.date)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(prescription.status)}>
-                      {prescription.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/prescriptions/${prescription.id}`}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit Prescription
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Printer className="mr-2 h-4 w-4" />
-                          Print Prescription
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          {error && (
+            <div className="flex items-center justify-center p-6 text-red-600">
+              <p>Error: {error}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={refreshPrescriptions}
+                className="ml-4"
+              >
+                Retry
+              </Button>
+            </div>
+          )}
+
+          {isLoading ? (
+            <div className="flex items-center justify-center p-6">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              <span className="ml-2">Loading prescriptions...</span>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Prescription ID</TableHead>
+                  <TableHead>Patient</TableHead>
+                  <TableHead>Diagnosis</TableHead>
+                  <TableHead>Medications</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredPrescriptions.map((prescription) => (
+                  <TableRow key={prescription.id} className="hover:bg-muted/50">
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{prescription.id}</span>
+                        {prescription.isAiGenerated && (
+                          <Badge variant="secondary" className="text-xs">
+                            <Bot className="h-3 w-3 mr-1" />
+                            AI
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        {" "}
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src="/api/placeholder/32/32" />
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {(prescription.patientName || "Unknown")
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>{" "}
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {prescription.patientName || "Unknown Patient"}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            ID: {prescription.patientId || "N/A"}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>{" "}
+                    <TableCell>
+                      <span className="text-sm">
+                        {prescription.diagnosis || "N/A"}
+                      </span>
+                    </TableCell>{" "}
+                    <TableCell>
+                      <div className="space-y-1">
+                        {(prescription.medications || [])
+                          .slice(0, 2)
+                          .map((med, index) => (
+                            <div
+                              key={med.id || `med-${index}`}
+                              className="text-sm"
+                            >
+                              <span className="font-medium">
+                                {med.name || "Unknown"}
+                              </span>
+                              <span className="text-muted-foreground ml-1">
+                                {med.strength || ""}
+                              </span>
+                            </div>
+                          ))}
+                        {(prescription.medications || []).length > 2 && (
+                          <div className="text-xs text-muted-foreground">
+                            +{(prescription.medications || []).length - 2} more
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-muted-foreground">
+                        {formatDate(prescription.date)}
+                      </span>
+                    </TableCell>{" "}
+                    <TableCell>
+                      <Badge className={getStatusColor(prescription.status)}>
+                        {prescription.status || "Unknown"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href={`/dashboard/prescriptions/${prescription.id}`}
+                            >
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit Prescription
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Printer className="mr-2 h-4 w-4" />
+                            Print Prescription
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>{" "}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

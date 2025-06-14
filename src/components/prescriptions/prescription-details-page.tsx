@@ -6,11 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   ArrowLeft,
   Calendar,
@@ -39,11 +35,16 @@ const mockPrescription: Prescription = {
   id: "RX002",
   patientId: "P002",
   patientName: "Michael Chen",
-  doctorId: "D001", 
+  doctorId: "D001",
   doctorName: "Dr. John Smith",
   date: "2025-06-12",
   diagnosis: "Type 2 Diabetes with Neuropathy",
-  symptoms: ["elevated blood sugar", "frequent urination", "tingling in feet", "fatigue"],
+  symptoms: [
+    "elevated blood sugar",
+    "frequent urination",
+    "tingling in feet",
+    "fatigue",
+  ],
   medications: [
     {
       id: "M002",
@@ -55,9 +56,10 @@ const mockPrescription: Prescription = {
       dosage: "1 tablet",
       frequency: "twice daily with meals",
       duration: "30 days",
-      instructions: "Take with breakfast and dinner to reduce stomach upset. Monitor blood glucose levels regularly.",
+      instructions:
+        "Take with breakfast and dinner to reduce stomach upset. Monitor blood glucose levels regularly.",
       refills: 3,
-      cost: 15.50,
+      cost: 15.5,
       sideEffects: ["nausea", "diarrhea", "stomach upset"],
       contraindications: ["kidney disease", "liver disease"],
     },
@@ -71,17 +73,19 @@ const mockPrescription: Prescription = {
       dosage: "1 capsule",
       frequency: "three times daily",
       duration: "30 days",
-      instructions: "Start with one capsule daily, increase gradually as tolerated. May cause drowsiness.",
+      instructions:
+        "Start with one capsule daily, increase gradually as tolerated. May cause drowsiness.",
       refills: 2,
       cost: 22.75,
       sideEffects: ["drowsiness", "dizziness", "fatigue"],
       contraindications: ["kidney impairment"],
     },
   ],
-  notes: "Patient education provided on diabetes management and foot care. Follow-up appointment scheduled in 2 weeks to monitor medication response.",
+  notes:
+    "Patient education provided on diabetes management and foot care. Follow-up appointment scheduled in 2 weeks to monitor medication response.",
   status: "active",
   createdAt: "2025-06-12T14:30:00Z",
-  updatedAt: "2025-06-12T14:30:00Z", 
+  updatedAt: "2025-06-12T14:30:00Z",
   expiresAt: "2025-12-12T14:30:00Z",
   isAiGenerated: true,
   aiConfidence: 0.92,
@@ -109,7 +113,9 @@ function formatDateTime(dateString: string): string {
 /**
  * Get status color styling
  */
-function getStatusColor(status: string) {
+function getStatusColor(status: string | undefined | null) {
+  if (!status) return "bg-gray-500/10 text-gray-700 hover:bg-gray-500/20";
+
   switch (status.toLowerCase()) {
     case "active":
       return "bg-green-500/10 text-green-700 hover:bg-green-500/20";
@@ -134,10 +140,15 @@ function getStatusColor(status: string) {
  * - Cost breakdown and insurance information
  * - Edit and print capabilities
  */
-export function PrescriptionDetailsPage({ prescriptionId }: PrescriptionDetailsPageProps) {
+export function PrescriptionDetailsPage({
+  prescriptionId,
+}: PrescriptionDetailsPageProps) {
   const [prescription] = useState<Prescription>(mockPrescription);
 
-  const totalCost = prescription.medications.reduce((sum, med) => sum + (med.cost || 0), 0);
+  const totalCost = prescription.medications.reduce(
+    (sum, med) => sum + (med.cost || 0),
+    0
+  );
 
   const handlePrint = () => {
     window.print();
@@ -192,9 +203,13 @@ export function PrescriptionDetailsPage({ prescriptionId }: PrescriptionDetailsP
                     {prescription.status}
                   </Badge>
                   {prescription.isAiGenerated && (
-                    <Badge variant="secondary" className="flex items-center gap-1">
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
                       <Bot className="h-3 w-3" />
-                      AI Generated ({Math.round(prescription.aiConfidence! * 100)}%)
+                      AI Generated (
+                      {Math.round(prescription.aiConfidence! * 100)}%)
                     </Badge>
                   )}
                 </div>
@@ -224,7 +239,9 @@ export function PrescriptionDetailsPage({ prescriptionId }: PrescriptionDetailsP
                   <label className="text-sm font-medium text-muted-foreground">
                     Expires On
                   </label>
-                  <p className="font-medium">{formatDate(prescription.expiresAt)}</p>
+                  <p className="font-medium">
+                    {formatDate(prescription.expiresAt)}
+                  </p>
                 </div>
               </div>
 
@@ -264,14 +281,17 @@ export function PrescriptionDetailsPage({ prescriptionId }: PrescriptionDetailsP
               {prescription.medications.map((medication, index) => (
                 <div key={medication.id}>
                   {index > 0 && <Separator />}
-                  
+
                   <div className="space-y-4">
                     {/* Medication Header */}
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-lg font-semibold">{medication.name}</h3>
+                        <h3 className="text-lg font-semibold">
+                          {medication.name}
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          {medication.genericName} - {medication.strength} {medication.form}
+                          {medication.genericName} - {medication.strength}{" "}
+                          {medication.form}
                         </p>
                       </div>
                       {medication.cost && (
@@ -280,7 +300,9 @@ export function PrescriptionDetailsPage({ prescriptionId }: PrescriptionDetailsP
                             <DollarSign className="h-4 w-4" />
                             {medication.cost.toFixed(2)}
                           </div>
-                          <p className="text-xs text-muted-foreground">Estimated cost</p>
+                          <p className="text-xs text-muted-foreground">
+                            Estimated cost
+                          </p>
                         </div>
                       )}
                     </div>
@@ -332,32 +354,40 @@ export function PrescriptionDetailsPage({ prescriptionId }: PrescriptionDetailsP
                     </div>
 
                     {/* Side Effects and Contraindications */}
-                    {(medication.sideEffects || medication.contraindications) && (
+                    {(medication.sideEffects ||
+                      medication.contraindications) && (
                       <div className="space-y-3">
-                        {medication.sideEffects && medication.sideEffects.length > 0 && (
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">
-                              Possible Side Effects
-                            </label>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {medication.sideEffects.map((effect, idx) => (
-                                <Badge key={idx} variant="outline" className="text-xs">
-                                  {effect}
-                                </Badge>
-                              ))}
+                        {medication.sideEffects &&
+                          medication.sideEffects.length > 0 && (
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">
+                                Possible Side Effects
+                              </label>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {medication.sideEffects.map((effect, idx) => (
+                                  <Badge
+                                    key={idx}
+                                    variant="outline"
+                                    className="text-xs"
+                                  >
+                                    {effect}
+                                  </Badge>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
 
-                        {medication.contraindications && medication.contraindications.length > 0 && (
-                          <Alert>
-                            <AlertTriangle className="h-4 w-4" />
-                            <AlertTitle>Contraindications</AlertTitle>
-                            <AlertDescription>
-                              Do not use if patient has: {medication.contraindications.join(", ")}
-                            </AlertDescription>
-                          </Alert>
-                        )}
+                        {medication.contraindications &&
+                          medication.contraindications.length > 0 && (
+                            <Alert>
+                              <AlertTriangle className="h-4 w-4" />
+                              <AlertTitle>Contraindications</AlertTitle>
+                              <AlertDescription>
+                                Do not use if patient has:{" "}
+                                {medication.contraindications.join(", ")}
+                              </AlertDescription>
+                            </Alert>
+                          )}
                       </div>
                     )}
                   </div>
@@ -382,7 +412,10 @@ export function PrescriptionDetailsPage({ prescriptionId }: PrescriptionDetailsP
                 <Avatar className="h-12 w-12">
                   <AvatarImage src="/api/placeholder/48/48" />
                   <AvatarFallback className="bg-primary/10 text-primary">
-                    {prescription.patientName.split(" ").map(n => n[0]).join("")}
+                    {prescription.patientName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
                   </AvatarFallback>
                 </Avatar>
                 <div>
@@ -392,7 +425,7 @@ export function PrescriptionDetailsPage({ prescriptionId }: PrescriptionDetailsP
                   </p>
                 </div>
               </div>
-              
+
               <div className="text-sm">
                 <p className="text-muted-foreground">Prescribed by</p>
                 <p className="font-medium">{prescription.doctorName}</p>
@@ -409,14 +442,15 @@ export function PrescriptionDetailsPage({ prescriptionId }: PrescriptionDetailsP
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {prescription.medications.map((med) => (
-                med.cost && (
-                  <div key={med.id} className="flex justify-between text-sm">
-                    <span>{med.name}</span>
-                    <span>${med.cost.toFixed(2)}</span>
-                  </div>
-                )
-              ))}
+              {prescription.medications.map(
+                (med) =>
+                  med.cost && (
+                    <div key={med.id} className="flex justify-between text-sm">
+                      <span>{med.name}</span>
+                      <span>${med.cost.toFixed(2)}</span>
+                    </div>
+                  )
+              )}
               <Separator />
               <div className="flex justify-between font-medium">
                 <span>Total Estimated Cost</span>
@@ -446,14 +480,15 @@ export function PrescriptionDetailsPage({ prescriptionId }: PrescriptionDetailsP
                   </p>
                 </div>
               </div>
-              
+
               {prescription.isAiGenerated && (
                 <div className="flex items-start gap-2">
                   <Bot className="h-4 w-4 text-blue-500 mt-0.5" />
                   <div className="text-sm">
                     <p className="font-medium">AI Generated</p>
                     <p className="text-muted-foreground">
-                      Confidence: {Math.round(prescription.aiConfidence! * 100)}%
+                      Confidence: {Math.round(prescription.aiConfidence! * 100)}
+                      %
                     </p>
                   </div>
                 </div>
