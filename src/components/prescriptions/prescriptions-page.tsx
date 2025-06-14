@@ -238,8 +238,8 @@ export function PrescriptionsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Prescriptions</h1>
           <p className="text-muted-foreground">
             Manage and generate patient prescriptions
-          </p>
-        </div>{" "}
+          </p>{" "}
+        </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={refreshPrescriptions}>
             Refresh
@@ -339,8 +339,8 @@ export function PrescriptionsPage() {
           <CardTitle className="flex items-center gap-2">
             <Stethoscope className="h-5 w-5" />
             Prescriptions List
-          </CardTitle>
-        </CardHeader>{" "}
+          </CardTitle>{" "}
+        </CardHeader>
         <CardContent>
           {error && (
             <div className="flex items-center justify-center p-6 text-red-600">
@@ -375,8 +375,11 @@ export function PrescriptionsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPrescriptions.map((prescription) => (
-                  <TableRow key={prescription.id} className="hover:bg-muted/50">
+                {filteredPrescriptions.map((prescription, index) => (
+                  <TableRow
+                    key={prescription.id || `prescription-${index}`}
+                    className="hover:bg-muted/50"
+                  >
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{prescription.id}</span>
@@ -386,11 +389,10 @@ export function PrescriptionsPage() {
                             AI
                           </Badge>
                         )}
-                      </div>
+                      </div>{" "}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        {" "}
                         <Avatar className="h-8 w-8">
                           <AvatarImage src="/api/placeholder/32/32" />
                           <AvatarFallback className="bg-primary/10 text-primary">
@@ -399,29 +401,29 @@ export function PrescriptionsPage() {
                               .map((n) => n[0])
                               .join("")}
                           </AvatarFallback>
-                        </Avatar>{" "}
+                        </Avatar>
                         <div>
                           <p className="font-medium text-foreground">
                             {prescription.patientName || "Unknown Patient"}
                           </p>
                           <p className="text-sm text-muted-foreground">
                             ID: {prescription.patientId || "N/A"}
-                          </p>
+                          </p>{" "}
                         </div>
                       </div>
-                    </TableCell>{" "}
+                    </TableCell>
                     <TableCell>
                       <span className="text-sm">
                         {prescription.diagnosis || "N/A"}
                       </span>
-                    </TableCell>{" "}
+                    </TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         {(prescription.medications || [])
                           .slice(0, 2)
                           .map((med, index) => (
                             <div
-                              key={med.id || `med-${index}`}
+                              key={med.id || `${prescription.id}-med-${index}`}
                               className="text-sm"
                             >
                               <span className="font-medium">
@@ -437,13 +439,13 @@ export function PrescriptionsPage() {
                             +{(prescription.medications || []).length - 2} more
                           </div>
                         )}
-                      </div>
+                      </div>{" "}
                     </TableCell>
                     <TableCell>
                       <span className="text-sm text-muted-foreground">
                         {formatDate(prescription.date)}
                       </span>
-                    </TableCell>{" "}
+                    </TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(prescription.status)}>
                         {prescription.status || "Unknown"}
@@ -476,10 +478,10 @@ export function PrescriptionsPage() {
                           <DropdownMenuItem>
                             <Printer className="mr-2 h-4 w-4" />
                             Print Prescription
-                          </DropdownMenuItem>
+                          </DropdownMenuItem>{" "}
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </TableCell>{" "}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
