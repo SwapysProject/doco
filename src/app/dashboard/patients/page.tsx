@@ -65,6 +65,14 @@ export default function PatientsPage() {
   const [error, setError] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [addingPatient, setAddingPatient] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingPatient, setEditingPatient] = useState(false);
+
+  // Patient assignment state
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [availablePatients, setAvailablePatients] = useState<Patient[]>([]);
+  const [assigningPatient, setAssigningPatient] = useState(false);
+  const [assignSearchTerm, setAssignSearchTerm] = useState("");
 
   // Form state for new patient
   const [newPatient, setNewPatient] = useState({
@@ -90,13 +98,37 @@ export default function PatientsPage() {
     },
   });
 
-  // Fetch patients from MongoDB
+  // Form state for editing patient
+  const [editPatient, setEditPatient] = useState({
+    name: "",
+    age: "",
+    gender: "",
+    phone: "",
+    email: "",
+    address: "",
+    condition: "",
+    status: "stable",
+    lastVisit: "",
+    nextAppointment: "",
+    bloodType: "",
+    allergies: "",
+    medications: "",
+    vitals: {
+      bloodPressure: "",
+      heartRate: "",
+      temperature: "",
+      weight: "",
+      height: "",
+    },
+  });
+
+  // Fetch only patients assigned to the current doctor
   const fetchPatients = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("/api/patients-data", {
+      const response = await fetch("/api/my-patients", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -104,10 +136,18 @@ export default function PatientsPage() {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          setError("Please log in to view your patients.");
+          return;
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || "Failed to fetch patients");
+      }
 
       // Transform MongoDB data to match frontend expectations
       const transformedPatients = data.patients.map((patient: Patient) => ({
@@ -117,10 +157,25 @@ export default function PatientsPage() {
 
       setPatients(transformedPatients);
     } catch (error) {
-      console.error("Error fetching patients:", error);
-      setError("Failed to load patients. Please try again.");
+      console.error("Error fetching assigned patients:", error);
+      setError("Failed to load your assigned patients. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch available patients for assignment
+  const fetchAvailablePatients = async () => {
+    try {
+      const response = await fetch("/api/available-patients");
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setAvailablePatients(data.patients);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching available patients:", error);
     }
   };
 
@@ -289,6 +344,173 @@ export default function PatientsPage() {
     }
   };
 
+  // Handle assign patient modal
+  const handleAssignPatient = async () => {
+    setShowAssignModal(true);
+    await fetchAvailablePatients();
+  };
+
+  // Assign a patient to current doctor
+  const assignPatientToDoctor = async (patientId: string) => {
+    try {
+      setAssigningPatient(true);
+
+      const response = await fetch("/api/my-patients", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ patientId }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert("Patient assigned successfully!");
+        setShowAssignModal(false);
+        await fetchPatients(); // Refresh the patients list
+        await fetchAvailablePatients(); // Refresh available patients
+      } else {
+        alert(data.message || "Failed to assign patient");
+      }
+    } catch (error) {
+      console.error("Error assigning patient:", error);
+      alert("Failed to assign patient. Please try again.");
+    } finally {
+      setAssigningPatient(false);
+    }
+  };
+
+  const handleEditPatient = () => {
+    if (selectedPatient) {
+      // Populate edit form with current patient data
+      setEditPatient({
+        name: selectedPatient.name || "",
+        age: selectedPatient.age?.toString() || "",
+        gender: selectedPatient.gender || "",
+        phone: selectedPatient.phone || "",
+        email: selectedPatient.email || "",
+        address: selectedPatient.address || "",
+        condition: selectedPatient.condition || "",
+        status: selectedPatient.status || "stable",
+        lastVisit: selectedPatient.lastVisit || "",
+        nextAppointment: selectedPatient.nextAppointment || "",
+        bloodType: selectedPatient.bloodType || "",
+        allergies: selectedPatient.allergies?.join(", ") || "",
+        medications: selectedPatient.medications?.join(", ") || "",
+        vitals: {
+          bloodPressure: selectedPatient.vitals?.bloodPressure || "",
+          heartRate: selectedPatient.vitals?.heartRate || "",
+          temperature: selectedPatient.vitals?.temperature || "",
+          weight: selectedPatient.vitals?.weight || "",
+          height: selectedPatient.vitals?.height || "",
+        },
+      });
+      setShowEditModal(true);
+    }
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setEditPatient({
+      name: "",
+      age: "",
+      gender: "",
+      phone: "",
+      email: "",
+      address: "",
+      condition: "",
+      status: "stable",
+      lastVisit: "",
+      nextAppointment: "",
+      bloodType: "",
+      allergies: "",
+      medications: "",
+      vitals: {
+        bloodPressure: "",
+        heartRate: "",
+        temperature: "",
+        weight: "",
+        height: "",
+      },
+    });
+  };
+
+  const handleEditInputChange = (field: string, value: string) => {
+    if (field.startsWith("vitals.")) {
+      const vitalField = field.replace("vitals.", "");
+      setEditPatient((prev) => ({
+        ...prev,
+        vitals: {
+          ...prev.vitals,
+          [vitalField]: value,
+        },
+      }));
+    } else {
+      setEditPatient((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    }
+  };
+
+  const handleUpdatePatient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPatient) return;
+
+    try {
+      setEditingPatient(true);
+
+      // Prepare patient data
+      const patientData = {
+        ...editPatient,
+        age: parseInt(editPatient.age) || 0,
+        allergies: editPatient.allergies
+          .split(",")
+          .map((item) => item.trim())
+          .filter((item) => item),
+        medications: editPatient.medications
+          .split(",")
+          .map((item) => item.trim())
+          .filter((item) => item),
+      };
+
+      const response = await fetch(`/api/patients/${selectedPatient._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(patientData),
+      });
+
+      if (response.ok) {
+        const updatedPatient = await response.json();
+
+        // Update the patients list and selected patient
+        setPatients((prev) =>
+          prev.map((p) => (p._id === selectedPatient._id ? updatedPatient : p))
+        );
+        setSelectedPatient(updatedPatient);
+
+        alert("Patient information updated successfully!");
+        handleCloseEditModal();
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update patient");
+      }
+    } catch (error) {
+      console.error("Error updating patient:", error);
+      alert("Failed to update patient information. Please try again.");
+    } finally {
+      setEditingPatient(false);
+    }
+  };
+
+  // Filter available patients for assignment
+  const filteredAvailablePatients = availablePatients.filter((patient) =>
+    patient.name.toLowerCase().includes(assignSearchTerm.toLowerCase())
+  );
+
   // Loading state
   if (loading) {
     return (
@@ -356,7 +578,10 @@ export default function PatientsPage() {
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <button className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center space-x-2">
+                <button
+                  onClick={handleEditPatient}
+                  className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center space-x-2"
+                >
                   <Edit className="w-4 h-4" />
                   <span>Edit</span>
                 </button>
@@ -650,6 +875,13 @@ export default function PatientsPage() {
                   <span>Refresh</span>
                 </button>
                 <button
+                  onClick={handleAssignPatient}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                >
+                  <Users className="w-4 h-4" />
+                  <span>Assign Patients</span>
+                </button>
+                <button
                   onClick={handleAddPatient}
                   className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center space-x-2"
                 >
@@ -854,6 +1086,83 @@ export default function PatientsPage() {
           )}
         </div>
       </div>
+
+      {/* Assign Patients Modal */}
+      {showAssignModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <h2 className="text-xl font-semibold text-card-foreground">
+                Assign Patients to Yourself
+              </h2>
+              <button
+                onClick={() => setShowAssignModal(false)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6">
+              {/* Search */}
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search available patients..."
+                  value={assignSearchTerm}
+                  onChange={(e) => setAssignSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              {/* Available Patients List */}
+              <div className="max-h-96 overflow-y-auto">
+                {filteredAvailablePatients.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Users className="w-12 h-12 mx-auto mb-2" />
+                    <p>No available patients to assign</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {filteredAvailablePatients.map((patient) => (
+                      <div
+                        key={patient._id || patient.id}
+                        className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                            <User className="w-5 h-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-card-foreground">
+                              {patient.name}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {patient.condition} • {patient.age} years old
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() =>
+                            assignPatientToDoctor(
+                              (patient._id || patient.id) as string
+                            )
+                          }
+                          disabled={assigningPatient}
+                          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {assigningPatient ? "Assigning..." : "Assign"}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Patient Modal */}
       {showAddModal && (
@@ -1185,6 +1494,353 @@ export default function PatientsPage() {
                     <Loader2 className="w-4 h-4 animate-spin" />
                   )}
                   <span>{addingPatient ? "Adding..." : "Add Patient"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Patient Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-card border border-border rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="px-6 py-4 border-b border-border">
+              <h2 className="text-lg font-semibold text-foreground">
+                Edit Patient
+              </h2>
+            </div>
+            <form onSubmit={handleUpdatePatient} className="p-6 space-y-6">
+              {/* Basic Information */}
+              <div className="space-y-4">
+                <h3 className="text-md font-medium text-foreground">
+                  Basic Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editPatient.name}
+                      onChange={(e) =>
+                        handleEditInputChange("name", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Age *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      value={editPatient.age}
+                      onChange={(e) =>
+                        handleEditInputChange("age", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Gender *
+                    </label>
+                    <select
+                      required
+                      value={editPatient.gender}
+                      onChange={(e) =>
+                        handleEditInputChange("gender", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Blood Type
+                    </label>
+                    <select
+                      value={editPatient.bloodType}
+                      onChange={(e) =>
+                        handleEditInputChange("bloodType", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="">Select Blood Type</option>
+                      <option value="A+">A+</option>
+                      <option value="A-">A-</option>
+                      <option value="B+">B+</option>
+                      <option value="B-">B-</option>
+                      <option value="AB+">AB+</option>
+                      <option value="AB-">AB-</option>
+                      <option value="O+">O+</option>
+                      <option value="O-">O-</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="space-y-4">
+                <h3 className="text-md font-medium text-foreground">
+                  Contact Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Phone *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={editPatient.phone}
+                      onChange={(e) =>
+                        handleEditInputChange("phone", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={editPatient.email}
+                      onChange={(e) =>
+                        handleEditInputChange("email", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Address
+                  </label>
+                  <textarea
+                    value={editPatient.address}
+                    onChange={(e) =>
+                      handleEditInputChange("address", e.target.value)
+                    }
+                    rows={3}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+              </div>
+
+              {/* Medical Information */}
+              <div className="space-y-4">
+                <h3 className="text-md font-medium text-foreground">
+                  Medical Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Condition *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editPatient.condition}
+                      onChange={(e) =>
+                        handleEditInputChange("condition", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Status
+                    </label>
+                    <select
+                      value={editPatient.status}
+                      onChange={(e) =>
+                        handleEditInputChange("status", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="stable">Stable</option>
+                      <option value="monitoring">Monitoring</option>
+                      <option value="critical">Critical</option>
+                      <option value="active">Active</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Last Visit
+                    </label>
+                    <input
+                      type="date"
+                      value={editPatient.lastVisit}
+                      onChange={(e) =>
+                        handleEditInputChange("lastVisit", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Next Appointment
+                    </label>
+                    <input
+                      type="date"
+                      value={editPatient.nextAppointment}
+                      onChange={(e) =>
+                        handleEditInputChange("nextAppointment", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Allergies (comma-separated)
+                    </label>
+                    <textarea
+                      value={editPatient.allergies}
+                      onChange={(e) =>
+                        handleEditInputChange("allergies", e.target.value)
+                      }
+                      placeholder="e.g., Penicillin, Nuts, Shellfish"
+                      rows={2}
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Current Medications (comma-separated)
+                    </label>
+                    <textarea
+                      value={editPatient.medications}
+                      onChange={(e) =>
+                        handleEditInputChange("medications", e.target.value)
+                      }
+                      placeholder="e.g., Aspirin 81mg, Lisinopril 10mg"
+                      rows={2}
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Vitals */}
+              <div className="space-y-4">
+                <h3 className="text-md font-medium text-foreground">
+                  Vital Signs
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Blood Pressure
+                    </label>
+                    <input
+                      type="text"
+                      value={editPatient.vitals.bloodPressure}
+                      onChange={(e) =>
+                        handleEditInputChange(
+                          "vitals.bloodPressure",
+                          e.target.value
+                        )
+                      }
+                      placeholder="120/80"
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Heart Rate
+                    </label>
+                    <input
+                      type="text"
+                      value={editPatient.vitals.heartRate}
+                      onChange={(e) =>
+                        handleEditInputChange(
+                          "vitals.heartRate",
+                          e.target.value
+                        )
+                      }
+                      placeholder="72 bpm"
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Temperature
+                    </label>
+                    <input
+                      type="text"
+                      value={editPatient.vitals.temperature}
+                      onChange={(e) =>
+                        handleEditInputChange(
+                          "vitals.temperature",
+                          e.target.value
+                        )
+                      }
+                      placeholder="98.6°F"
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Weight
+                    </label>
+                    <input
+                      type="text"
+                      value={editPatient.vitals.weight}
+                      onChange={(e) =>
+                        handleEditInputChange("vitals.weight", e.target.value)
+                      }
+                      placeholder="150 lbs"
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Height
+                    </label>
+                    <input
+                      type="text"
+                      value={editPatient.vitals.height}
+                      onChange={(e) =>
+                        handleEditInputChange("vitals.height", e.target.value)
+                      }
+                      placeholder="5'8&quot;"
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Form Actions */}
+              <div className="flex justify-end space-x-3 pt-4 border-t border-border">
+                <button
+                  type="button"
+                  onClick={handleCloseEditModal}
+                  className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-accent transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={editingPatient}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                >
+                  {editingPatient && (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  )}
+                  <span>
+                    {editingPatient ? "Updating..." : "Update Patient"}
+                  </span>
                 </button>
               </div>
             </form>

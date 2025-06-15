@@ -165,43 +165,51 @@ export function QuickActions() {
 
   return (
     <div className="space-y-6">
-      {/* Primary Actions */}
-      <Card>
+      {/* Primary Actions with Motion */}
+      <Card className="transition-all duration-300 ease-out hover:shadow-lg group">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
-          <p className="text-sm text-muted-foreground">
+          <CardTitle className="text-lg font-semibold transition-colors duration-300 group-hover:text-blue-700">
+            Quick Actions
+          </CardTitle>
+          <p className="text-sm text-muted-foreground transition-colors duration-300 group-hover:text-blue-600">
             Frequently used functions and shortcuts
           </p>
         </CardHeader>
 
         <CardContent>
           <div className="grid grid-cols-1 gap-3">
-            {primaryActions.map((action) => {
+            {primaryActions.map((action, index) => {
               const IconComponent = action.icon;
 
               return (
                 <Button
                   key={action.id}
                   variant={action.variant}
-                  className="h-auto p-4 flex items-center justify-start gap-3"
+                  className="h-auto p-4 flex items-center justify-start gap-3 transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-md group/btn"
                   onClick={() => handleActionClick(action)}
+                  style={{
+                    animation: `slideInLeft 0.6s ease-out ${index * 100 + 200}ms both`,
+                  }}
                 >
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
-                    <IconComponent className="h-4 w-4" />
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 transition-all duration-300 ease-out group-hover/btn:bg-primary/20 group-hover/btn:scale-110 group-hover/btn:rotate-6">
+                    <IconComponent className="h-4 w-4 transition-transform duration-300 ease-out group-hover/btn:scale-110" />
                   </div>
 
-                  <div className="flex-1 text-left">
+                  <div className="flex-1 text-left transition-all duration-300 ease-out group-hover/btn:translate-x-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">
+                      <span className="font-medium text-sm transition-colors duration-300 group-hover/btn:text-blue-700">
                         {action.title}
                       </span>
                       {action.badge && (
-                        <Badge variant="secondary" className="text-xs">
-                          {action.badge}
+                        <Badge
+                          variant="secondary"
+                          className="text-xs transition-all duration-300 ease-out group-hover/btn:scale-110 group-hover/btn:bg-blue-100 group-hover/btn:text-blue-700 animate-pulse"
+                        >
+                          {action.badge}{" "}
                         </Badge>
                       )}
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground transition-colors duration-300 group-hover/btn:text-blue-600">
                       {action.description}
                     </div>
                   </div>
@@ -211,18 +219,17 @@ export function QuickActions() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Secondary Actions */}
-      <Card>
+      {/* Secondary Actions with Motion */}
+      <Card className="transition-all duration-300 ease-out hover:shadow-lg group">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">
+          <CardTitle className="text-lg font-semibold transition-colors duration-300 group-hover:text-blue-700">
             Communications
           </CardTitle>
         </CardHeader>
 
         <CardContent>
           <div className="grid grid-cols-2 gap-2">
-            {secondaryActions.map((action) => {
+            {secondaryActions.map((action, index) => {
               const IconComponent = action.icon;
 
               return (
@@ -230,20 +237,57 @@ export function QuickActions() {
                   key={action.id}
                   variant={action.variant}
                   size="sm"
-                  className="h-auto p-3 flex flex-col items-center gap-2 relative"
+                  className="h-auto p-3 flex flex-col items-center gap-2 relative transition-all duration-300 ease-out hover:scale-105 hover:shadow-md group/btn"
                   onClick={() => handleActionClick(action)}
+                  style={{
+                    animation: `scaleIn 0.6s ease-out ${index * 100 + 600}ms both`,
+                  }}
                 >
                   {action.badge && (
                     <Badge
                       variant="destructive"
-                      className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
+                      className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center transition-all duration-300 ease-out group-hover/btn:scale-125 group-hover/btn:animate-bounce"
                     >
                       {action.badge}
                     </Badge>
                   )}
 
-                  <IconComponent className="h-5 w-5" />
-                  <span className="text-xs font-medium text-center">
+                  <IconComponent className="h-5 w-5 transition-all duration-300 ease-out group-hover/btn:scale-110 group-hover/btn:rotate-12" />
+                  <span className="text-xs font-medium text-center transition-colors duration-300 group-hover/btn:text-blue-700">
+                    {action.title}
+                  </span>
+                </Button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>{" "}
+      {/* Utility Actions with Motion */}
+      <Card className="transition-all duration-300 ease-out hover:shadow-lg group">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold transition-colors duration-300 group-hover:text-blue-700">
+            Utilities
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <div className="space-y-2">
+            {utilityActions.map((action, index) => {
+              const IconComponent = action.icon;
+
+              return (
+                <Button
+                  key={action.id}
+                  variant={action.variant}
+                  size="sm"
+                  className="w-full justify-start gap-2 transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-md group/btn"
+                  onClick={() => handleActionClick(action)}
+                  style={{
+                    animation: `slideInRight 0.6s ease-out ${index * 100 + 1000}ms both`,
+                  }}
+                >
+                  <IconComponent className="h-4 w-4 transition-all duration-300 ease-out group-hover/btn:scale-110 group-hover/btn:rotate-6" />
+                  <span className="text-sm transition-all duration-300 ease-out group-hover/btn:translate-x-1 group-hover/btn:text-blue-700">
                     {action.title}
                   </span>
                 </Button>
@@ -252,52 +296,32 @@ export function QuickActions() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Utility Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">Utilities</CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          <div className="space-y-2">
-            {utilityActions.map((action) => {
-              const IconComponent = action.icon;
-
-              return (
-                <Button
-                  key={action.id}
-                  variant={action.variant}
-                  size="sm"
-                  className="w-full justify-start gap-2"
-                  onClick={() => handleActionClick(action)}
-                >
-                  <IconComponent className="h-4 w-4" />
-                  <span className="text-sm">{action.title}</span>
-                </Button>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Emergency Contact */}
-      <Card className="border-red-200 bg-red-50/50">
+      {/* Emergency Contact with Motion */}
+      <Card
+        className="border-red-200 bg-red-50/50 transition-all duration-300 ease-out hover:shadow-lg hover:scale-[1.02] group"
+        style={{ animation: "scaleIn 0.6s ease-out 1.4s both" }}
+      >
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-red-100">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-red-100 transition-all duration-300 ease-out group-hover:bg-red-200 group-hover:scale-110 group-hover:rotate-12">
+              <AlertTriangle className="h-5 w-5 text-red-600 transition-all duration-300 ease-out group-hover:scale-110 animate-pulse" />
             </div>
-            <div className="flex-1">
-              <div className="text-sm font-medium text-red-800">
+            <div className="flex-1 transition-all duration-300 ease-out group-hover:translate-x-1">
+              <div className="text-sm font-medium text-red-800 transition-colors duration-300 group-hover:text-red-900">
                 Emergency Contact
               </div>
-              <div className="text-xs text-red-600">
+              <div className="text-xs text-red-600 transition-colors duration-300 group-hover:text-red-700">
                 Call 911 or use hospital hotline
               </div>
             </div>
-            <Button variant="destructive" size="sm">
-              Call
+            <Button
+              variant="destructive"
+              size="sm"
+              className="transition-all duration-300 ease-out hover:scale-110 hover:shadow-lg group/emergency"
+            >
+              <span className="transition-transform duration-300 ease-out group-hover/emergency:scale-105">
+                Call
+              </span>
             </Button>
           </div>
         </CardContent>

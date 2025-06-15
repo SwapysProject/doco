@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import {
   Phone,
   User,
   MoreHorizontal,
+  Loader2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -35,80 +37,21 @@ type AppointmentStatus =
  * Appointment data interface
  */
 interface Appointment {
-  id: string;
+  _id: string;
+  appointmentId?: string;
   patientName: string;
   patientId: string;
+  date: string;
   time: string;
-  duration: number; // in minutes
+  duration?: number; // in minutes
   type: AppointmentType;
   status: AppointmentStatus;
-  location: string;
+  location?: string;
   isVirtual?: boolean;
   notes?: string;
   avatar?: string;
+  doctorId: string;
 }
-
-/**
- * Mock appointment data for demonstration
- */
-const upcomingAppointments: Appointment[] = [
-  {
-    id: "A001",
-    patientName: "Sarah Johnson",
-    patientId: "P001",
-    time: "09:00",
-    duration: 30,
-    type: "consultation",
-    status: "confirmed",
-    location: "Room A-102",
-    notes: "Routine checkup",
-  },
-  {
-    id: "A002",
-    patientName: "Michael Chen",
-    patientId: "P002",
-    time: "09:30",
-    duration: 45,
-    type: "follow-up",
-    status: "scheduled",
-    location: "Room A-105",
-    notes: "Post-surgery follow-up",
-  },
-  {
-    id: "A003",
-    patientName: "Emily Rodriguez",
-    patientId: "P003",
-    time: "10:15",
-    duration: 30,
-    type: "consultation",
-    status: "confirmed",
-    location: "Virtual",
-    isVirtual: true,
-    notes: "Diabetes management review",
-  },
-  {
-    id: "A004",
-    patientName: "James Wilson",
-    patientId: "P004",
-    time: "11:00",
-    duration: 60,
-    type: "surgery",
-    status: "scheduled",
-    location: "OR-2",
-    notes: "Minor surgical procedure",
-  },
-  {
-    id: "A005",
-    patientName: "Lisa Thompson",
-    patientId: "P005",
-    time: "14:00",
-    duration: 30,
-    type: "follow-up",
-    status: "confirmed",
-    location: "Room B-201",
-    notes: "Treatment progress review",
-  },
-];
 
 /**
  * Returns the appropriate appointment type badge styling
@@ -187,8 +130,80 @@ function getStatusBadge(status: AppointmentStatus) {
  * - Status tracking and management
  */
 export function UpcomingAppointments() {
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const currentTime = new Date();
   const todayString = currentTime.toDateString();
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch("/api/upcoming-appointments", {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch appointments: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setAppointments(data.appointments || []);
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch appointments"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAppointments();
+  }, []);
+
+  // Filter for today's appointments
+  const todayAppointments = appointments.filter((appointment) => {
+    const appointmentDate = new Date(appointment.date);
+    const today = new Date();
+    return appointmentDate.toDateString() === today.toDateString();
+  });
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Loading appointments...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <p className="text-destructive mb-2">Error loading appointments</p>
+            <p className="text-sm text-muted-foreground">{error}</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -199,7 +214,7 @@ export function UpcomingAppointments() {
             Today&apos;s Appointments
           </CardTitle>
           <p className="text-sm text-muted-foreground mt-1">
-            {todayString} • {upcomingAppointments.length} appointments scheduled
+            {todayString} • {todayAppointments.length} appointments scheduled
           </p>
         </div>
         <Button variant="outline" size="sm">
@@ -208,130 +223,149 @@ export function UpcomingAppointments() {
       </CardHeader>
 
       <CardContent>
-        <div className="space-y-4">
-          {upcomingAppointments.map((appointment) => (
-            <div
-              key={appointment.id}
-              className="flex items-center gap-4 p-4 rounded-lg border bg-muted/25 hover:bg-muted/50 transition-colors"
-            >
-              {/* Time Column */}
-              <div className="flex flex-col items-center min-w-[80px] text-center">
-                <div className="text-lg font-semibold text-foreground">
-                  {appointment.time}
-                </div>
-                <div className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {appointment.duration}min
-                </div>
-              </div>
-
-              {/* Patient Info */}
-              <div className="flex items-center gap-3 flex-1">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage
-                    src={appointment.avatar || `/api/placeholder/40/40`}
-                    alt={appointment.patientName}
-                  />
-                  <AvatarFallback className="text-sm">
-                    {appointment.patientName
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </AvatarFallback>
-                </Avatar>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium text-foreground truncate">
-                      {appointment.patientName}
-                    </h4>
-                    {getAppointmentTypeBadge(appointment.type)}
+        {todayAppointments.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p>No appointments scheduled for today</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {todayAppointments.map((appointment) => (
+              <div
+                key={appointment._id}
+                className="flex items-center gap-4 p-4 rounded-lg border bg-muted/25 hover:bg-muted/50 transition-colors"
+              >
+                {/* Time Column */}
+                <div className="flex flex-col items-center min-w-[80px] text-center">
+                  <div className="text-lg font-semibold text-foreground">
+                    {appointment.time}
                   </div>
-
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <User className="h-3 w-3" />
-                      {appointment.patientId}
-                    </span>
-
-                    <span className="flex items-center gap-1">
-                      {appointment.isVirtual ? (
-                        <>
-                          <Video className="h-3 w-3" />
-                          Virtual Meeting
-                        </>
-                      ) : (
-                        <>
-                          <MapPin className="h-3 w-3" />
-                          {appointment.location}
-                        </>
-                      )}
-                    </span>
+                  <div className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {appointment.duration || 30}min
                   </div>
-
-                  {appointment.notes && (
-                    <p className="text-xs text-muted-foreground mt-1 truncate">
-                      {appointment.notes}
-                    </p>
-                  )}
                 </div>
-              </div>
 
-              {/* Status and Actions */}
-              <div className="flex items-center gap-3">
-                {getStatusBadge(appointment.status)}
+                {/* Patient Info */}
+                <div className="flex items-center gap-3 flex-1">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage
+                      src={appointment.avatar || `/api/placeholder/40/40`}
+                      alt={appointment.patientName}
+                    />
+                    <AvatarFallback className="text-sm">
+                      {appointment.patientName
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                    </AvatarFallback>
+                  </Avatar>
 
-                <div className="flex gap-1">
-                  {appointment.isVirtual ? (
-                    <Button size="sm" variant="outline" className="h-8 w-8 p-0">
-                      <Video className="h-4 w-4" />
-                    </Button>
-                  ) : (
-                    <Button size="sm" variant="outline" className="h-8 w-8 p-0">
-                      <Phone className="h-4 w-4" />
-                    </Button>
-                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-medium text-foreground truncate">
+                        {appointment.patientName}
+                      </h4>
+                      {getAppointmentTypeBadge(appointment.type)}
+                    </div>
 
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        {appointment.patientId}
+                      </span>
+
+                      <span className="flex items-center gap-1">
+                        {appointment.isVirtual ? (
+                          <>
+                            <Video className="h-3 w-3" />
+                            Virtual Meeting
+                          </>
+                        ) : (
+                          <>
+                            <MapPin className="h-3 w-3" />
+                            {appointment.location || "Office"}
+                          </>
+                        )}
+                      </span>
+                    </div>
+
+                    {appointment.notes && (
+                      <p className="text-xs text-muted-foreground mt-1 truncate">
+                        {appointment.notes}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Status and Actions */}
+                <div className="flex items-center gap-3">
+                  {getStatusBadge(appointment.status)}
+
+                  <div className="flex gap-1">
+                    {appointment.isVirtual ? (
                       <Button
                         size="sm"
                         variant="outline"
                         className="h-8 w-8 p-0"
                       >
-                        <MoreHorizontal className="h-4 w-4" />
+                        <Video className="h-4 w-4" />
                       </Button>
-                    </DropdownMenuTrigger>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 w-8 p-0"
+                      >
+                        <Phone className="h-4 w-4" />
+                      </Button>
+                    )}
 
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>Start Appointment</DropdownMenuItem>
-                      <DropdownMenuItem>Reschedule</DropdownMenuItem>
-                      <DropdownMenuItem>View Patient Details</DropdownMenuItem>
-                      <DropdownMenuItem>Add Notes</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
-                        Cancel Appointment
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 w-8 p-0"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>Start Appointment</DropdownMenuItem>
+                        <DropdownMenuItem>Reschedule</DropdownMenuItem>
+                        <DropdownMenuItem>
+                          View Patient Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>Add Notes</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive">
+                          Cancel Appointment
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Schedule Summary */}
-        <div className="mt-6 pt-4 border-t">
-          <div className="flex items-center justify-between text-sm">
-            <div className="text-muted-foreground">
-              Total appointments today: {upcomingAppointments.length}
-            </div>
-            <div className="flex gap-4 text-muted-foreground">
-              <span>Next: {upcomingAppointments[0]?.time || "None"}</span>
-              <span>•</span>
-              <span>Free time: 12:00 - 13:00</span>
+        {todayAppointments.length > 0 && (
+          <div className="mt-6 pt-4 border-t">
+            <div className="flex items-center justify-between text-sm">
+              <div className="text-muted-foreground">
+                Total appointments today: {todayAppointments.length}
+              </div>
+              <div className="flex gap-4 text-muted-foreground">
+                <span>Next: {todayAppointments[0]?.time || "None"}</span>
+                <span>•</span>
+                <span>Free time: 12:00 - 13:00</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );

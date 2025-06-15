@@ -1,425 +1,537 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import type { JSX } from 'react';
-import { Send, Search, Phone, Video, MoreVertical, User, Stethoscope, Check, CheckCheck } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Send,
+  Search,
+  Stethoscope,
+  Loader2,
+  MessageSquare,
+} from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Type definitions
-interface Contact {
-  id: number;
+interface Doctor {
+  _id: string;
   name: string;
-  type: 'doctor' | 'patient';
-  specialty?: string;
-  age?: number;
-  avatar?: string | null;
-  lastMessage: string;
-  lastMessageTime: string;
-  unreadCount: number;
+  email: string;
+  specialization: string;
   isOnline: boolean;
+  lastSeen?: string;
 }
 
 interface Message {
-  id: number;
-  senderId: number | string;
-  senderName: string;
+  _id: string;
+  senderId: string;
+  receiverId: string;
   message: string;
-  timestamp: string;
-  isOwn: boolean;
-  status: 'sent' | 'delivered' | 'read';
+  createdAt: string;
+  isRead: boolean;
+  senderName?: string;
 }
 
-interface MessagesState {
-  [contactId: number]: Message[];
+interface Conversation {
+  doctorId: string;
+  doctorName: string;
+  specialization: string;
+  isOnline: boolean;
+  lastMessage: string;
+  lastMessageTime: string;
+  unreadCount: number;
 }
 
 const MessagesPage: React.FC = () => {
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  const [messageInput, setMessageInput] = useState<string>('');
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [messages, setMessages] = useState<MessagesState>({});
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  const [messageInput, setMessageInput] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null); // Simple connection state (replacing useSimplePolling)
+  const [isConnected, setIsConnected] = useState(true);
 
-  // Mock data for contacts
-  const [contacts] = useState<Contact[]>([
-    {
-      id: 1,
-      name: 'Dr. Sarah Johnson',
-      type: 'doctor',
-      specialty: 'Cardiologist',
-      avatar: null,
-      lastMessage: 'The patient\'s ECG results look concerning',
-      lastMessageTime: '2 min ago',
-      unreadCount: 2,
-      isOnline: true
-    },
-    {
-      id: 2,
-      name: 'John Smith',
-      type: 'patient',
-      age: 45,
-      avatar: null,
-      lastMessage: 'Thank you for the prescription',
-      lastMessageTime: '1 hour ago',
-      unreadCount: 0,
-      isOnline: false
-    },
-    {
-      id: 3,
-      name: 'Dr. Michael Chen',
-      type: 'doctor',
-      specialty: 'Neurologist',
-      avatar: null,
-      lastMessage: 'Can we schedule a consultation?',
-      lastMessageTime: '3 hours ago',
-      unreadCount: 1,
-      isOnline: true
-    },
-    {
-      id: 4,
-      name: 'Emily Davis',
-      type: 'patient',
-      age: 32,
-      avatar: null,
-      lastMessage: 'My symptoms are getting better',
-      lastMessageTime: 'Yesterday',
-      unreadCount: 0,
-      isOnline: false
-    },
-    {
-      id: 5,
-      name: 'Dr. Lisa Wang',
-      type: 'doctor',
-      specialty: 'Pediatrician',
-      avatar: null,
-      lastMessage: 'The child responded well to treatment',
-      lastMessageTime: '2 days ago',
-      unreadCount: 0,
-      isOnline: false
+  // Simple polling for new messages
+  useEffect(() => {
+    if (!selectedDoctor || !user) return;
+
+    const pollForMessages = async () => {
+      try {
+        const response = await fetch(
+          `/api/doctor-messages?with=${selectedDoctor._id}&since=${Date.now() - 30000}`,
+          {
+            credentials: "include",
+          }
+        );
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.messages?.length > 0) {
+            setMessages((prev) => {
+              const newMessages = data.messages.filter(
+                (msg: Message) =>
+                  !prev.some((existingMsg) => existingMsg._id === msg._id)
+              );
+              return [...prev, ...newMessages].sort(
+                (a, b) =>
+                  new Date(a.createdAt).getTime() -
+                  new Date(b.createdAt).getTime()
+              );
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error polling for messages:", error);
+      }
+    };
+
+    const interval = setInterval(pollForMessages, 5000); // Poll every 5 seconds
+    return () => clearInterval(interval);
+  }, [selectedDoctor, user]);
+
+  // Simple functions (replacing useSimplePolling methods)
+  const joinConversation = (doctorId: string) => {
+    console.log("Joining conversation with:", doctorId);
+  };
+
+  const leaveConversation = () => {
+    console.log("Leaving conversation");
+  };
+
+  const pollingSendMessage = async (messageData: any) => {
+    // This will be handled by the regular sendMessage function
+    return true;
+  };
+  // Fetch all doctors for messaging
+  const fetchDoctors = async () => {
+    try {
+      console.log("Fetching doctors for messaging...");
+      const response = await fetch("/api/doctors/list");
+      console.log("Response status:", response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Doctors API response:", data);
+
+        if (data.success) {
+          console.log("Setting doctors:", data.doctors);
+          setDoctors(data.doctors);
+        } else {
+          console.error("Doctors API returned success: false", data.message);
+        }
+      } else {
+        console.error("Doctors API request failed:", response.status);
+      }
+    } catch (error) {
+      console.error("Error fetching doctors:", error);
     }
-  ]);
+  };
 
-  // Mock messages data
-  const [mockMessages] = useState<MessagesState>({
-    1: [
-      {
-        id: 1,
-        senderId: 1,
-        senderName: 'Dr. Sarah Johnson',
-        message: 'Hi! I wanted to discuss the patient case we reviewed earlier.',
-        timestamp: '10:30 AM',
-        isOwn: false,
-        status: 'read'
-      },
-      {
-        id: 2,
-        senderId: 'current',
-        senderName: 'You',
-        message: 'Yes, the ECG results were quite interesting. What\'s your assessment?',
-        timestamp: '10:32 AM',
-        isOwn: true,
-        status: 'read'
-      },
-      {
-        id: 3,
-        senderId: 1,
-        senderName: 'Dr. Sarah Johnson',
-        message: 'The patient\'s ECG results look concerning. I think we should consider immediate intervention.',
-        timestamp: '10:35 AM',
-        isOwn: false,
-        status: 'read'
+  // Fetch conversations
+  const fetchConversations = async () => {
+    try {
+      const response = await fetch("/api/doctor-messages");
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setConversations(data.conversations || []);
+        }
       }
-    ],
-    2: [
-      {
-        id: 1,
-        senderId: 2,
-        senderName: 'John Smith',
-        message: 'Hello Doctor, I have a question about my medication.',
-        timestamp: '9:00 AM',
-        isOwn: false,
-        status: 'read'
-      },
-      {
-        id: 2,
-        senderId: 'current',
-        senderName: 'You',
-        message: 'Hello John! I\'m happy to help. What would you like to know?',
-        timestamp: '9:15 AM',
-        isOwn: true,
-        status: 'read'
-      },
-      {
-        id: 3,
-        senderId: 2,
-        senderName: 'John Smith',
-        message: 'Thank you for the prescription. Should I take it with food?',
-        timestamp: '11:00 AM',
-        isOwn: false,
-        status: 'read'
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+    }
+  };
+
+  // Fetch messages with a specific doctor
+  const fetchMessages = async (doctorId: string) => {
+    try {
+      const response = await fetch(`/api/doctor-messages?with=${doctorId}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setMessages(data.messages || []);
+          scrollToBottom();
+        }
       }
-    ]
-  });
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+    }
+  };
+
+  // Send a message  // Send a message using the new polling approach
+  const sendMessage = async () => {
+    if (!messageInput.trim() || !selectedDoctor || sendingMessage || !user)
+      return;
+
+    setSendingMessage(true);
+    try {
+      console.log(
+        "🚀 Sending message to:",
+        selectedDoctor.name,
+        "(",
+        selectedDoctor._id,
+        ")"
+      );
+
+      // Use the polling hook's sendMessage which handles polling automatically
+      const result = await pollingSendMessage(
+        selectedDoctor._id,
+        messageInput.trim()
+      );
+
+      if (result?.success) {
+        console.log("✅ Message sent successfully, intensive polling started");
+        setMessageInput("");
+        // Refresh conversations to update unread counts
+        await fetchConversations();
+      } else {
+        console.error("❌ Failed to send message");
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  // Mark messages as read
+  const markAsRead = async (doctorId: string) => {
+    try {
+      await fetch("/api/doctor-messages", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          conversationWith: doctorId,
+        }),
+      });
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+    }
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+  const handleDoctorSelect = async (doctor: Doctor) => {
+    if (!user) return;
+
+    // Leave previous conversation room if any
+    if (selectedDoctor) {
+      leaveConversation();
+    }
+
+    setSelectedDoctor(doctor);
+
+    // Join new conversation room
+    joinConversation([user.id, doctor._id]);
+
+    await fetchMessages(doctor._id);
+    await markAsRead(doctor._id);
+    await fetchConversations(); // Refresh to update unread count
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
 
   useEffect(() => {
-    setMessages(mockMessages);
-  }, [mockMessages]);
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([fetchDoctors(), fetchConversations()]);
+      setLoading(false);
+    };
+    loadData();
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [selectedContact, messages]);
+  }, [messages]);
+  const filteredDoctors = doctors.filter((doctor) => {
+    const matchesName = doctor.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesSpecialization = doctor.specialization
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
 
-  const scrollToBottom = (): void => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+    console.log(
+      `Doctor: ${doctor.name}, Specialization: ${doctor.specialization}, Search: "${searchTerm}", MatchesName: ${matchesName}, MatchesSpecialization: ${matchesSpecialization}`
+    );
 
-  const filteredContacts = contacts.filter((contact: Contact) =>
-    contact.name.toLowerCase().includes(searchTerm.toLowerCase())
+    return matchesName || matchesSpecialization;
+  });
+
+  console.log(
+    `Total doctors: ${doctors.length}, Filtered doctors: ${filteredDoctors.length}, Search term: "${searchTerm}"`
+  );
+  console.log(
+    "All doctors:",
+    doctors.map((d) => ({ name: d.name, specialization: d.specialization }))
   );
 
-  const handleSendMessage = (): void => {
-    if (!messageInput.trim() || !selectedContact) return;
-
-    const newMessage: Message = {
-      id: Date.now(),
-      senderId: 'current',
-      senderName: 'You',
-      message: messageInput,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      isOwn: true,
-      status: 'sent'
-    };
-
-    setMessages((prev: MessagesState) => ({
-      ...prev,
-      [selectedContact.id]: [...(prev[selectedContact.id] || []), newMessage]
-    }));
-
-    setMessageInput('');
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  const getContactIcon = (contact: Contact): JSX.Element => {
-    if (contact.type === 'doctor') {
-      return <Stethoscope className="w-4 h-4 text-blue-500" />;
-    }
-    return <User className="w-4 h-4 text-green-500" />;
-  };
-
-  const getMessageStatus = (status: Message['status']): JSX.Element | null => {
-    switch (status) {
-      case 'sent':
-        return <Check className="w-3 h-3 text-muted-foreground" />;
-      case 'delivered':
-        return <CheckCheck className="w-3 h-3 text-muted-foreground" />;
-      case 'read':
-        return <CheckCheck className="w-3 h-3 text-blue-500" />;
-      default:
-        return null;
-    }
-  };
-
-  const handleContactSelect = (contact: Contact): void => {
-    setSelectedContact(contact);
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleMessageInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
-    setMessageInput(e.target.value);
-  };
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex h-screen items-center justify-center">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Loading messages...</span>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
-    <>
     <DashboardLayout>
-    <div className="flex h-screen bg-background">
-      {/* Contacts Sidebar */}
-      <div className="w-80 border-r border-border flex flex-col bg-card">
-        {/* Header */}
-        <div className="p-4 border-b border-border">
-          <h1 className="text-xl font-semibold text-foreground mb-4">Messages</h1>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search contacts..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="w-full pl-10 pr-4 py-2 bg-input border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-foreground placeholder-muted-foreground"
-            />
-          </div>
-        </div>
+      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+        {/* Sidebar - Doctor List */}
+        <div className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+          {" "}
+          {/* Header */}
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Doctor Messages
+              </h1>
 
-        {/* Contacts List */}
-        <div className="flex-1 overflow-y-auto">
-          {filteredContacts.map((contact: Contact) => (
-            <div
-              key={contact.id}
-              onClick={() => handleContactSelect(contact)}
-              className={`p-4 border-b border-border cursor-pointer transition-colors hover:bg-accent ${
-                selectedContact?.id === contact.id ? 'bg-accent' : ''
-              }`}
-            >
-              <div className="flex items-start space-x-3">
-                <div className="relative">
-                  <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center">
-                    {getContactIcon(contact)}
-                  </div>
-                  {contact.isOnline && (
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-background rounded-full" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-foreground truncate">{contact.name}</h3>
-                    <span className="text-xs text-muted-foreground">{contact.lastMessageTime}</span>
-                  </div>
-                  <div className="flex items-center justify-between mt-1">
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        {contact.type === 'doctor' ? contact.specialty : `Patient, ${contact.age}y`}
-                      </p>
-                      <p className="text-sm text-muted-foreground truncate mt-1">{contact.lastMessage}</p>
-                    </div>
-                    {contact.unreadCount > 0 && (
-                      <span className="bg-primary text-primary-foreground text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                        {contact.unreadCount}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Chat Area */}
-      <div className="flex-1 flex flex-col">
-        {selectedContact ? (
-          <>
-            {/* Chat Header */}
-            <div className="p-4 border-b border-border bg-card flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="relative">
-                  <div className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center">
-                    {getContactIcon(selectedContact)}
-                  </div>
-                  {selectedContact.isOnline && (
-                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-background rounded-full" />
-                  )}
-                </div>
-                <div>
-                  <h2 className="font-medium text-foreground">{selectedContact.name}</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedContact.type === 'doctor' 
-                      ? selectedContact.specialty 
-                      : `Patient, ${selectedContact.age} years old`}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button 
-                  type="button"
-                  className="p-2 hover:bg-accent rounded-full transition-colors"
-                  aria-label="Start voice call"
-                >
-                  <Phone className="w-5 h-5 text-muted-foreground" />
-                </button>
-                <button 
-                  type="button"
-                  className="p-2 hover:bg-accent rounded-full transition-colors"
-                  aria-label="Start video call"
-                >
-                  <Video className="w-5 h-5 text-muted-foreground" />
-                </button>
-                <button 
-                  type="button"
-                  className="p-2 hover:bg-accent rounded-full transition-colors"
-                  aria-label="More options"
-                >
-                  <MoreVertical className="w-5 h-5 text-muted-foreground" />
-                </button>
-              </div>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {(messages[selectedContact.id] || []).map((message: Message) => (
+              {/* WebSocket Connection Status */}
+              <div
+                className={`flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-medium ${
+                  isConnected
+                    ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
+                    : "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
+                }`}
+              >
                 <div
-                  key={message.id}
-                  className={`flex ${message.isOwn ? 'justify-end' : 'justify-start'}`}
-                >
+                  className={`w-2 h-2 rounded-full ${
+                    isConnected ? "bg-green-500" : "bg-red-500"
+                  }`}
+                ></div>
+                <span>{isConnected ? "Smart Polling" : "Offline"}</span>
+              </div>
+            </div>
+
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <input
+                type="text"
+                placeholder="Search doctors..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              />
+            </div>
+          </div>
+          {/* Debug Section - Remove this in production */}
+          <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg mb-4">
+            <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-2">
+              Debug Info:
+            </h3>
+            <p className="text-xs text-yellow-700 dark:text-yellow-300">
+              Total doctors: {doctors.length} | Filtered:{" "}
+              {filteredDoctors.length} | Search: &quot;{searchTerm}&quot;
+            </p>
+            {doctors.length > 0 && (
+              <div className="mt-2">
+                <p className="text-xs text-yellow-700 dark:text-yellow-300">
+                  Sample doctors:
+                </p>
+                <ul className="text-xs text-yellow-600 dark:text-yellow-400">
+                  {doctors.slice(0, 3).map((d) => (
+                    <li key={d._id}>
+                      • {d.name} ({d.specialization})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+          {/* Doctor List */}
+          <div className="flex-1 overflow-y-auto">
+            {filteredDoctors.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                <MessageSquare className="h-12 w-12 mb-4" />
+                <p>No doctors found</p>
+              </div>
+            ) : (
+              filteredDoctors.map((doctor) => {
+                const conversation = conversations.find(
+                  (c) => c.doctorId === doctor._id
+                );
+                return (
                   <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                      message.isOwn
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-secondary text-foreground'
+                    key={doctor._id}
+                    onClick={() => handleDoctorSelect(doctor)}
+                    className={`p-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                      selectedDoctor?._id === doctor._id
+                        ? "bg-blue-50 dark:bg-blue-900/20 border-r-2 border-r-blue-500"
+                        : ""
                     }`}
                   >
-                    <p className="text-sm">{message.message}</p>
-                    <div className={`flex items-center justify-end mt-1 space-x-1 ${
-                      message.isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                    }`}>
-                      <span className="text-xs">{message.timestamp}</span>
-                      {message.isOwn && getMessageStatus(message.status)}
+                    <div className="flex items-center space-x-3">
+                      <div className="relative">
+                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                          <Stethoscope className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        {doctor.isOnline && (
+                          <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                            Dr. {doctor.name}
+                          </p>{" "}
+                          {conversation && conversation.unreadCount > 0 && (
+                            <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-blue-600 rounded-full">
+                              {conversation.unreadCount}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {doctor.specialization}
+                        </p>
+                        {conversation && (
+                          <p className="text-xs text-gray-400 dark:text-gray-500 truncate mt-1">
+                            {conversation.lastMessage}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
+                );
+              })
+            )}
+          </div>
+        </div>
 
-            {/* Message Input */}
-            <div className="p-4 border-t border-border bg-card">
-              <div className="flex items-end space-x-2">
-                <div className="flex-1">
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col">
+          {selectedDoctor ? (
+            <>
+              {/* Chat Header */}
+              <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="relative">
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                      <Stethoscope className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    {selectedDoctor.isOnline && (
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
+                    )}
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Dr. {selectedDoctor.name}
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {selectedDoctor.specialization} •{" "}
+                      {selectedDoctor.isOnline ? "Online" : "Offline"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900">
+                {messages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                    <MessageSquare className="h-12 w-12 mb-4" />
+                    <p>No messages yet. Start a conversation!</p>
+                  </div>
+                ) : (
+                  messages.map((message) => {
+                    const isOwn = message.senderId !== selectedDoctor._id;
+                    return (
+                      <div
+                        key={message._id}
+                        className={`flex ${
+                          isOwn ? "justify-end" : "justify-start"
+                        }`}
+                      >
+                        <div
+                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                            isOwn
+                              ? "bg-blue-600 text-white"
+                              : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700"
+                          }`}
+                        >
+                          <p className="text-sm">{message.message}</p>
+                          <p
+                            className={`text-xs mt-1 ${
+                              isOwn
+                                ? "text-blue-100"
+                                : "text-gray-500 dark:text-gray-400"
+                            }`}
+                          >
+                            {new Date(message.createdAt).toLocaleTimeString(
+                              [],
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Message Input */}
+              <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
+                <div className="flex space-x-3">
                   <textarea
                     value={messageInput}
-                    onChange={handleMessageInputChange}
+                    onChange={(e) => setMessageInput(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Type a message..."
+                    placeholder={`Message Dr. ${selectedDoctor.name}...`}
                     rows={1}
-                    className="w-full px-4 py-2 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground placeholder-muted-foreground resize-none"
-                    style={{ minHeight: '44px', maxHeight: '120px' }}
+                    className="flex-1 resize-none border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                   />
+                  <button
+                    onClick={sendMessage}
+                    disabled={!messageInput.trim() || sendingMessage}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                  >
+                    {sendingMessage ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleSendMessage}
-                  disabled={!messageInput.trim()}
-                  className="p-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  aria-label="Send message"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
+              </div>
+            </>
+          ) : (
+            // No doctor selected
+            <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+              <div className="text-center text-gray-500 dark:text-gray-400">
+                <MessageSquare className="h-12 w-12 mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">
+                  Select a doctor to start messaging
+                </h3>
+                <p>
+                  Choose a colleague from the sidebar to begin your conversation
+                </p>
               </div>
             </div>
-          </>
-        ) : (
-          /* No Chat Selected */
-          <div className="flex-1 flex items-center justify-center bg-muted/20">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
-                <Send className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <h2 className="text-xl font-medium text-foreground mb-2">Select a conversation</h2>
-              <p className="text-muted-foreground">Choose a contact to start messaging</p>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
     </DashboardLayout>
-    </>
   );
 };
 

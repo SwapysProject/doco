@@ -2,7 +2,7 @@
 
 import { ReactNode } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { DashboardSidebar } from "./dashboard-sidebar";
+import { DashboardSidebar } from "./sidebar-clean";
 import { DashboardHeader } from "./dashboard-header";
 
 interface DashboardLayoutProps {

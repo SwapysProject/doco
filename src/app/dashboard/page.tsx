@@ -11,32 +11,57 @@ export default function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Page Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">
+        {/* Enhanced Page Header with Motion */}
+        <div className="group" style={{ animation: "slideInUp 0.6s ease-out" }}>
+          <h1 className="text-3xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-blue-700 group-hover:scale-105">
             Doctor Dashboard
-          </h1>{" "}
-          <p className="text-muted-foreground">
+          </h1>
+          <p className="text-muted-foreground transition-all duration-300 ease-out group-hover:text-blue-600 group-hover:translate-x-2">
             Welcome back, Dr. Smith. Here&apos;s your patient overview for
             today.
           </p>
         </div>
 
-        {/* Dashboard Stats */}
-        <DashboardStats />
+        {/* Dashboard Stats with Stagger Animation */}
+        <div style={{ animation: "slideInUp 0.6s ease-out 0.2s both" }}>
+          <DashboardStats />
+        </div>
 
-        {/* Main Dashboard Grid */}
-        <div className="grid gap-6 lg:grid-cols-3">
+        {/* Main Dashboard Grid with Enhanced Motion */}
+        <div
+          className="grid gap-6 lg:grid-cols-3"
+          style={{ animation: "slideInUp 0.6s ease-out 0.4s both" }}
+        >
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            <RecentPatients />
-            <UpcomingAppointments />
+            <div
+              className="transition-all duration-300 ease-out hover:scale-[1.01]"
+              style={{ animation: "slideInLeft 0.6s ease-out 0.6s both" }}
+            >
+              <RecentPatients />
+            </div>
+            <div
+              className="transition-all duration-300 ease-out hover:scale-[1.01]"
+              style={{ animation: "slideInLeft 0.6s ease-out 0.8s both" }}
+            >
+              <UpcomingAppointments />
+            </div>
           </div>
 
           {/* Right Column - Sidebar */}
           <div className="space-y-6">
-            <QuickActions />
-            <PatientOverview />
+            <div
+              className="transition-all duration-300 ease-out hover:scale-[1.02]"
+              style={{ animation: "slideInRight 0.6s ease-out 1.0s both" }}
+            >
+              <QuickActions />
+            </div>
+            <div
+              className="transition-all duration-300 ease-out hover:scale-[1.02]"
+              style={{ animation: "slideInRight 0.6s ease-out 1.2s both" }}
+            >
+              <PatientOverview />
+            </div>
           </div>
         </div>
       </div>

@@ -30,6 +30,7 @@ export interface Medication {
  */
 export interface Prescription {
   id: string;
+  _id?: string; // MongoDB ObjectId
   patientId: string;
   patientName: string;
   doctorId: string;
