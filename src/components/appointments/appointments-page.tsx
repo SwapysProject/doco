@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar,
   Clock,
@@ -16,6 +17,8 @@ import {
   Eye,
   Edit,
   Trash2,
+  Activity,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -108,11 +111,16 @@ interface ApiAppointment {
 
 interface ApiPatient {
   _id: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
+  first_name?: string;
+  last_name?: string;
+  name?: string;
   phone?: string;
+  phoneNumber?: string;
   email?: string;
-  dateOfBirth: string;
+  dateOfBirth?: string;
+  dob?: string;
 }
 
 interface AddAppointmentModalProps {
@@ -143,6 +151,33 @@ function AddAppointmentModal({
   const [searchTerm, setSearchTerm] = useState("");
   const [showPatientDropdown, setShowPatientDropdown] = useState(false);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest(".patient-search-container")) {
+        setShowPatientDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Auto-fill patient details when patient is selected
+  useEffect(() => {
+    const patient = patients.find((p) => p.id === formData.patientId);
+    if (patient) {
+      setFormData((prev) => ({
+        ...prev,
+        patientName: patient.name,
+        patientPhone: patient.phone,
+        patientEmail: patient.email,
+      }));
+    }
+  }, [formData.patientId, patients]);
   // Filter patients based on search term
   const filteredPatients = patients.filter(
     (patient) =>
@@ -151,16 +186,26 @@ function AddAppointmentModal({
       patient.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handlePatientSelect = (patient: Patient) => {
-    setFormData((prev) => ({
-      ...prev,
-      patientId: patient.id,
-      patientName: patient.name,
-      patientPhone: patient.phone,
-      patientEmail: patient.email,
-    }));
-    setSearchTerm(patient.name);
-    setShowPatientDropdown(false);
+  // Debug log for filtered patients
+  console.log("Current search term:", searchTerm);
+  console.log("Total patients:", patients.length);
+  console.log("Filtered patients count:", filteredPatients.length);
+  const handlePatientSelect = (patientId: string) => {
+    console.log("Patient selected:", patientId);
+    const patient = patients.find((p) => p.id === patientId);
+    console.log("Found patient:", patient);
+    if (patient) {
+      setFormData((prev) => ({
+        ...prev,
+        patientId,
+        patientName: patient.name,
+        patientPhone: patient.phone,
+        patientEmail: patient.email,
+      }));
+      setSearchTerm(patient.name);
+      setShowPatientDropdown(false);
+      console.log("Patient details set:", patient.name);
+    }
   };
 
   const handleSearchChange = (value: string) => {
@@ -220,31 +265,81 @@ function AddAppointmentModal({
       setLoading(false);
     }
   };
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-card border border-border rounded-lg max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-lg font-semibold mb-4">New Appointment</h2>
-
+    <motion.div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <motion.div
+        className="bg-card border border-border rounded-lg max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto"
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <motion.h2
+          className="text-lg font-semibold mb-4"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          New Appointment
+        </motion.h2>{" "}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Patient Selection */}
+          {/* Patient Selection with Search */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Patient</label>
-            <Select
-              value={formData.patientId}
-              onValueChange={handlePatientSelect}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a patient" />
-              </SelectTrigger>
-              <SelectContent>
-                {patients.map((patient) => (
-                  <SelectItem key={patient.id} value={patient.id}>
-                    {patient.name} - {patient.phone}
-                  </SelectItem>
-                ))}
-              </SelectContent>{" "}
-            </Select>
+            <label className="text-sm font-medium">Search Patient</label>
+            <div className="relative patient-search-container">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Search by name, phone, or email..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onFocus={() => setShowPatientDropdown(searchTerm.length > 0)}
+                  className="pl-10"
+                />
+              </div>
+
+              {/* Patient Search Results */}
+              {showPatientDropdown && filteredPatients.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                  {filteredPatients.map((patient) => (
+                    <div
+                      key={patient.id}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
+                      onClick={() => handlePatientSelect(patient.id)}
+                    >
+                      <div className="font-medium">{patient.name}</div>
+                      <div className="text-sm text-gray-600">
+                        {patient.phone} • {patient.email}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* No results found */}
+              {showPatientDropdown &&
+                searchTerm.length > 0 &&
+                filteredPatients.length === 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+                    {" "}
+                    <div className="px-4 py-2 text-gray-500 text-center">
+                      {patients.length === 0
+                        ? "Loading patients..."
+                        : `No patients found matching "${searchTerm}"`}
+                    </div>
+                  </div>
+                )}
+            </div>
           </div>
 
           {/* Auto-filled Patient Details */}
@@ -388,6 +483,7 @@ function AddAppointmentModal({
 
           {/* Action Buttons */}
           <div className="flex justify-end space-x-2 pt-4">
+            {" "}
             <Button
               type="button"
               variant="outline"
@@ -401,8 +497,8 @@ function AddAppointmentModal({
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -455,34 +551,106 @@ export function AppointmentsPage() {
     } finally {
       setLoading(false);
     }
-  };
-  // Fetch patients assigned to current doctor
+  }; // Fetch patients assigned to current doctor
   const fetchPatients = async () => {
     try {
-      const response = await fetch("/api/patients-data", {
+      console.log("Fetching patients assigned to current doctor...");
+      const response = await fetch("/api/my-patients", {
         credentials: "include",
       });
-      const data = await response.json();
 
-      if (data.patients) {
-        const transformedPatients = data.patients.map(
-          (patient: ApiPatient) => ({
+      console.log("Response status:", response.status);
+      const data = await response.json();
+      console.log("Raw API response:", data);
+      if (data.success && data.patients) {
+        console.log("Raw patient data from API:", data.patients);
+        const transformedPatients = data.patients.map((patient: ApiPatient) => {
+          console.log("Processing patient:", patient);
+          // Handle different possible field names for patient data
+          const firstName =
+            patient.firstName ||
+            patient.first_name ||
+            patient.name?.split(" ")[0] ||
+            "";
+          const lastName =
+            patient.lastName ||
+            patient.last_name ||
+            patient.name?.split(" ").slice(1).join(" ") ||
+            "";
+          const fullName =
+            patient.name ||
+            `${firstName} ${lastName}`.trim() ||
+            "Unknown Patient";
+          // Calculate age more safely with debugging
+          let age = 0;
+          const dateOfBirth = patient.dateOfBirth || patient.dob;
+          console.log("Date of birth for patient:", dateOfBirth);
+
+          if (dateOfBirth) {
+            try {
+              const birthDate = new Date(dateOfBirth);
+              console.log("Parsed birth date:", birthDate);
+
+              // Check if date is valid
+              if (!isNaN(birthDate.getTime())) {
+                const currentDate = new Date();
+                age = currentDate.getFullYear() - birthDate.getFullYear();
+                const monthDiff = currentDate.getMonth() - birthDate.getMonth();
+                if (
+                  monthDiff < 0 ||
+                  (monthDiff === 0 &&
+                    currentDate.getDate() < birthDate.getDate())
+                ) {
+                  age--;
+                }
+                console.log("Calculated age:", age);
+              } else {
+                console.warn("Invalid date format:", dateOfBirth);
+                // Try alternative date parsing for different formats
+                const dateParts = dateOfBirth.toString().split(/[-/]/);
+                if (dateParts.length >= 3) {
+                  // Try different date formats: YYYY-MM-DD, DD-MM-YYYY, MM-DD-YYYY
+                  const year =
+                    parseInt(dateParts[0]) > 31
+                      ? parseInt(dateParts[0])
+                      : parseInt(dateParts[2]);
+                  if (year && year > 1900 && year < 2100) {
+                    const currentYear = new Date().getFullYear();
+                    age = currentYear - year;
+                    console.log("Alternative age calculation:", age);
+                  }
+                }
+              }
+            } catch (error) {
+              console.error("Error parsing date:", error);
+            }
+          } else {
+            console.log("No date of birth found for patient");
+          }
+
+          const transformedPatient = {
             id: patient._id,
-            name: `${patient.firstName} ${patient.lastName}`,
-            firstName: patient.firstName,
-            lastName: patient.lastName,
-            age:
-              new Date().getFullYear() -
-              new Date(patient.dateOfBirth).getFullYear(),
-            phone: patient.phone || "",
+            name: fullName,
+            firstName: firstName,
+            lastName: lastName,
+            age: age || 0,
+            phone: patient.phone || patient.phoneNumber || "",
             email: patient.email || "",
-            dateOfBirth: patient.dateOfBirth,
-          })
-        );
+            dateOfBirth: patient.dateOfBirth || patient.dob || "",
+          };
+
+          console.log("Final transformed patient:", transformedPatient);
+          return transformedPatient;
+        });
+        console.log("Transformed patients:", transformedPatients);
         setPatients(transformedPatients);
+      } else {
+        console.warn("No patients found or API call failed:", data);
+        setPatients([]);
       }
     } catch (error) {
       console.error("Error fetching patients:", error);
+      setPatients([]);
     }
   };
   useEffect(() => {
@@ -644,7 +812,6 @@ export function AppointmentsPage() {
     } else if (dateFilter === "past") {
       matchesDate = appointmentDate < today;
     }
-
     return matchesSearch && matchesStatus && matchesType && matchesDate;
   });
 
@@ -664,350 +831,435 @@ export function AppointmentsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Appointments</h1>
-          <p className="text-muted-foreground">
-            Manage your patient appointments
-          </p>
-        </div>
-        <Button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center space-x-2"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Appointment</span>
-        </Button>
-      </div>
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Today&apos;s Appointments
-            </CardTitle>
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{todayAppointments.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {confirmedToday} confirmed, {completedToday} completed
+      {/* Enhanced Header with Animation */}
+      <motion.div
+        className="group"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-blue-700 group-hover:scale-105">
+              Appointments
+            </h1>
+            <p className="text-muted-foreground transition-all duration-300 ease-out group-hover:text-blue-600 group-hover:translate-x-2">
+              Manage your patient appointments efficiently
             </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Confirmed</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {confirmedToday}
-            </div>
-            <p className="text-xs text-muted-foreground">Ready for today</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed</CardTitle>
-            <CheckCircle className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {completedToday}
-            </div>
-            <p className="text-xs text-muted-foreground">Finished today</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cancelled</CardTitle>
-            <XCircle className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {cancelledToday}
-            </div>
-            <p className="text-xs text-muted-foreground">Cancelled today</p>
-          </CardContent>
-        </Card>
-      </div>
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  placeholder="Search appointments..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="scheduled">Scheduled</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-                <SelectItem value="no-show">No Show</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filter by type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="consultation">Consultation</SelectItem>
-                <SelectItem value="follow-up">Follow-up</SelectItem>
-                <SelectItem value="surgery">Surgery</SelectItem>
-                <SelectItem value="emergency">Emergency</SelectItem>
-                <SelectItem value="checkup">Checkup</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filter by date" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Dates</SelectItem>
-                <SelectItem value="today">Today</SelectItem>
-                <SelectItem value="upcoming">Upcoming</SelectItem>
-                <SelectItem value="past">Past</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
-        </CardContent>
-      </Card>
-      {/* Appointments Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Calendar className="w-5 h-5" />
-            <span>Appointments ({filteredAppointments.length})</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <span className="ml-2">Loading appointments...</span>
-            </div>
-          ) : filteredAppointments.length === 0 ? (
-            <div className="text-center py-8">
-              <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">
-                No appointments found
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                {searchTerm || statusFilter !== "all" || typeFilter !== "all"
-                  ? "Try adjusting your filters"
-                  : "Schedule your first appointment"}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <Button
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Appointment</span>
+            </Button>
+          </motion.div>
+        </div>
+      </motion.div>{" "}
+      {/* Enhanced Stats Cards */}
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-4 gap-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+      >
+        <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+          <Card className="transition-all duration-300 hover:shadow-lg border-l-4 border-l-blue-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Today&apos;s Appointments
+              </CardTitle>
+              <CalendarDays className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {todayAppointments.length}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {confirmedToday} confirmed, {completedToday} completed
               </p>
-              <Button onClick={() => setShowAddModal(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                New Appointment
-              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+          <Card className="transition-all duration-300 hover:shadow-lg border-l-4 border-l-green-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Confirmed</CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {confirmedToday}
+              </div>
+              <p className="text-xs text-muted-foreground">Ready for today</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+          <Card className="transition-all duration-300 hover:shadow-lg border-l-4 border-l-emerald-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Completed</CardTitle>
+              <Activity className="h-4 w-4 text-emerald-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-emerald-600">
+                {completedToday}
+              </div>
+              <p className="text-xs text-muted-foreground">Finished today</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+          <Card className="transition-all duration-300 hover:shadow-lg border-l-4 border-l-red-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Cancelled</CardTitle>
+              <XCircle className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">
+                {cancelledToday}
+              </div>
+              <p className="text-xs text-muted-foreground">Cancelled today</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>{" "}
+      {/* Enhanced Filters */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
+      >
+        <Card className="transition-all duration-300 hover:shadow-md">
+          <CardContent className="pt-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    placeholder="Search appointments..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 transition-all duration-300 focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <motion.div
+                whileHover={{ scale: 1.01 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full md:w-48 transition-all duration-300 hover:border-blue-400">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="scheduled">Scheduled</SelectItem>{" "}
+                    <SelectItem value="confirmed">Confirmed</SelectItem>
+                    <SelectItem value="in-progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="no-show">No Show</SelectItem>
+                  </SelectContent>
+                </Select>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.01 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger className="w-full md:w-48 transition-all duration-300 hover:border-blue-400">
+                    <SelectValue placeholder="Filter by type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="consultation">Consultation</SelectItem>
+                    <SelectItem value="follow-up">Follow-up</SelectItem>
+                    <SelectItem value="surgery">Surgery</SelectItem>
+                    <SelectItem value="emergency">Emergency</SelectItem>
+                    <SelectItem value="checkup">Checkup</SelectItem>
+                  </SelectContent>
+                </Select>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.01 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Select value={dateFilter} onValueChange={setDateFilter}>
+                  <SelectTrigger className="w-full md:w-48 transition-all duration-300 hover:border-blue-400">
+                    <SelectValue placeholder="Filter by date" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Dates</SelectItem>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="upcoming">Upcoming</SelectItem>
+                    <SelectItem value="past">Past</SelectItem>
+                  </SelectContent>
+                </Select>
+              </motion.div>
             </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Patient</TableHead>
-                    <TableHead>Date & Time</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Reason</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredAppointments.map((appointment) => (
-                    <TableRow key={appointment.id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarFallback>
-                              {appointment.patientName
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-medium">
-                              {appointment.patientName}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {appointment.patientPhone}
+          </CardContent>
+        </Card>
+      </motion.div>{" "}
+      {/* Enhanced Appointments Table */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.7 }}
+      >
+        <Card className="transition-all duration-300 hover:shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Calendar className="w-5 h-5 text-blue-600" />
+              <span>Appointments ({filteredAppointments.length})</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <motion.div
+                className="flex items-center justify-center py-8"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+              >
+                <Loader2 className="animate-spin h-8 w-8 text-blue-600" />
+                <span className="ml-2 text-muted-foreground">
+                  Loading appointments...
+                </span>
+              </motion.div>
+            ) : filteredAppointments.length === 0 ? (
+              <motion.div
+                className="text-center py-8"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+              >
+                <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  No appointments found
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  {searchTerm || statusFilter !== "all" || typeFilter !== "all"
+                    ? "Try adjusting your filters"
+                    : "Schedule your first appointment"}
+                </p>{" "}
+                <Button onClick={() => setShowAddModal(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Appointment
+                </Button>
+              </motion.div>
+            ) : (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Patient</TableHead>
+                      <TableHead>Date & Time</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Reason</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>{" "}
+                  </TableHeader>
+                  <TableBody>
+                    {filteredAppointments.map((appointment, index) => (
+                      <TableRow
+                        key={appointment.id}
+                        className="hover:bg-muted/50 transition-all duration-200 hover:scale-[1.01]"
+                        style={{
+                          animation: `slideInUp 0.4s ease-out ${index * 0.05}s both`,
+                        }}
+                      >
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback>
+                                {appointment.patientName
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium">
+                                {appointment.patientName}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {appointment.patientPhone}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Calendar className="w-4 h-4 text-muted-foreground" />
-                          <div>
-                            <div className="font-medium">
-                              {new Date(appointment.date).toLocaleDateString()}
-                            </div>
-                            <div className="text-sm text-muted-foreground flex items-center">
-                              <Clock className="w-3 h-3 mr-1" />
-                              {appointment.time} ({appointment.duration}min)
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Calendar className="w-4 h-4 text-muted-foreground" />
+                            <div>
+                              <div className="font-medium">
+                                {new Date(
+                                  appointment.date
+                                ).toLocaleDateString()}
+                              </div>
+                              <div className="text-sm text-muted-foreground flex items-center">
+                                <Clock className="w-3 h-3 mr-1" />
+                                {appointment.time} ({appointment.duration}min)
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getTypeColor(appointment.type)}>
-                          {appointment.type.charAt(0).toUpperCase() +
-                            appointment.type.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          {getStatusIcon(appointment.status)}
-                          <Badge className={getStatusColor(appointment.status)}>
-                            {appointment.status.charAt(0).toUpperCase() +
-                              appointment.status.slice(1)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getTypeColor(appointment.type)}>
+                            {appointment.type.charAt(0).toUpperCase() +
+                              appointment.type.slice(1)}
                           </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-1">
-                          {appointment.isVirtual ? (
-                            <Video className="w-4 h-4 text-blue-600" />
-                          ) : (
-                            <MapPin className="w-4 h-4 text-muted-foreground" />
-                          )}
-                          <span className="text-sm">
-                            {appointment.location}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div
-                          className="max-w-xs truncate"
-                          title={appointment.reason}
-                        >
-                          {appointment.reason}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>{" "}
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <Eye className="mr-2 h-4 w-4" />
-                              View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleEditAppointment(appointment)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            {getStatusIcon(appointment.status)}
+                            <Badge
+                              className={getStatusColor(appointment.status)}
                             >
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit Appointment
-                            </DropdownMenuItem>
-                            {appointment.status !== "completed" && (
+                              {appointment.status.charAt(0).toUpperCase() +
+                                appointment.status.slice(1)}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-1">
+                            {appointment.isVirtual ? (
+                              <Video className="w-4 h-4 text-blue-600" />
+                            ) : (
+                              <MapPin className="w-4 h-4 text-muted-foreground" />
+                            )}
+                            <span className="text-sm">
+                              {appointment.location}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div
+                            className="max-w-xs truncate"
+                            title={appointment.reason}
+                          >
+                            {appointment.reason}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>{" "}
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
+                              </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() =>
-                                  handleUpdateStatus(
-                                    appointment.id,
-                                    "completed"
-                                  )
+                                  handleEditAppointment(appointment)
                                 }
                               >
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Mark Completed
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit Appointment
                               </DropdownMenuItem>
-                            )}
-                            {appointment.status !== "confirmed" &&
-                              appointment.status !== "completed" && (
+                              {appointment.status !== "completed" && (
                                 <DropdownMenuItem
                                   onClick={() =>
                                     handleUpdateStatus(
                                       appointment.id,
-                                      "confirmed"
+                                      "completed"
                                     )
                                   }
                                 >
                                   <CheckCircle className="mr-2 h-4 w-4" />
-                                  Confirm Appointment
+                                  Mark Completed
                                 </DropdownMenuItem>
                               )}
-                            {appointment.status !== "cancelled" &&
-                              appointment.status !== "completed" && (
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    handleUpdateStatus(
-                                      appointment.id,
-                                      "cancelled"
-                                    )
-                                  }
-                                  className="text-orange-600"
-                                >
-                                  <XCircle className="mr-2 h-4 w-4" />
-                                  Cancel Appointment
-                                </DropdownMenuItem>
-                              )}
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleDeleteAppointment(appointment.id)
-                              }
-                              className="text-red-600"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete Appointment
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>{" "}
+                              {appointment.status !== "confirmed" &&
+                                appointment.status !== "completed" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleUpdateStatus(
+                                        appointment.id,
+                                        "confirmed"
+                                      )
+                                    }
+                                  >
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Confirm Appointment
+                                  </DropdownMenuItem>
+                                )}
+                              {appointment.status !== "cancelled" &&
+                                appointment.status !== "completed" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleUpdateStatus(
+                                        appointment.id,
+                                        "cancelled"
+                                      )
+                                    }
+                                    className="text-orange-600"
+                                  >
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                    Cancel Appointment
+                                  </DropdownMenuItem>
+                                )}
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleDeleteAppointment(appointment.id)
+                                }
+                                className="text-red-600"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Appointment
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}{" "}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
       {/* Add Appointment Modal */}
-      {showAddModal && (
-        <AddAppointmentModal
-          patients={patients}
-          onClose={() => setShowAddModal(false)}
-          onAppointmentCreated={fetchAppointments}
-        />
-      )}
+      <AnimatePresence>
+        {showAddModal && (
+          <AddAppointmentModal
+            patients={patients}
+            onClose={() => setShowAddModal(false)}
+            onAppointmentCreated={fetchAppointments}
+          />
+        )}
+      </AnimatePresence>
       {/* Edit Appointment Modal */}
-      {showEditModal && selectedAppointment && (
-        <EditAppointmentModal
-          appointment={selectedAppointment}
-          patients={patients}
-          onClose={() => setShowEditModal(false)}
-          onAppointmentUpdated={fetchAppointments}
-        />
-      )}
+      <AnimatePresence>
+        {showEditModal && selectedAppointment && (
+          <EditAppointmentModal
+            appointment={selectedAppointment}
+            patients={patients}
+            onClose={() => setShowEditModal(false)}
+            onAppointmentUpdated={fetchAppointments}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -1039,6 +1291,35 @@ function EditAppointmentModal({
     isVirtual: appointment.isVirtual,
   });
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState(formData.patientName);
+  const [showPatientDropdown, setShowPatientDropdown] = useState(false);
+
+  // Filter patients based on search
+  const filteredPatients = patients.filter(
+    (patient) =>
+      patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.phone.includes(searchTerm) ||
+      patient.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Handle patient selection from dropdown
+  const handlePatientSelectFromDropdown = (patient: Patient) => {
+    setFormData((prev) => ({
+      ...prev,
+      patientId: patient.id,
+      patientName: patient.name,
+      patientPhone: patient.phone,
+      patientEmail: patient.email,
+    }));
+    setSearchTerm(patient.name);
+    setShowPatientDropdown(false);
+  };
+  const handleSearchChange = (value: string) => {
+    console.log("Search value changed:", value);
+    setSearchTerm(value);
+    setShowPatientDropdown(value.length > 0);
+    console.log("Filtered patients:", filteredPatients.length);
+  };
 
   // Auto-fill patient details when patient is selected
   useEffect(() => {
@@ -1108,11 +1389,33 @@ function EditAppointmentModal({
       setLoading(false);
     }
   };
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-card border border-border rounded-lg max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-lg font-semibold mb-4">Edit Appointment</h2>
+    <motion.div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <motion.div
+        className="bg-card border border-border rounded-lg max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto"
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <motion.h2
+          className="text-lg font-semibold mb-4"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          Edit Appointment
+        </motion.h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {" "}
@@ -1138,7 +1441,7 @@ function EditAppointmentModal({
                     <div
                       key={patient.id}
                       className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
-                      onClick={() => handlePatientSelect(patient)}
+                      onClick={() => handlePatientSelectFromDropdown(patient)}
                     >
                       <div className="font-medium">{patient.name}</div>
                       <div className="text-sm text-gray-600">
@@ -1158,7 +1461,7 @@ function EditAppointmentModal({
                 filteredPatients.length === 0 && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
                     <div className="px-4 py-2 text-gray-500 text-center">
-                      No patients found matching "{searchTerm}"
+                      No patients found matching &ldquo;{searchTerm}&rdquo;
                     </div>
                   </div>
                 )}
@@ -1316,7 +1619,7 @@ function EditAppointmentModal({
               Virtual Appointment
             </label>
           </div>
-          {/* Action Buttons */}
+          {/* Action Buttons */}{" "}
           <div className="flex justify-end space-x-2 pt-4">
             <Button
               type="button"
@@ -1331,7 +1634,7 @@ function EditAppointmentModal({
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

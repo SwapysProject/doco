@@ -8,28 +8,36 @@ export async function GET(request: NextRequest) {
   try {
     // Get current doctor from JWT
     const currentUser = getCurrentUser(request);
+    console.log("🔐 Current user from JWT:", currentUser);
+
     if (!currentUser) {
+      console.log("❌ No authentication found");
       return NextResponse.json(
         { success: false, message: "Not authenticated" },
         { status: 401 }
       );
     }
 
+    console.log(
+      "👨‍⚕️ Looking for patients assigned to doctor:",
+      currentUser.doctorId
+    );
+
     const client = await clientPromise;
     const db = client.db("Patient");
 
     // Get patients assigned to this doctor
     const assignmentsCollection = db.collection("doctor_patient_assignments");
-    const patientsCollection = db.collection("patients");
-
-    // Find all patient assignments for this doctor
+    const patientsCollection = db.collection("patients"); // Find all patient assignments for this doctor
     const assignments = await assignmentsCollection
       .find({ doctorId: currentUser.doctorId })
       .toArray();
 
-    const patientIds = assignments.map((assignment) => assignment.patientId);
+    console.log("📋 Found assignments:", assignments.length);
+    console.log("📋 Assignments:", assignments);
 
-    // Get patient details for assigned patients only
+    const patientIds = assignments.map((assignment) => assignment.patientId);
+    console.log("👥 Patient IDs to fetch:", patientIds); // Get patient details for assigned patients only
     const patients = await patientsCollection
       .find({
         $or: [
@@ -39,10 +47,18 @@ export async function GET(request: NextRequest) {
       })
       .toArray();
 
+    console.log("👥 Found patients:", patients.length);
+    console.log("👥 Patient details:", patients);
+
     return NextResponse.json({
       success: true,
       patients: patients,
       totalAssigned: patients.length,
+      debug: {
+        currentUser: currentUser,
+        assignments: assignments,
+        patientIds: patientIds,
+      },
     });
   } catch (error) {
     console.error("Error fetching assigned patients:", error);

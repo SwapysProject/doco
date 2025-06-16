@@ -1,3 +1,4 @@
+// import { AppointmentsPage } from "@/components/appointments/appointments-page-new";
 import { AppointmentsPage } from "@/components/appointments/appointments-page";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 
