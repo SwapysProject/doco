@@ -4,7 +4,7 @@ import { PrescriptionsPage } from "@/components/prescriptions/prescriptions-page
 export default function Prescriptions() {
   return (
     <DashboardLayout>
-      <PrescriptionsPage />
+    <PrescriptionsPage/>
     </DashboardLayout>
   );
 }
