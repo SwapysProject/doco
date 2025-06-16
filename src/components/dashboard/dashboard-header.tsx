@@ -58,7 +58,7 @@ export function DashboardHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm transition-all duration-300 ease-in-out">
+    <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-900 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-900/60 shadow-sm transition-all duration-300 ease-in-out">
       <div className="flex h-16 items-center px-6 gap-6">
         {/* Mobile Menu Button */}
         <Button
@@ -108,7 +108,7 @@ export function DashboardHeader() {
             <Button
               variant="ghost"
               size="sm"
-              className="h-9 px-4 text-gray-600 hover:text-gray-900 hover:bg-gray-100 flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-105 transform"
+              className="h-9 px-4 text-gray-600 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-105 transform"
             >
               <Calendar className="h-4 w-4 transition-transform duration-200 ease-in-out group-hover:rotate-6" />
               <span className="text-sm font-medium">Appointments</span>
@@ -116,7 +116,7 @@ export function DashboardHeader() {
             <Button
               variant="ghost"
               size="sm"
-              className="h-9 px-4 text-gray-600 hover:text-gray-900 hover:bg-gray-100 flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-105 transform"
+              className="h-9 px-4 text-gray-600 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2 transition-all duration-200 ease-in-out hover:scale-105 transform"
             >
               <MessageSquare className="h-4 w-4 transition-transform duration-200 ease-in-out group-hover:bounce" />
               <span className="text-sm font-medium">Messages</span>
@@ -129,7 +129,7 @@ export function DashboardHeader() {
             variant="ghost"
             size="sm"
             onClick={toggleTheme}
-            className="h-9 w-9 p-0 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all duration-300 ease-in-out hover:scale-110 transform hover:rotate-12"
+            className="h-9 px-4 text-gray-600 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 ease-in-out hover:scale-110 transform hover:rotate-12"
           >
             {isDark ? (
               <Sun className="h-4 w-4 transition-all duration-500 ease-in-out animate-in spin-in-180" />
@@ -141,7 +141,7 @@ export function DashboardHeader() {
           <Button
             variant="ghost"
             size="sm"
-            className="h-9 w-9 p-0 relative text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all duration-200 ease-in-out hover:scale-110 transform"
+            className="h-9 px-4 text-gray-600 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 ease-in-out hover:scale-110 transform"
           >
             <Bell className="h-4 w-4 transition-transform duration-200 ease-in-out hover:animate-pulse" />
             {notificationCount > 0 && (
