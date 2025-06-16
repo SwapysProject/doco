@@ -267,80 +267,117 @@ function AddAppointmentModal({
   };
   return (
     <motion.div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <motion.div
-        className="bg-card border border-border rounded-lg max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto"
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="bg-card border border-border rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto shadow-2xl shadow-black/25"
+        initial={{ opacity: 0, scale: 0.9, y: 40 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
+        exit={{ opacity: 0, scale: 0.9, y: 40 }}
+        transition={{
+          duration: 0.4,
+          ease: "easeOut",
+          type: "spring",
+          damping: 25,
+          stiffness: 300,
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <motion.h2
-          className="text-lg font-semibold mb-4"
-          initial={{ opacity: 0, y: -10 }}
+          className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
         >
           New Appointment
         </motion.h2>{" "}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <motion.form
+          onSubmit={handleSubmit}
+          className="space-y-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
           {/* Patient Selection with Search */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Search Patient</label>
+          <motion.div
+            className="space-y-3"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+          >
+            <label className="text-sm font-semibold text-foreground">
+              Search Patient
+            </label>
             <div className="relative patient-search-container">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <div className="relative group">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 transition-colors group-focus-within:text-blue-500" />
                 <Input
                   placeholder="Search by name, phone, or email..."
                   value={searchTerm}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   onFocus={() => setShowPatientDropdown(searchTerm.length > 0)}
-                  className="pl-10"
+                  className="pl-10 transition-all duration-300 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-blue-300"
                 />
               </div>
-
               {/* Patient Search Results */}
               {showPatientDropdown && filteredPatients.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                  {filteredPatients.map((patient) => (
-                    <div
+                <motion.div
+                  className="absolute z-10 w-full mt-2 bg-card border border-border rounded-xl shadow-2xl shadow-black/20 max-h-60 overflow-y-auto backdrop-blur-sm"
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                >
+                  {filteredPatients.map((patient, index) => (
+                    <motion.div
                       key={patient.id}
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
+                      className="px-4 py-3 hover:bg-muted/60 cursor-pointer border-b border-border/50 last:border-b-0 transition-all duration-200 hover:shadow-sm"
                       onClick={() => handlePatientSelect(patient.id)}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.2, delay: index * 0.05 }}
+                      whileHover={{ scale: 1.01, x: 4 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      <div className="font-medium">{patient.name}</div>
-                      <div className="text-sm text-gray-600">
+                      <div className="font-medium text-foreground">
+                        {patient.name}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
                         {patient.phone} • {patient.email}
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
-                </div>
-              )}
-
+                </motion.div>
+              )}{" "}
               {/* No results found */}
               {showPatientDropdown &&
                 searchTerm.length > 0 &&
                 filteredPatients.length === 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
-                    {" "}
-                    <div className="px-4 py-2 text-gray-500 text-center">
-                      {patients.length === 0
-                        ? "Loading patients..."
-                        : `No patients found matching "${searchTerm}"`}
-                    </div>
-                  </div>
+                  <motion.div
+                    className="absolute z-10 w-full mt-2 bg-card border border-border rounded-xl shadow-2xl shadow-black/20 backdrop-blur-sm"
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                  >
+                    <div className="px-4 py-6 text-muted-foreground text-center">
+                      <div className="text-sm font-medium">
+                        {patients.length === 0
+                          ? "Loading patients..."
+                          : `No patients found matching "${searchTerm}"`}
+                      </div>
+                    </div>{" "}
+                  </motion.div>
                 )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Auto-filled Patient Details */}
           {formData.patientId && (
@@ -491,12 +528,12 @@ function AddAppointmentModal({
               disabled={loading}
             >
               Cancel
-            </Button>
+            </Button>{" "}
             <Button type="submit" disabled={loading || !formData.patientId}>
               {loading ? "Creating..." : "Create Appointment"}
             </Button>
           </div>
-        </form>
+        </motion.form>
       </motion.div>
     </motion.div>
   );
@@ -864,71 +901,110 @@ export function AppointmentsPage() {
       </motion.div>{" "}
       {/* Enhanced Stats Cards */}
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-4 gap-4"
+        className="grid grid-cols-1 md:grid-cols-4 gap-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
       >
-        <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-          <Card className="transition-all duration-300 hover:shadow-lg border-l-4 border-l-blue-500">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+        <motion.div
+          whileHover={{ scale: 1.02, y: -2 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        >
+          <Card className="hover:shadow-xl transition-all duration-300 ease-out transform group cursor-pointer border-l-4 border-l-transparent hover:border-l-blue-500 bg-gradient-to-br from-blue-50/50 to-transparent hover:shadow-blue-500/10">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-sm font-semibold text-foreground group-hover:text-blue-700 transition-colors">
                 Today&apos;s Appointments
               </CardTitle>
-              <CalendarDays className="h-4 w-4 text-blue-600" />
+              <motion.div
+                whileHover={{ rotate: 5, scale: 1.1 }}
+                transition={{ duration: 0.2 }}
+              >
+                <CalendarDays className="h-5 w-5 text-blue-600 group-hover:text-blue-700 transition-colors" />
+              </motion.div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-3xl font-bold text-blue-600 group-hover:text-blue-700 transition-colors">
                 {todayAppointments.length}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground mt-1">
                 {confirmedToday} confirmed, {completedToday} completed
               </p>
             </CardContent>
           </Card>
         </motion.div>
-
-        <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-          <Card className="transition-all duration-300 hover:shadow-lg border-l-4 border-l-green-500">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Confirmed</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
+        <motion.div
+          whileHover={{ scale: 1.02, y: -2 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        >
+          <Card className="hover:shadow-xl transition-all duration-300 ease-out transform group cursor-pointer border-l-4 border-l-transparent hover:border-l-green-500 bg-gradient-to-br from-green-50/50 to-transparent hover:shadow-green-500/10">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-sm font-semibold text-foreground group-hover:text-green-700 transition-colors">
+                Confirmed
+              </CardTitle>
+              <motion.div
+                whileHover={{ rotate: 5, scale: 1.1 }}
+                transition={{ duration: 0.2 }}
+              >
+                <CheckCircle className="h-5 w-5 text-green-600 group-hover:text-green-700 transition-colors" />
+              </motion.div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-3xl font-bold text-green-600 group-hover:text-green-700 transition-colors">
                 {confirmedToday}
               </div>
               <p className="text-xs text-muted-foreground">Ready for today</p>
             </CardContent>
           </Card>
-        </motion.div>
-
-        <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-          <Card className="transition-all duration-300 hover:shadow-lg border-l-4 border-l-emerald-500">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              <Activity className="h-4 w-4 text-emerald-600" />
+        </motion.div>{" "}
+        <motion.div
+          whileHover={{ scale: 1.02, y: -2 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        >
+          <Card className="hover:shadow-xl transition-all duration-300 ease-out transform group cursor-pointer border-l-4 border-l-transparent hover:border-l-emerald-500 bg-gradient-to-br from-emerald-50/50 to-transparent hover:shadow-emerald-500/10">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-sm font-semibold text-foreground group-hover:text-emerald-700 transition-colors">
+                Completed
+              </CardTitle>
+              <motion.div
+                whileHover={{ rotate: 5, scale: 1.1 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Activity className="h-5 w-5 text-emerald-600 group-hover:text-emerald-700 transition-colors" />
+              </motion.div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-emerald-600">
+              <div className="text-3xl font-bold text-emerald-600 group-hover:text-emerald-700 transition-colors">
                 {completedToday}
               </div>
-              <p className="text-xs text-muted-foreground">Finished today</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Finished today
+              </p>
             </CardContent>
           </Card>
         </motion.div>
-
-        <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-          <Card className="transition-all duration-300 hover:shadow-lg border-l-4 border-l-red-500">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Cancelled</CardTitle>
-              <XCircle className="h-4 w-4 text-red-600" />
+        <motion.div
+          whileHover={{ scale: 1.02, y: -2 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        >
+          <Card className="hover:shadow-xl transition-all duration-300 ease-out transform group cursor-pointer border-l-4 border-l-transparent hover:border-l-red-500 bg-gradient-to-br from-red-50/50 to-transparent hover:shadow-red-500/10">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-sm font-semibold text-foreground group-hover:text-red-700 transition-colors">
+                Cancelled
+              </CardTitle>
+              <motion.div
+                whileHover={{ rotate: 5, scale: 1.1 }}
+                transition={{ duration: 0.2 }}
+              >
+                <XCircle className="h-5 w-5 text-red-600 group-hover:text-red-700 transition-colors" />
+              </motion.div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-3xl font-bold text-red-600 group-hover:text-red-700 transition-colors">
                 {cancelledToday}
               </div>
-              <p className="text-xs text-muted-foreground">Cancelled today</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Cancelled today
+              </p>
             </CardContent>
           </Card>
         </motion.div>
@@ -939,17 +1015,17 @@ export function AppointmentsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.5 }}
       >
-        <Card className="transition-all duration-300 hover:shadow-md">
+        <Card className="transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 border-l-4 border-l-transparent hover:border-l-blue-500">
           <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <div className="relative group">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 transition-colors group-focus-within:text-blue-500" />
                   <Input
-                    placeholder="Search appointments..."
+                    placeholder="Search appointments by patient or reason..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 transition-all duration-300 focus:ring-2 focus:ring-blue-500"
+                    className="pl-10 transition-all duration-300 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-blue-300"
                   />
                 </div>
               </div>
@@ -957,9 +1033,10 @@ export function AppointmentsPage() {
               <motion.div
                 whileHover={{ scale: 1.01 }}
                 transition={{ duration: 0.2 }}
+                className="md:w-48"
               >
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full md:w-48 transition-all duration-300 hover:border-blue-400">
+                  <SelectTrigger className="transition-all duration-300 hover:border-blue-400 focus:ring-2 focus:ring-blue-500/20">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1019,14 +1096,21 @@ export function AppointmentsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.7 }}
       >
-        <Card className="transition-all duration-300 hover:shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Calendar className="w-5 h-5 text-blue-600" />
-              <span>Appointments ({filteredAppointments.length})</span>
+        <Card className="transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 border-l-4 border-l-transparent hover:border-l-blue-500 bg-gradient-to-br from-blue-50/30 to-transparent">
+          <CardHeader className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 border-b border-border/50">
+            <CardTitle className="flex items-center space-x-3">
+              <motion.div
+                whileHover={{ rotate: 5, scale: 1.1 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Calendar className="w-6 h-6 text-blue-600" />
+              </motion.div>
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-bold">
+                Appointments ({filteredAppointments.length})
+              </span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {loading ? (
               <motion.div
                 className="flex items-center justify-center py-8"

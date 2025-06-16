@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,6 +38,7 @@ import {
   AiPrescriptionResponse,
 } from "@/types/prescription";
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 /**
  * Mock patients data for selection
@@ -169,6 +171,7 @@ interface Patient {
  * - Safety warnings and drug interaction checks
  */
 export function NewPrescriptionPage() {
+  const { user } = useAuth();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [isLoadingPatients, setIsLoadingPatients] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
@@ -250,7 +253,7 @@ export function NewPrescriptionPage() {
     const loadPatients = async () => {
       try {
         setIsLoadingPatients(true);
-        const response = await fetch("/api/patients-data");
+        const response = await fetch("/api/my-patients");
         const result = await response.json();
         console.log("Patients API response:", result); // Debug log
         if (result.patients) {
@@ -410,8 +413,8 @@ export function NewPrescriptionPage() {
           prescription: {
             patientId: selectedPatient.id || selectedPatient._id,
             patientName: selectedPatient.name,
-            doctorId: "DOC001",
-            doctorName: "Dr. Smith",
+            doctorId: user?.id || "unknown",
+            doctorName: user?.name || "Dr. Unknown",
             date: new Date().toISOString().split("T")[0],
             diagnosis: diagnosis || "Manual prescription",
             symptoms: symptoms.split(",").map((s: string) => s.trim()),
@@ -528,8 +531,8 @@ export function NewPrescriptionPage() {
           patientId: patientId,
           symptoms: symptoms.split(",").map((s) => s.trim()),
           diagnosis: diagnosis || undefined,
-          doctorId: "DOC001",
-          doctorName: "Dr. Smith",
+          doctorId: user?.id || "unknown",
+          doctorName: user?.name || "Dr. Unknown",
         }),
       });
 
@@ -588,8 +591,8 @@ export function NewPrescriptionPage() {
           prescription: {
             patientId: selectedPatient.id || selectedPatient._id,
             patientName: selectedPatient.name,
-            doctorId: "DOC001",
-            doctorName: "Dr. Smith",
+            doctorId: user?.id || "unknown",
+            doctorName: user?.name || "Dr. Unknown",
             date: new Date().toISOString().split("T")[0],
             diagnosis: diagnosis || "AI-generated from symptoms",
             symptoms: symptoms.split(",").map((s) => s.trim()),
@@ -631,428 +634,488 @@ export function NewPrescriptionPage() {
       alert("Failed to save prescription. Please try again.");
     }
   };
-
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/dashboard/prescriptions">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Prescriptions
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold tracking-tight">
+    <motion.div
+      className="space-y-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      {/* Enhanced Page Header */}
+      <motion.div
+        className="flex items-center gap-4 pb-6 border-b border-border"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <motion.div whileHover={{ x: -4 }} transition={{ duration: 0.2 }}>
+          <Button
+            variant="outline"
+            size="sm"
+            asChild
+            className="hover:shadow-md transition-all duration-200"
+          >
+            <Link href="/dashboard/prescriptions">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Prescriptions
+            </Link>
+          </Button>
+        </motion.div>
+        <div className="flex-1 group">
+          <motion.h1
+            className="text-3xl font-bold tracking-tight bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
             New Prescription
-          </h1>
-          <p className="text-muted-foreground">
+          </motion.h1>
+          <motion.p
+            className="text-muted-foreground transition-all duration-300 ease-out group-hover:text-green-600 group-hover:translate-x-2"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            {" "}
             Generate AI-powered prescriptions based on symptoms and diagnosis
-          </p>
+          </motion.p>
         </div>
-      </div>
-
+      </motion.div>
       <div className="grid gap-6 lg:grid-cols-3">
+        {" "}
         {/* Left Column - Input Form */}
         <div className="lg:col-span-2 space-y-6">
           {/* Patient Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Patient Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {" "}
-              <div className="space-y-2 relative">
-                <Label htmlFor="patient" className="flex items-center gap-2">
-                  <Search className="h-4 w-4" />
-                  Search Patient
-                </Label>{" "}
-                <Input
-                  id="patient"
-                  type="text"
-                  placeholder={
-                    isLoadingPatients
-                      ? "Loading patients..."
-                      : "Type patient name, ID, or condition to search..."
-                  }
-                  value={patientSearchQuery}
-                  onChange={(e) => handlePatientSearch(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  disabled={isLoadingPatients}
-                  className="w-full"
-                  autoComplete="off"
-                />
-                {/* Search Results Dropdown */}
-                {showPatientDropdown && filteredPatients.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                    {filteredPatients.map((patient, index) => {
-                      const isSelected = index === selectedIndex;
-                      const searchTerm = patientSearchQuery.toLowerCase();
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-gradient-to-br from-white to-blue-50/30 dark:from-gray-900 dark:to-blue-950/30">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                  <motion.div
+                    whileHover={{ scale: 1.1, rotate: 10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <User className="h-5 w-5 text-blue-600" />
+                  </motion.div>
+                  Patient Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {" "}
+                <div className="space-y-2 relative">
+                  <Label htmlFor="patient" className="flex items-center gap-2">
+                    <Search className="h-4 w-4" />
+                    Search Patient
+                  </Label>{" "}
+                  <Input
+                    id="patient"
+                    type="text"
+                    placeholder={
+                      isLoadingPatients
+                        ? "Loading patients..."
+                        : "Type patient name, ID, or condition to search..."
+                    }
+                    value={patientSearchQuery}
+                    onChange={(e) => handlePatientSearch(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    disabled={isLoadingPatients}
+                    className="w-full"
+                    autoComplete="off"
+                  />
+                  {/* Search Results Dropdown */}
+                  {showPatientDropdown && filteredPatients.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                      {filteredPatients.map((patient, index) => {
+                        const isSelected = index === selectedIndex;
+                        const searchTerm = patientSearchQuery.toLowerCase();
 
-                      // Highlight matching text
-                      const highlightText = (text: string) => {
-                        if (!searchTerm) return text;
-                        const regex = new RegExp(`(${searchTerm})`, "gi");
-                        const parts = text.split(regex);
-                        return parts.map((part, i) =>
-                          regex.test(part) ? (
-                            <mark
-                              key={`highlight-${i}`}
-                              className="bg-yellow-200 dark:bg-yellow-800 text-inherit px-0"
-                            >
-                              {part}
-                            </mark>
-                          ) : (
-                            <span key={`text-${i}`}>{part}</span>
-                          )
-                        );
-                      };
+                        // Highlight matching text
+                        const highlightText = (text: string) => {
+                          if (!searchTerm) return text;
+                          const regex = new RegExp(`(${searchTerm})`, "gi");
+                          const parts = text.split(regex);
+                          return parts.map((part, i) =>
+                            regex.test(part) ? (
+                              <mark
+                                key={`highlight-${i}`}
+                                className="bg-yellow-200 dark:bg-yellow-800 text-inherit px-0"
+                              >
+                                {part}
+                              </mark>
+                            ) : (
+                              <span key={`text-${i}`}>{part}</span>
+                            )
+                          );
+                        };
 
-                      return (
-                        <div
-                          key={patient.id || patient._id}
-                          onClick={() => handlePatientSelect(patient)}
-                          className={`px-4 py-3 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0 transition-colors ${
-                            isSelected
-                              ? "bg-blue-50 dark:bg-blue-900/50 border-blue-200 dark:border-blue-700"
-                              : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-medium text-gray-900 dark:text-gray-100">
-                                {highlightText(patient.name)}
-                              </div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
-                                ID:{" "}
-                                {highlightText(patient.id || patient._id || "")}{" "}
-                                • {patient.age}y, {patient.gender}
-                              </div>
-                              {patient.condition && (
-                                <div className="text-xs text-blue-600 dark:text-blue-400">
-                                  {highlightText(patient.condition)}
+                        return (
+                          <div
+                            key={patient.id || patient._id}
+                            onClick={() => handlePatientSelect(patient)}
+                            className={`px-4 py-3 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0 transition-colors ${
+                              isSelected
+                                ? "bg-blue-50 dark:bg-blue-900/50 border-blue-200 dark:border-blue-700"
+                                : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="font-medium text-gray-900 dark:text-gray-100">
+                                  {highlightText(patient.name)}
                                 </div>
-                              )}
-                              {patient.phone && (
-                                <div className="text-xs text-gray-500 dark:text-gray-400">
-                                  📞 {highlightText(patient.phone)}
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                  ID:{" "}
+                                  {highlightText(
+                                    patient.id || patient._id || ""
+                                  )}{" "}
+                                  • {patient.age}y, {patient.gender}
                                 </div>
-                              )}
+                                {patient.condition && (
+                                  <div className="text-xs text-blue-600 dark:text-blue-400">
+                                    {highlightText(patient.condition)}
+                                  </div>
+                                )}
+                                {patient.phone && (
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    📞 {highlightText(patient.phone)}
+                                  </div>
+                                )}
+                              </div>
+                              <ChevronRight
+                                className={`h-4 w-4 ${
+                                  isSelected ? "text-blue-500" : "text-gray-400"
+                                }`}
+                              />
                             </div>
-                            <ChevronRight
-                              className={`h-4 w-4 ${
-                                isSelected ? "text-blue-500" : "text-gray-400"
-                              }`}
-                            />
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                {showPatientDropdown &&
-                  filteredPatients.length === 0 &&
-                  patientSearchQuery.trim() && (
-                    <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg p-4">
-                      <div className="text-center text-gray-500 dark:text-gray-400">
-                        No patients found matching &quot;{patientSearchQuery}
-                        &quot;
-                      </div>
-                      <div className="text-center text-xs text-gray-400 dark:text-gray-500 mt-2">
-                        Try searching by name, ID, condition, or phone number
-                      </div>
+                        );
+                      })}
                     </div>
                   )}
-                {/* Keyboard navigation help */}
-                {showPatientDropdown && filteredPatients.length > 0 && (
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-4">
-                    <span>↑↓ Navigate</span>
-                    <span>↵ Select</span>
-                    <span>Esc Close</span>
-                  </div>
-                )}
-              </div>
-              {selectedPatient && (
-                <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src="/api/placeholder/40/40" />{" "}
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {selectedPatient.name
-                          ? selectedPatient.name
-                              .split(" ")
-                              .map((n: string) => n[0])
-                              .join("")
-                          : "??"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-medium">{selectedPatient.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {selectedPatient.age} years old,{" "}
-                        {selectedPatient.gender}
-                      </p>
+                  {showPatientDropdown &&
+                    filteredPatients.length === 0 &&
+                    patientSearchQuery.trim() && (
+                      <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg p-4">
+                        <div className="text-center text-gray-500 dark:text-gray-400">
+                          No patients found matching &quot;{patientSearchQuery}
+                          &quot;
+                        </div>
+                        <div className="text-center text-xs text-gray-400 dark:text-gray-500 mt-2">
+                          Try searching by name, ID, condition, or phone number
+                        </div>
+                      </div>
+                    )}
+                  {/* Keyboard navigation help */}
+                  {showPatientDropdown && filteredPatients.length > 0 && (
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-4">
+                      <span>↑↓ Navigate</span>
+                      <span>↵ Select</span>
+                      <span>Esc Close</span>
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <Label className="text-xs font-medium text-muted-foreground">
-                        Allergies
-                      </Label>{" "}
-                      <div className="mt-1">
-                        {selectedPatient.allergies &&
-                        selectedPatient.allergies.length > 0 ? (
-                          selectedPatient.allergies.map(
-                            (allergy: string, index: number) => (
-                              <Badge
-                                key={index}
-                                variant="destructive"
-                                className="mr-1 mb-1"
-                              >
-                                {allergy}
-                              </Badge>
-                            )
-                          )
-                        ) : (
-                          <span className="text-muted-foreground">
-                            None reported
-                          </span>
-                        )}
+                  )}
+                </div>
+                {selectedPatient && (
+                  <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src="/api/placeholder/40/40" />{" "}
+                        <AvatarFallback className="bg-primary/10 text-primary">
+                          {selectedPatient.name
+                            ? selectedPatient.name
+                                .split(" ")
+                                .map((n: string) => n[0])
+                                .join("")
+                            : "??"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-medium">{selectedPatient.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedPatient.age} years old,{" "}
+                          {selectedPatient.gender}
+                        </p>
                       </div>
                     </div>
-                    <div>
-                      <Label className="text-xs font-medium text-muted-foreground">
-                        Current Medications
-                      </Label>{" "}
-                      <div className="mt-1">
-                        {(
-                          selectedPatient.currentMedications ||
-                          selectedPatient.medications ||
-                          []
-                        ).length > 0 ? (
-                          (
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <Label className="text-xs font-medium text-muted-foreground">
+                          Allergies
+                        </Label>{" "}
+                        <div className="mt-1">
+                          {selectedPatient.allergies &&
+                          selectedPatient.allergies.length > 0 ? (
+                            selectedPatient.allergies.map(
+                              (allergy: string, index: number) => (
+                                <Badge
+                                  key={index}
+                                  variant="destructive"
+                                  className="mr-1 mb-1"
+                                >
+                                  {allergy}
+                                </Badge>
+                              )
+                            )
+                          ) : (
+                            <span className="text-muted-foreground">
+                              None reported
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-xs font-medium text-muted-foreground">
+                          Current Medications
+                        </Label>{" "}
+                        <div className="mt-1">
+                          {(
                             selectedPatient.currentMedications ||
                             selectedPatient.medications ||
                             []
-                          ).map((med: string, index: number) => (
-                            <div key={index} className="text-sm">
-                              {med}
-                            </div>
-                          ))
-                        ) : (
-                          <span className="text-muted-foreground">None</span>
-                        )}
+                          ).length > 0 ? (
+                            (
+                              selectedPatient.currentMedications ||
+                              selectedPatient.medications ||
+                              []
+                            ).map((med: string, index: number) => (
+                              <div key={index} className="text-sm">
+                                {med}
+                              </div>
+                            ))
+                          ) : (
+                            <span className="text-muted-foreground">None</span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium text-muted-foreground">
-                        Medical History
-                      </Label>{" "}
-                      <div className="mt-1">
-                        {(
-                          selectedPatient.medicalHistory || [
-                            selectedPatient.condition,
-                          ] ||
-                          []
-                        ).filter(Boolean).length > 0 ? (
-                          (
+                      <div>
+                        <Label className="text-xs font-medium text-muted-foreground">
+                          Medical History
+                        </Label>{" "}
+                        <div className="mt-1">
+                          {(
                             selectedPatient.medicalHistory || [
                               selectedPatient.condition,
                             ] ||
                             []
-                          )
-                            .filter(Boolean)
-                            .map(
-                              (condition: string | undefined, index: number) =>
-                                condition ? (
-                                  <div key={index} className="text-sm">
-                                    {condition}
-                                  </div>
-                                ) : null
+                          ).filter(Boolean).length > 0 ? (
+                            (
+                              selectedPatient.medicalHistory || [
+                                selectedPatient.condition,
+                              ] ||
+                              []
                             )
-                        ) : (
-                          <span className="text-muted-foreground">None</span>
-                        )}
-                      </div>
-                    </div>{" "}
-                  </div>
-                </div>
-              )}
-              {/* Prescription Status Check */}
-              {selectedPatient && (
-                <div className="space-y-3">
-                  {isCheckingStatus && (
-                    <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                      <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                      <span className="text-sm text-blue-700 dark:text-blue-300">
-                        Checking prescription history...
-                      </span>
-                    </div>
-                  )}{" "}
-                  {prescriptionStatus &&
-                    (prescriptionStatus.hasActivePrescriptions ||
-                      prescriptionStatus.hasRecentPrescriptions) && (
-                      <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
-                        <CheckCircle className="h-4 w-4 text-blue-600" />
-                        <AlertTitle className="text-blue-800 dark:text-blue-200">
-                          Prescription History Available
-                        </AlertTitle>
-                        <AlertDescription className="text-blue-700 dark:text-blue-300">
-                          <div className="space-y-2">
-                            <div className="text-sm">
-                              ℹ️ AI will analyze past prescriptions for better
-                              recommendations.
-                            </div>
-                            {prescriptionStatus.recommendations.map(
-                              (rec, index) => (
-                                <div key={index} className="text-sm">
-                                  📋 {rec}
-                                </div>
+                              .filter(Boolean)
+                              .map(
+                                (
+                                  condition: string | undefined,
+                                  index: number
+                                ) =>
+                                  condition ? (
+                                    <div key={index} className="text-sm">
+                                      {condition}
+                                    </div>
+                                  ) : null
                               )
-                            )}
-                          </div>
-                        </AlertDescription>
-                      </Alert>
-                    )}{" "}
-                  {prescriptionStatus &&
-                    prescriptionStatus.activePrescriptions.length > 0 && (
-                      <div className="p-3 border rounded-lg bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Stethoscope className="h-4 w-4 text-blue-600" />
-                          <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                            Current Prescriptions (
-                            {prescriptionStatus.activePrescriptions.length})
-                          </span>
-                        </div>
-                        <div className="space-y-2">
-                          {prescriptionStatus.activePrescriptions
-                            .slice(0, 2)
-                            .map((prescription, index) => (
-                              <div
-                                key={index}
-                                className="text-xs p-2 bg-white dark:bg-gray-800 rounded border"
-                              >
-                                <div className="font-medium">
-                                  {prescription.diagnosis}
-                                </div>
-                                <div className="text-muted-foreground">
-                                  {prescription.date} - Dr.{" "}
-                                  {prescription.doctorName}
-                                </div>
-                                <div className="text-muted-foreground">
-                                  {prescription.medications?.length || 0}{" "}
-                                  medication(s)
-                                </div>
-                              </div>
-                            ))}
-                          {prescriptionStatus.activePrescriptions.length >
-                            2 && (
-                            <div className="text-xs text-muted-foreground">
-                              +
-                              {prescriptionStatus.activePrescriptions.length -
-                                2}{" "}
-                              more active prescriptions
-                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">None</span>
                           )}
                         </div>
-                      </div>
-                    )}
-                  {prescriptionStatus &&
-                    !prescriptionStatus.hasActivePrescriptions &&
-                    !prescriptionStatus.hasRecentPrescriptions && (
-                      <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950 rounded-lg">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                        <span className="text-sm text-green-700 dark:text-green-300">
-                          No active or recent prescriptions found. Safe to
-                          prescribe.
+                      </div>{" "}
+                    </div>
+                  </div>
+                )}
+                {/* Prescription Status Check */}
+                {selectedPatient && (
+                  <div className="space-y-3">
+                    {isCheckingStatus && (
+                      <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                        <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                        <span className="text-sm text-blue-700 dark:text-blue-300">
+                          Checking prescription history...
                         </span>
                       </div>
                     )}{" "}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
+                    {prescriptionStatus &&
+                      (prescriptionStatus.hasActivePrescriptions ||
+                        prescriptionStatus.hasRecentPrescriptions) && (
+                        <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+                          <CheckCircle className="h-4 w-4 text-blue-600" />
+                          <AlertTitle className="text-blue-800 dark:text-blue-200">
+                            Prescription History Available
+                          </AlertTitle>
+                          <AlertDescription className="text-blue-700 dark:text-blue-300">
+                            <div className="space-y-2">
+                              <div className="text-sm">
+                                ℹ️ AI will analyze past prescriptions for better
+                                recommendations.
+                              </div>
+                              {prescriptionStatus.recommendations.map(
+                                (rec, index) => (
+                                  <div key={index} className="text-sm">
+                                    📋 {rec}
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </AlertDescription>
+                        </Alert>
+                      )}{" "}
+                    {prescriptionStatus &&
+                      prescriptionStatus.activePrescriptions.length > 0 && (
+                        <div className="p-3 border rounded-lg bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Stethoscope className="h-4 w-4 text-blue-600" />
+                            <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                              Current Prescriptions (
+                              {prescriptionStatus.activePrescriptions.length})
+                            </span>
+                          </div>
+                          <div className="space-y-2">
+                            {prescriptionStatus.activePrescriptions
+                              .slice(0, 2)
+                              .map((prescription, index) => (
+                                <div
+                                  key={index}
+                                  className="text-xs p-2 bg-white dark:bg-gray-800 rounded border"
+                                >
+                                  <div className="font-medium">
+                                    {prescription.diagnosis}
+                                  </div>
+                                  <div className="text-muted-foreground">
+                                    {prescription.date} - Dr.{" "}
+                                    {prescription.doctorName}
+                                  </div>
+                                  <div className="text-muted-foreground">
+                                    {prescription.medications?.length || 0}{" "}
+                                    medication(s)
+                                  </div>
+                                </div>
+                              ))}
+                            {prescriptionStatus.activePrescriptions.length >
+                              2 && (
+                              <div className="text-xs text-muted-foreground">
+                                +
+                                {prescriptionStatus.activePrescriptions.length -
+                                  2}{" "}
+                                more active prescriptions
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    {prescriptionStatus &&
+                      !prescriptionStatus.hasActivePrescriptions &&
+                      !prescriptionStatus.hasRecentPrescriptions && (
+                        <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          <span className="text-sm text-green-700 dark:text-green-300">
+                            No active or recent prescriptions found. Safe to
+                            prescribe.
+                          </span>
+                        </div>
+                      )}{" "}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>{" "}
           {/* Past Prescriptions History */}
           {selectedPatient && showPastPrescriptions && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bot className="h-5 w-5" />
-                  Past Prescriptions History
-                  <Badge variant="secondary" className="ml-2">
-                    {pastPrescriptions.length} records
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoadingPastPrescriptions ? (
-                  <div className="flex items-center gap-2 p-4">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm text-muted-foreground">
-                      Loading prescription history...
-                    </span>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
-                      <Brain className="h-4 w-4 text-blue-600" />
-                      <AlertTitle className="text-blue-800 dark:text-blue-200">
-                        AI Analysis with Historical Context
-                      </AlertTitle>
-                      <AlertDescription className="text-blue-700 dark:text-blue-300">
-                        The AI will analyze these past prescriptions along with
-                        current symptoms to provide safe, personalized
-                        recommendations and detect potential drug interactions.
-                      </AlertDescription>
-                    </Alert>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-gradient-to-br from-white to-purple-50/30 dark:from-gray-900 dark:to-purple-950/30">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    <motion.div
+                      whileHover={{ scale: 1.1, rotate: 10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Bot className="h-5 w-5 text-purple-600" />
+                    </motion.div>
+                    Past Prescriptions History
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.3, delay: 0.4 }}
+                    >
+                      <Badge
+                        variant="secondary"
+                        className="ml-2 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900 dark:to-blue-900"
+                      >
+                        {pastPrescriptions.length} records
+                      </Badge>
+                    </motion.div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingPastPrescriptions ? (
+                    <div className="flex items-center gap-2 p-4">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm text-muted-foreground">
+                        Loading prescription history...
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+                        <Brain className="h-4 w-4 text-blue-600" />
+                        <AlertTitle className="text-blue-800 dark:text-blue-200">
+                          AI Analysis with Historical Context
+                        </AlertTitle>
+                        <AlertDescription className="text-blue-700 dark:text-blue-300">
+                          The AI will analyze these past prescriptions along
+                          with current symptoms to provide safe, personalized
+                          recommendations and detect potential drug
+                          interactions.
+                        </AlertDescription>
+                      </Alert>
 
-                    <div className="max-h-60 overflow-y-auto space-y-2">
-                      {pastPrescriptions
-                        .slice(0, 5)
-                        .map((prescription, index) => (
-                          <div
-                            key={index}
-                            className="p-3 border rounded-lg bg-gray-50 dark:bg-gray-800"
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <Badge
-                                  variant={
-                                    prescription.status === "active"
-                                      ? "default"
-                                      : "secondary"
-                                  }
-                                  className="text-xs"
-                                >
-                                  {prescription.status}
-                                </Badge>
-                                <span className="text-sm font-medium">
-                                  {prescription.diagnosis}
+                      <div className="max-h-60 overflow-y-auto space-y-2">
+                        {pastPrescriptions
+                          .slice(0, 5)
+                          .map((prescription, index) => (
+                            <div
+                              key={index}
+                              className="p-3 border rounded-lg bg-gray-50 dark:bg-gray-800"
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <Badge
+                                    variant={
+                                      prescription.status === "active"
+                                        ? "default"
+                                        : "secondary"
+                                    }
+                                    className="text-xs"
+                                  >
+                                    {prescription.status}
+                                  </Badge>
+                                  <span className="text-sm font-medium">
+                                    {prescription.diagnosis}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-muted-foreground">
+                                  {prescription.date}
                                 </span>
                               </div>
-                              <span className="text-xs text-muted-foreground">
-                                {prescription.date}
-                              </span>
-                            </div>
 
-                            <div className="text-sm text-muted-foreground mb-2">
-                              Dr. {prescription.doctorName}
-                            </div>
+                              <div className="text-sm text-muted-foreground mb-2">
+                                Dr. {prescription.doctorName}
+                              </div>
 
-                            {prescription.medications &&
-                              prescription.medications.length > 0 && (
-                                <div className="space-y-1">
-                                  <div className="text-xs font-medium text-muted-foreground">
-                                    Medications:
-                                  </div>
-                                  {prescription.medications
-                                    .slice(0, 3)
-                                    .map(
+                              {prescription.medications &&
+                                prescription.medications.length > 0 && (
+                                  <div className="space-y-1">
+                                    <div className="text-xs font-medium text-muted-foreground">
+                                      Medications:
+                                    </div>
+                                    {prescription.medications.slice(0, 3).map(
                                       (
                                         med: {
                                           name: string;
@@ -1090,195 +1153,277 @@ export function NewPrescriptionPage() {
                                         </div>
                                       )
                                     )}
-                                  {prescription.medications.length > 3 && (
-                                    <div className="text-xs text-muted-foreground">
-                                      +{prescription.medications.length - 3}{" "}
-                                      more medications
-                                    </div>
-                                  )}
+                                    {prescription.medications.length > 3 && (
+                                      <div className="text-xs text-muted-foreground">
+                                        +{prescription.medications.length - 3}{" "}
+                                        more medications
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
+                              {prescription.notes && (
+                                <div className="mt-2 text-xs text-muted-foreground">
+                                  <div className="font-medium">Notes:</div>
+                                  <div className="line-clamp-2">
+                                    {prescription.notes}
+                                  </div>
                                 </div>
                               )}
+                            </div>
+                          ))}
 
-                            {prescription.notes && (
-                              <div className="mt-2 text-xs text-muted-foreground">
-                                <div className="font-medium">Notes:</div>
-                                <div className="line-clamp-2">
-                                  {prescription.notes}
-                                </div>
-                              </div>
-                            )}
+                        {pastPrescriptions.length > 5 && (
+                          <div className="text-center py-2">
+                            <Badge variant="outline" className="text-xs">
+                              +{pastPrescriptions.length - 5} more prescriptions
+                              in history
+                            </Badge>
                           </div>
-                        ))}
-
-                      {pastPrescriptions.length > 5 && (
-                        <div className="text-center py-2">
-                          <Badge variant="outline" className="text-xs">
-                            +{pastPrescriptions.length - 5} more prescriptions
-                            in history
-                          </Badge>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}{" "}
+          {/* Symptoms and Diagnosis */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-gradient-to-br from-white to-green-50/30 dark:from-gray-900 dark:to-green-950/30">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                  <motion.div
+                    whileHover={{ scale: 1.1, rotate: 10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Stethoscope className="h-5 w-5 text-green-600" />
+                  </motion.div>
+                  Clinical Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="symptoms">Symptoms *</Label>{" "}
+                  <Textarea
+                    id="symptoms"
+                    placeholder="Enter patient symptoms (comma-separated)"
+                    value={symptoms}
+                    onChange={(e) => setSymptoms(e.target.value)}
+                    className="min-h-[100px]"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Example: headache, fever, muscle aches, fatigue
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="diagnosis">Diagnosis</Label>
+                  <Input
+                    id="diagnosis"
+                    placeholder="Enter preliminary diagnosis (optional)"
+                    value={diagnosis}
+                    onChange={(e) => setDiagnosis(e.target.value)}
+                  />
+                </div>{" "}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                >
+                  <Button
+                    onClick={handleGeneratePrescription}
+                    disabled={!selectedPatient || !symptoms || isGenerating}
+                    className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+                    size="lg"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Analyzing Patient History & Generating Smart
+                        Prescription...
+                      </>
+                    ) : (
+                      <>
+                        <motion.div
+                          whileHover={{ scale: 1.1, rotate: 10 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Brain className="h-4 w-4 mr-2" />
+                        </motion.div>
+                        Generate Intelligent Prescription
+                      </>
+                    )}
+                  </Button>
+                </motion.div>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 border-t border-gray-300"></div>
+                  <span className="text-sm text-muted-foreground px-2">or</span>
+                  <div className="flex-1 border-t border-gray-300"></div>
+                </div>{" "}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
+                >
+                  <Button
+                    onClick={() => {
+                      setIsManualMode(true);
+                      setShowPrescriptionModal(true);
+                    }}
+                    disabled={!selectedPatient}
+                    variant="outline"
+                    className="w-full border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50 dark:border-blue-800 dark:hover:border-blue-600 dark:hover:bg-blue-950/50 transition-all duration-300 shadow-md hover:shadow-lg"
+                    size="lg"
+                  >
+                    <motion.div
+                      whileHover={{ scale: 1.1, rotate: 10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Edit3 className="h-4 w-4 mr-2" />
+                    </motion.div>
+                    Create Manual Prescription
+                  </Button>
+                </motion.div>
               </CardContent>
             </Card>
-          )}
-
-          {/* Symptoms and Diagnosis */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Stethoscope className="h-5 w-5" />
-                Clinical Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="symptoms">Symptoms *</Label>{" "}
-                <Textarea
-                  id="symptoms"
-                  placeholder="Enter patient symptoms (comma-separated)"
-                  value={symptoms}
-                  onChange={(e) => setSymptoms(e.target.value)}
-                  className="min-h-[100px]"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Example: headache, fever, muscle aches, fatigue
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="diagnosis">Diagnosis</Label>
-                <Input
-                  id="diagnosis"
-                  placeholder="Enter preliminary diagnosis (optional)"
-                  value={diagnosis}
-                  onChange={(e) => setDiagnosis(e.target.value)}
-                />
-              </div>{" "}
-              <Button
-                onClick={handleGeneratePrescription}
-                disabled={!selectedPatient || !symptoms || isGenerating}
-                className="w-full"
-                size="lg"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Analyzing Patient History & Generating Smart Prescription...
-                  </>
-                ) : (
-                  <>
-                    <Brain className="h-4 w-4 mr-2" />
-                    Generate Intelligent Prescription
-                  </>
-                )}
-              </Button>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 border-t border-gray-300"></div>
-                <span className="text-sm text-muted-foreground px-2">or</span>
-                <div className="flex-1 border-t border-gray-300"></div>
-              </div>
-              <Button
-                onClick={() => {
-                  setIsManualMode(true);
-                  setShowPrescriptionModal(true);
-                }}
-                disabled={!selectedPatient}
-                variant="outline"
-                className="w-full"
-                size="lg"
-              >
-                <Edit3 className="h-4 w-4 mr-2" />
-                Create Manual Prescription
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
+          </motion.div>
+        </div>{" "}
         {/* Right Column - Alternatives and Tips */}
-        <div className="space-y-6">
+        <motion.div
+          className="space-y-6"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
           {/* AI Tips */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bot className="h-5 w-5" />
-                AI Assistant Tips
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
-                <p>Be specific with symptoms for better recommendations</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
-                <p>Include symptom duration and severity when possible</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
-                <p>Review patient allergies and current medications</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
-                <p>Always review AI suggestions before prescribing</p>
-              </div>
-            </CardContent>
-          </Card>
-
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-gradient-to-br from-white to-indigo-50/30 dark:from-gray-900 dark:to-indigo-950/30">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  <motion.div
+                    whileHover={{ scale: 1.1, rotate: 10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Bot className="h-5 w-5 text-indigo-600" />
+                  </motion.div>
+                  AI Assistant Tips
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                  <p>Be specific with symptoms for better recommendations</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                  <p>Include symptom duration and severity when possible</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                  <p>Review patient allergies and current medications</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                  <p>Always review AI suggestions before prescribing</p>{" "}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>{" "}
           {/* Alternative Medications */}
           {aiResponse?.alternatives && aiResponse.alternatives.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Alternative Options</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {" "}
-                {aiResponse.alternatives.map((alt, index) => (
-                  <div
-                    key={alt.id || `alt-${index}`}
-                    className="p-3 border rounded-lg"
-                  >
-                    <h5 className="font-medium">{alt.name}</h5>
-                    <p className="text-sm text-muted-foreground">
-                      {alt.strength} {alt.form}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {alt.frequency}
-                    </p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-gradient-to-br from-white to-orange-50/30 dark:from-gray-900 dark:to-orange-950/30">
+                <CardHeader>
+                  <CardTitle className="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                    Alternative Options
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {" "}
+                  {aiResponse.alternatives.map((alt, index) => (
+                    <motion.div
+                      key={alt.id || `alt-${index}`}
+                      className="p-3 border rounded-lg hover:shadow-md transition-all duration-200 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      whileHover={{ scale: 1.02, x: 4 }}
+                    >
+                      <h5 className="font-medium">{alt.name}</h5>
+                      <p className="text-sm text-muted-foreground">
+                        {alt.strength} {alt.form}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {alt.frequency}
+                      </p>
+                    </motion.div>
+                  ))}
+                </CardContent>
+              </Card>
+            </motion.div>
           )}
-        </div>
-      </div>
-
+        </motion.div>
+      </div>{" "}
       {/* Prescription Modal */}
       <Dialog
         open={showPrescriptionModal}
         onOpenChange={setShowPrescriptionModal}
       >
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white to-blue-50/30 dark:from-gray-900 dark:to-blue-950/30 border-0 shadow-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {isManualMode ? (
                 <>
-                  <Edit3 className="h-5 w-5" />
-                  Manual Prescription Entry
+                  <motion.div
+                    whileHover={{ scale: 1.1, rotate: 10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Edit3 className="h-5 w-5 text-blue-600" />
+                  </motion.div>
+                  <span className="bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                    Manual Prescription Entry
+                  </span>
                 </>
               ) : (
                 <>
-                  <Brain className="h-5 w-5" />
-                  AI Generated Prescription
+                  <motion.div
+                    whileHover={{ scale: 1.1, rotate: 10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Brain className="h-5 w-5 text-purple-600" />
+                  </motion.div>
+                  <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    AI Generated Prescription
+                  </span>
                   {aiResponse && (
-                    <Badge variant="secondary" className="ml-2">
-                      {Math.round(aiResponse.confidence * 100)}% Confidence
-                    </Badge>
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.3, delay: 0.2 }}
+                    >
+                      <Badge
+                        variant="secondary"
+                        className="ml-2 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900 dark:to-blue-900"
+                      >
+                        {Math.round(aiResponse.confidence * 100)}% Confidence
+                      </Badge>
+                    </motion.div>
                   )}
                 </>
               )}
-            </DialogTitle>
+            </DialogTitle>{" "}
             <DialogDescription>
               {isManualMode
                 ? "Create a prescription manually. Fill in the medication details below."
@@ -1286,17 +1431,26 @@ export function NewPrescriptionPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <motion.div
+            className="space-y-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            {" "}
             {/* AI Mode - Show AI Response */}
             {!isManualMode && aiResponse && (
-              <>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
                 {/* AI Reasoning */}
                 <Alert>
                   <Bot className="h-4 w-4" />
                   <AlertTitle>Intelligent Analysis</AlertTitle>
                   <AlertDescription>{aiResponse.reasoning}</AlertDescription>
                 </Alert>
-
                 {/* Warnings if any */}
                 {aiResponse.warnings && aiResponse.warnings.length > 0 && (
                   <Alert className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
@@ -1315,15 +1469,25 @@ export function NewPrescriptionPage() {
                       </ul>
                     </AlertDescription>
                   </Alert>
-                )}
-
+                )}{" "}
                 {/* AI Medications */}
-                <div className="space-y-4">
-                  <h4 className="font-medium">Recommended Medications</h4>
+                <motion.div
+                  className="space-y-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  <h4 className="font-medium bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                    Recommended Medications
+                  </h4>
                   {aiResponse.medications.map((med, medIndex) => (
-                    <div
+                    <motion.div
                       key={med.id || `med-${medIndex}`}
-                      className="p-4 border rounded-lg space-y-2"
+                      className="p-4 border rounded-lg space-y-2 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-blue-50/50 to-green-50/50 dark:from-blue-950/50 dark:to-green-950/50"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: medIndex * 0.1 }}
+                      whileHover={{ scale: 1.02, x: 4 }}
                     >
                       <div className="flex items-start justify-between">
                         <div>
@@ -1386,20 +1550,28 @@ export function NewPrescriptionPage() {
                                 {effect}
                               </Badge>
                             ))}
-                          </div>
+                          </div>{" "}
                         </div>
                       )}
-                    </div>
+                    </motion.div>
                   ))}
-                </div>
-              </>
+                </motion.div>
+              </motion.div>
             )}
-
             {/* Manual Mode - Show Manual Entry Form */}
             {isManualMode && (
-              <>
-                <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
-                  <AlertTriangle className="h-4 w-4 text-blue-600" />
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <Alert className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 dark:border-blue-800 dark:from-blue-950 dark:to-indigo-950">
+                  <motion.div
+                    whileHover={{ scale: 1.1, rotate: 10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <AlertTriangle className="h-4 w-4 text-blue-600" />
+                  </motion.div>
                   <AlertTitle className="text-blue-800 dark:text-blue-200">
                     Manual Prescription Mode
                   </AlertTitle>
@@ -1409,7 +1581,12 @@ export function NewPrescriptionPage() {
                   </AlertDescription>
                 </Alert>
 
-                <div className="space-y-4">
+                <motion.div
+                  className="space-y-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium">Medications</h4>
                     <Button
@@ -1528,28 +1705,42 @@ export function NewPrescriptionPage() {
                             )
                           }
                           rows={2}
-                        />
+                        />{" "}
                       </div>
                     </div>
                   ))}
-                </div>
-              </>
-            )}
-
+                </motion.div>
+              </motion.div>
+            )}{" "}
             {/* Additional Notes (for both modes) */}
-            <div className="space-y-2">
-              <Label htmlFor="notes">Additional Notes</Label>
+            <motion.div
+              className="space-y-2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <Label
+                htmlFor="notes"
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent font-medium"
+              >
+                Additional Notes
+              </Label>
               <Textarea
                 id="notes"
                 placeholder="Add any additional notes or modifications..."
                 value={customNotes}
                 onChange={(e) => setCustomNotes(e.target.value)}
                 rows={3}
+                className="bg-gradient-to-br from-white to-indigo-50/30 dark:from-gray-900 dark:to-indigo-950/30 border-0 shadow-md focus:shadow-lg transition-all duration-300"
               />
-            </div>
-
+            </motion.div>
             {/* Action Buttons */}
-            <div className="flex gap-3 pt-4 border-t">
+            <motion.div
+              className="flex gap-3 pt-4 border-t"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
               {isManualMode ? (
                 <>
                   <Button
@@ -1603,10 +1794,10 @@ export function NewPrescriptionPage() {
                   </Button>
                 </>
               )}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </DialogContent>
       </Dialog>
-    </div>
+    </motion.div>
   );
 }

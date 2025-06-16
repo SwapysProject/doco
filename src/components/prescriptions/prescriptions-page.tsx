@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +35,7 @@ import {
   Bot,
   Download,
   FileText,
+  RefreshCw,
 } from "lucide-react";
 import { Prescription } from "@/types/prescription";
 import Link from "next/link";
@@ -168,7 +170,7 @@ function getStatusColor(status: string | undefined | null) {
  * Prescriptions Page Component
  *
  * Main prescriptions management interface featuring:
- * - List of all prescriptions with search and filtering
+ * - List of prescriptions for assigned patients with search and filtering
  * - Quick actions for viewing, editing, and printing
  * - AI-generated prescription indicators
  * - Status tracking and management
@@ -178,18 +180,22 @@ export function PrescriptionsPage() {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Load prescriptions from API
+  // Load prescriptions from API - only for current doctor and assigned patients
   useEffect(() => {
     const loadPrescriptions = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await fetch("/api/prescriptions");
+
+        // Use the new my-prescriptions endpoint that filters by doctor and assigned patients
+        const response = await fetch("/api/my-prescriptions");
         const result = await response.json();
 
         if (result.success && result.data) {
           setPrescriptions(result.data);
+        } else if (result.success && result.data?.length === 0) {
+          setPrescriptions([]);
+          console.log("No prescriptions found for this doctor");
         } else {
           console.log("No prescriptions found or API error, using mock data");
           setPrescriptions(mockPrescriptions);
@@ -206,11 +212,10 @@ export function PrescriptionsPage() {
 
     loadPrescriptions();
   }, []);
-
   // Refresh prescriptions (can be called when needed)
   const refreshPrescriptions = async () => {
     try {
-      const response = await fetch("/api/prescriptions");
+      const response = await fetch("/api/my-prescriptions");
       const result = await response.json();
 
       if (result.success && result.data) {
@@ -827,285 +832,501 @@ export function PrescriptionsPage() {
         .includes(searchQuery.toLowerCase()) ||
       (prescription.id || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
-
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Prescriptions</h1>
-          <p className="text-muted-foreground">
-            Manage and generate patient prescriptions
-          </p>{" "}
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={refreshPrescriptions}>
-            Refresh
-          </Button>
-          <Button asChild>
-            <Link href="/dashboard/prescriptions/new">
-              <Plus className="h-4 w-4 mr-2" />
-              New Prescription
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Prescriptions
-            </CardTitle>
-            <Stethoscope className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{prescriptions.length}</div>
-            <p className="text-xs text-muted-foreground">+2 from yesterday</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Active Prescriptions
-            </CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {prescriptions.filter((p) => p.status === "active").length}
+      {/* Enhanced Page Header */}
+      <motion.div
+        className="flex items-center justify-between group"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <div className="flex items-center space-x-4">
+            <motion.div
+              className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg"
+              whileHover={{ scale: 1.05, rotate: 5 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Stethoscope className="w-6 h-6" />
+            </motion.div>
+            <div>
+              {" "}
+              <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                My Prescriptions
+              </h1>
+              <p className="text-muted-foreground transition-all duration-300 ease-out group-hover:text-purple-600 group-hover:translate-x-2">
+                Manage prescriptions for your assigned patients
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Currently prescribed
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+        </motion.div>
+        <motion.div
+          className="flex gap-2"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button
+              variant="outline"
+              onClick={refreshPrescriptions}
+              className="shadow-sm hover:shadow-md transition-all duration-200 border-border hover:bg-accent/50 group"
+            >
+              <motion.div
+                animate={{ rotate: 0 }}
+                whileHover={{ rotate: 180 }}
+                transition={{ duration: 0.3 }}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+              </motion.div>
+              Refresh
+            </Button>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button
+              asChild
+              className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 shadow-sm hover:shadow-md transition-all duration-200 group"
+            >
+              <Link href="/dashboard/prescriptions/new">
+                <Plus className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform duration-200" />
+                New Prescription
+              </Link>
+            </Button>
+          </motion.div>
+        </motion.div>
+      </motion.div>{" "}
+      {/* Enhanced Stats Cards */}
+      <motion.div
+        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          whileHover={{ scale: 1.02, y: -2 }}
+        >
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/50 dark:to-purple-900/30 border border-purple-200/50 dark:border-purple-800/50 shadow-sm hover:shadow-lg transition-all duration-300 group backdrop-blur-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                Total Prescriptions
+              </CardTitle>
+              <motion.div
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg flex items-center justify-center"
+              >
+                <Stethoscope className="h-4 w-4" />
+              </motion.div>
+            </CardHeader>
+            <CardContent>
+              <motion.div
+                className="text-2xl font-bold text-purple-700 dark:text-purple-300"
+                initial={{ scale: 0.5 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.5 }}
+              >
+                {prescriptions.length}
+              </motion.div>
+              <p className="text-xs text-purple-600/80 dark:text-purple-400/80 group-hover:text-purple-700 dark:group-hover:text-purple-300 transition-colors duration-300">
+                +2 from yesterday
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">AI Generated</CardTitle>
-            <Bot className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {prescriptions.filter((p) => p.isAiGenerated).length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              AI-powered prescriptions
-            </p>
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          whileHover={{ scale: 1.02, y: -2 }}
+        >
+          <Card className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/50 dark:to-green-900/30 border border-green-200/50 dark:border-green-800/50 shadow-sm hover:shadow-lg transition-all duration-300 group backdrop-blur-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">
+                Active Prescriptions
+              </CardTitle>
+              <motion.div
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg flex items-center justify-center"
+              >
+                <Calendar className="h-4 w-4" />
+              </motion.div>
+            </CardHeader>
+            <CardContent>
+              <motion.div
+                className="text-2xl font-bold text-green-700 dark:text-green-300"
+                initial={{ scale: 0.5 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.6 }}
+              >
+                {prescriptions.filter((p) => p.status === "active").length}
+              </motion.div>
+              <p className="text-xs text-green-600/80 dark:text-green-400/80 group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors duration-300">
+                Currently prescribed
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Patients Treated
-            </CardTitle>
-            <User className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {new Set(prescriptions.map((p) => p.patientId)).size}
-            </div>
-            <p className="text-xs text-muted-foreground">Unique patients</p>
-          </CardContent>
-        </Card>
-      </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+          whileHover={{ scale: 1.02, y: -2 }}
+        >
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/30 border border-blue-200/50 dark:border-blue-800/50 shadow-sm hover:shadow-lg transition-all duration-300 group backdrop-blur-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                AI Generated
+              </CardTitle>
+              <motion.div
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg flex items-center justify-center"
+              >
+                <Bot className="h-4 w-4" />
+              </motion.div>
+            </CardHeader>
+            <CardContent>
+              <motion.div
+                className="text-2xl font-bold text-blue-700 dark:text-blue-300"
+                initial={{ scale: 0.5 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.7 }}
+              >
+                {prescriptions.filter((p) => p.isAiGenerated).length}
+              </motion.div>
+              <p className="text-xs text-blue-600/80 dark:text-blue-400/80 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors duration-300">
+                AI-powered prescriptions
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-      {/* Search and Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.7 }}
+          whileHover={{ scale: 1.02, y: -2 }}
+        >
+          <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 dark:from-indigo-950/50 dark:to-indigo-900/30 border border-indigo-200/50 dark:border-indigo-800/50 shadow-sm hover:shadow-lg transition-all duration-300 group backdrop-blur-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
+                Patients Treated
+              </CardTitle>
+              <motion.div
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-lg flex items-center justify-center"
+              >
+                <User className="h-4 w-4" />
+              </motion.div>
+            </CardHeader>
+            <CardContent>
+              <motion.div
+                className="text-2xl font-bold text-indigo-700 dark:text-indigo-300"
+                initial={{ scale: 0.5 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.8 }}
+              >
+                {new Set(prescriptions.map((p) => p.patientId)).size}
+              </motion.div>
+              <p className="text-xs text-indigo-600/80 dark:text-indigo-400/80 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors duration-300">
+                Unique patients
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>{" "}
+      {/* Enhanced Search and Filters */}
+      <motion.div
+        className="flex items-center gap-4"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.8 }}
+      >
+        <motion.div
+          className="relative flex-1 max-w-sm group"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.9 }}
+        >
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
           <Input
             placeholder="Search prescriptions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-10 bg-background/50 border-border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all duration-200 hover:shadow-sm focus:shadow-md backdrop-blur-sm"
           />
-        </div>
-        <Button variant="outline">
-          <Filter className="h-4 w-4 mr-2" />
-          Filters
-        </Button>
-      </div>
-
-      {/* Prescriptions Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Stethoscope className="h-5 w-5" />
-            Prescriptions List
-          </CardTitle>{" "}
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <div className="flex items-center justify-center p-6 text-red-600">
-              <p>Error: {error}</p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={refreshPrescriptions}
-                className="ml-4"
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 1.0 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Button
+            variant="outline"
+            className="shadow-sm hover:shadow-md transition-all duration-200 border-border hover:bg-accent/50 group"
+          >
+            <Filter className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform duration-200" />
+            Filters
+          </Button>
+        </motion.div>
+      </motion.div>{" "}
+      {/* Enhanced Prescriptions Table */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 1.1 }}
+      >
+        <Card className="bg-card/50 border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-background/50 to-muted/20 border-b border-border">
+            <CardTitle className="flex items-center gap-2">
+              <motion.div
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ duration: 0.2 }}
               >
-                Retry
-              </Button>
-            </div>
-          )}
+                <Stethoscope className="h-5 w-5 text-primary" />
+              </motion.div>
+              <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                Prescriptions List
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {error && (
+              <div className="flex items-center justify-center p-6 text-red-600">
+                <p>Error: {error}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={refreshPrescriptions}
+                  className="ml-4"
+                >
+                  Retry
+                </Button>
+              </div>
+            )}
 
-          {isLoading ? (
-            <div className="flex items-center justify-center p-6">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-              <span className="ml-2">Loading prescriptions...</span>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Prescription ID</TableHead>
-                  <TableHead>Patient</TableHead>
-                  <TableHead>Diagnosis</TableHead>
-                  <TableHead>Medications</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredPrescriptions.map((prescription, index) => (
-                  <TableRow
-                    key={prescription.id || `prescription-${index}`}
-                    className="hover:bg-muted/50"
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{prescription.id}</span>
-                        {prescription.isAiGenerated && (
-                          <Badge variant="secondary" className="text-xs">
-                            <Bot className="h-3 w-3 mr-1" />
-                            AI
-                          </Badge>
-                        )}
-                      </div>{" "}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src="/api/placeholder/32/32" />
-                          <AvatarFallback className="bg-primary/10 text-primary">
-                            {(prescription.patientName || "Unknown")
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium text-foreground">
-                            {prescription.patientName || "Unknown Patient"}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            ID: {prescription.patientId || "N/A"}
-                          </p>{" "}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm">
-                        {prescription.diagnosis || "N/A"}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        {(prescription.medications || [])
-                          .slice(0, 2)
-                          .map((med, index) => (
-                            <div
-                              key={med.id || `${prescription.id}-med-${index}`}
-                              className="text-sm"
+            {isLoading ? (
+              <div className="flex items-center justify-center p-6">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                <span className="ml-2">Loading prescriptions...</span>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Prescription ID</TableHead>
+                    <TableHead>Patient</TableHead>
+                    <TableHead>Diagnosis</TableHead>
+                    <TableHead>Medications</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
+                  </TableRow>
+                </TableHeader>{" "}
+                <TableBody>
+                  {filteredPrescriptions.map((prescription, index) => (
+                    <motion.tr
+                      key={prescription.id || `prescription-${index}`}
+                      className="hover:bg-muted/50 group transition-all duration-200 hover:shadow-sm"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: 1.3 + index * 0.05 }}
+                      whileHover={{ x: 4 }}
+                    >
+                      {" "}
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium group-hover:text-primary transition-colors duration-200">
+                            {prescription.id}
+                          </span>
+                          {prescription.isAiGenerated && (
+                            <motion.div
+                              initial={{ scale: 0.8, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              transition={{
+                                duration: 0.2,
+                                delay: 1.4 + index * 0.05,
+                              }}
                             >
-                              <span className="font-medium">
-                                {med.name || "Unknown"}
-                              </span>
-                              <span className="text-muted-foreground ml-1">
-                                {med.strength || ""}
-                              </span>
-                            </div>
-                          ))}
-                        {(prescription.medications || []).length > 2 && (
-                          <div className="text-xs text-muted-foreground">
-                            +{(prescription.medications || []).length - 2} more
-                          </div>
-                        )}
-                      </div>{" "}
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">
-                        {formatDate(prescription.date)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(prescription.status)}>
-                        {prescription.status || "Unknown"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
+                              <Badge
+                                variant="secondary"
+                                className="text-xs bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 border-blue-200/50 hover:from-blue-200 hover:to-purple-200 transition-all duration-200"
+                              >
+                                <Bot className="h-3 w-3 mr-1" />
+                                AI
+                              </Badge>
+                            </motion.div>
+                          )}
+                        </div>
+                      </TableCell>{" "}
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <motion.div
+                            whileHover={{ scale: 1.05 }}
+                            transition={{ duration: 0.2 }}
                           >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {" "}
-                          <DropdownMenuItem asChild>
-                            <Link
-                              href={`/dashboard/prescriptions/${prescription.id}`}
+                            <Avatar className="h-8 w-8 ring-2 ring-primary/10 group-hover:ring-primary/20 transition-all duration-200">
+                              <AvatarImage src="/api/placeholder/32/32" />
+                              <AvatarFallback className="bg-gradient-to-br from-primary/10 to-primary/20 text-primary font-medium">
+                                {(prescription.patientName || "Unknown")
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")}
+                              </AvatarFallback>
+                            </Avatar>
+                          </motion.div>
+                          <div>
+                            <p className="font-medium text-foreground group-hover:text-primary transition-colors duration-200">
+                              {prescription.patientName || "Unknown Patient"}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              ID: {prescription.patientId || "N/A"}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>{" "}
+                      <TableCell>
+                        <span className="text-sm group-hover:text-primary transition-colors duration-200 font-medium">
+                          {prescription.diagnosis || "N/A"}
+                        </span>
+                      </TableCell>{" "}
+                      <TableCell>
+                        <motion.div
+                          className="space-y-1"
+                          initial={{ opacity: 0.8 }}
+                          whileHover={{ opacity: 1 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {(prescription.medications || [])
+                            .slice(0, 2)
+                            .map((med, medIndex) => (
+                              <motion.div
+                                key={
+                                  med.id || `${prescription.id}-med-${medIndex}`
+                                }
+                                className="text-sm group-hover:translate-x-1 transition-transform duration-200"
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{
+                                  duration: 0.3,
+                                  delay: 1.5 + index * 0.05 + medIndex * 0.1,
+                                }}
+                              >
+                                <span className="font-medium text-foreground group-hover:text-primary transition-colors duration-200">
+                                  {med.name || "Unknown"}
+                                </span>
+                                <span className="text-muted-foreground ml-1">
+                                  {med.strength || ""}
+                                </span>
+                              </motion.div>
+                            ))}
+                          {(prescription.medications || []).length > 2 && (
+                            <motion.div
+                              className="text-xs text-muted-foreground group-hover:text-primary/60 transition-colors duration-200"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{
+                                duration: 0.3,
+                                delay: 1.7 + index * 0.05,
+                              }}
+                            >
+                              +{(prescription.medications || []).length - 2}{" "}
+                              more
+                            </motion.div>
+                          )}
+                        </motion.div>
+                      </TableCell>{" "}
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-200">
+                          {formatDate(prescription.date)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <motion.div
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Badge
+                            className={`${getStatusColor(prescription.status)} transition-all duration-200 hover:shadow-sm`}
+                          >
+                            {prescription.status || "Unknown"}
+                          </Badge>
+                        </motion.div>
+                      </TableCell>{" "}
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <motion.div
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              transition={{ duration: 0.1 }}
+                            >
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 hover:bg-accent/50 group-hover:bg-accent transition-all duration-200"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </motion.div>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {" "}
+                            <DropdownMenuItem asChild>
+                              <Link
+                                href={`/dashboard/prescriptions/${prescription.id}`}
+                              >
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => previewPrescription(prescription)}
+                            >
+                              <FileText className="mr-2 h-4 w-4" />
+                              Preview PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit Prescription
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Printer className="mr-2 h-4 w-4" />
+                              Print Prescription
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => downloadPrescription(prescription)}
+                            >
+                              <Download className="mr-2 h-4 w-4" />
+                              Download PDF
+                            </DropdownMenuItem>{" "}
+                            <DropdownMenuItem
+                              onClick={() => displayPrescription(prescription)}
                             >
                               <Eye className="mr-2 h-4 w-4" />
                               View Details
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => previewPrescription(prescription)}
-                          >
-                            <FileText className="mr-2 h-4 w-4" />
-                            Preview PDF
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Prescription
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Printer className="mr-2 h-4 w-4" />
-                            Print Prescription
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => downloadPrescription(prescription)}
-                          >
-                            <Download className="mr-2 h-4 w-4" />
-                            Download PDF
-                          </DropdownMenuItem>{" "}
-                          <DropdownMenuItem
-                            onClick={() => displayPrescription(prescription)}
-                          >
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                            </DropdownMenuItem>{" "}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </motion.tr>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }

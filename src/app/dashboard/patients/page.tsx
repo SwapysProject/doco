@@ -1,6 +1,7 @@
 "use client";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
   Search,
   Filter,
@@ -550,25 +551,41 @@ export default function PatientsPage() {
 
   if (view === "detail" && selectedPatient) {
     return (
-      <div className="min-h-screen bg-background">
-        {/* Header */}
-        <div className="border-b border-border bg-card">
+      <motion.div
+        className="min-h-screen bg-background"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        {/* Enhanced Header */}
+        <motion.div
+          className="border-b border-border bg-card/80 backdrop-blur-sm"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <button
+                <motion.button
                   onClick={handleBackToList}
-                  className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors group"
+                  whileHover={{ x: -4 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
                   <span className="text-sm">Back to Patients</span>
-                </button>
+                </motion.button>
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-primary text-primary-foreground rounded-lg flex items-center justify-center">
+                  <motion.div
+                    className="w-10 h-10 bg-gradient-to-br from-primary/80 to-primary text-primary-foreground rounded-xl flex items-center justify-center shadow-lg"
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    transition={{ duration: 0.2 }}
+                  >
                     <User className="w-5 h-5" />
-                  </div>
+                  </motion.div>
                   <div>
-                    <h1 className="text-2xl font-bold text-foreground">
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                       {selectedPatient.name}
                     </h1>
                     <p className="text-sm text-muted-foreground">
@@ -578,21 +595,27 @@ export default function PatientsPage() {
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <button
+                <motion.button
                   onClick={handleEditPatient}
-                  className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center space-x-2"
+                  className="px-4 py-2 bg-gradient-to-r from-secondary/80 to-secondary text-secondary-foreground rounded-xl hover:from-secondary hover:to-secondary/90 transition-all duration-200 flex items-center space-x-2 shadow-sm hover:shadow-md"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   <Edit className="w-4 h-4" />
                   <span>Edit</span>
-                </button>
-                <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center space-x-2">
+                </motion.button>
+                <motion.button
+                  className="px-4 py-2 bg-gradient-to-r from-primary/90 to-primary text-primary-foreground rounded-xl hover:from-primary hover:to-primary/90 transition-all duration-200 flex items-center space-x-2 shadow-sm hover:shadow-md"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
                   <MessageSquare className="w-4 h-4" />
                   <span>Message</span>
-                </button>
+                </motion.button>
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Patient Detail Content */}
         <div className="p-6">
@@ -840,78 +863,124 @@ export default function PatientsPage() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-background">
-        {/* Header */}
-        <div className="border-b border-border bg-card">
-          <div className="px-6 py-4">
+        {/* Enhanced Header */}
+        <motion.div
+          className="border-b border-border bg-card/80 backdrop-blur-sm"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
+          <div className="px-6 py-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-primary text-primary-foreground rounded-lg flex items-center justify-center">
-                    <Users className="w-5 h-5" />
-                  </div>
+              <motion.div
+                className="flex items-center space-x-4 group"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+              >
+                <div className="flex items-center space-x-4">
+                  <motion.div
+                    className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-xl flex items-center justify-center shadow-lg"
+                    whileHover={{ scale: 1.05, rotate: 5 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Users className="w-6 h-6" />
+                  </motion.div>
                   <div>
-                    <h1 className="text-2xl font-bold text-foreground">
-                      Patients
+                    <h1 className="text-3xl font-bold transition-all duration-300 ease-out group-hover:scale-105 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      My Patients
                     </h1>
-                    <p className="text-sm text-muted-foreground">
-                      Manage and view patient information
+                    <p className="text-muted-foreground transition-all duration-300 ease-out group-hover:text-blue-600 group-hover:translate-x-2">
+                      Manage and track your assigned patients
                     </p>
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <button
+              </motion.div>
+              <motion.div
+                className="flex items-center space-x-3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <motion.button
                   onClick={handleRefresh}
-                  className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center space-x-2"
+                  className="px-4 py-2 bg-secondary/80 text-secondary-foreground rounded-lg border border-border shadow-sm hover:shadow-md hover:bg-secondary transition-all duration-200 flex items-center space-x-2 group"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <Activity className="w-4 h-4" />
+                  <motion.div
+                    animate={{ rotate: 0 }}
+                    whileHover={{ rotate: 180 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Activity className="w-4 h-4" />
+                  </motion.div>
                   <span>Refresh</span>
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   onClick={handleAssignPatient}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-sm hover:shadow-md hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2 group"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <Users className="w-4 h-4" />
+                  <Users className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
                   <span>Assign Patients</span>
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   onClick={handleAddPatient}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center space-x-2"
+                  className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow-sm hover:shadow-md hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center space-x-2 group"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
                   <span>Add Patient</span>
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Search and Filter Bar */}
-        <div className="px-6 py-4 bg-card border-b border-border">
+        {/* Enhanced Search and Filter Bar */}
+        <motion.div
+          className="px-6 py-4 bg-card/50 backdrop-blur-sm border-b border-border"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+        >
           <div className="flex items-center space-x-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+            <motion.div
+              className="flex-1 relative group"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4, delay: 0.4 }}
+            >
+              <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
               <input
                 type="text"
                 placeholder="Search patients by name, condition, or phone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground placeholder:text-muted-foreground"
+                className="w-full pl-10 pr-4 py-2 bg-background/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 text-foreground placeholder:text-muted-foreground transition-all duration-200 hover:shadow-sm focus:shadow-md backdrop-blur-sm"
               />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Filter className="w-4 h-4 text-muted-foreground" />
+            </motion.div>
+            <motion.div
+              className="flex items-center space-x-2 group"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4, delay: 0.5 }}
+            >
+              <Filter className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors duration-200" />
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
+                className="px-3 py-2 bg-background/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 text-foreground transition-all duration-200 hover:shadow-sm focus:shadow-md backdrop-blur-sm"
               >
                 <option value="all">All Status</option>
                 <option value="stable">Stable</option>
@@ -919,85 +988,160 @@ export default function PatientsPage() {
                 <option value="critical">Critical</option>
                 <option value="active">Active</option>
               </select>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Stats Cards */}
-        <div className="px-6 py-4">
+        {/* Enhanced Stats Cards */}
+        <motion.div
+          className="px-6 py-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-card border border-border rounded-lg p-4">
+            <motion.div
+              className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/30 border border-blue-200/50 dark:border-blue-800/50 rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 group backdrop-blur-sm"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.7 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+            >
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 rounded-lg flex items-center justify-center">
-                  <Users className="w-4 h-4" />
-                </div>
+                <motion.div
+                  className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                >
+                  <Users className="w-5 h-5" />
+                </motion.div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">
+                  <motion.p
+                    className="text-2xl font-bold text-blue-700 dark:text-blue-300"
+                    initial={{ scale: 0.5 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.3, delay: 0.8 }}
+                  >
                     {patients.length}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
+                  </motion.p>
+                  <p className="text-sm text-blue-600/80 dark:text-blue-400/80 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors duration-300">
                     Total Patients
                   </p>
                 </div>
               </div>
-            </div>
-            <div className="bg-card border border-border rounded-lg p-4">
+            </motion.div>
+
+            <motion.div
+              className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/50 dark:to-green-900/30 border border-green-200/50 dark:border-green-800/50 rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 group backdrop-blur-sm"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+            >
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400 rounded-lg flex items-center justify-center">
-                  <CheckCircle className="w-4 h-4" />
-                </div>
+                <motion.div
+                  className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                >
+                  <CheckCircle className="w-5 h-5" />
+                </motion.div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">
+                  <motion.p
+                    className="text-2xl font-bold text-green-700 dark:text-green-300"
+                    initial={{ scale: 0.5 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.3, delay: 0.9 }}
+                  >
                     {
                       patients.filter(
                         (p) => p.status && p.status.toLowerCase() === "stable"
                       ).length
                     }
+                  </motion.p>
+                  <p className="text-sm text-green-600/80 dark:text-green-400/80 group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors duration-300">
+                    Stable
                   </p>
-                  <p className="text-sm text-muted-foreground">Stable</p>
                 </div>
               </div>
-            </div>
-            <div className="bg-card border border-border rounded-lg p-4">
+            </motion.div>
+
+            <motion.div
+              className="bg-gradient-to-br from-yellow-50 to-yellow-100/50 dark:from-yellow-950/50 dark:to-yellow-900/30 border border-yellow-200/50 dark:border-yellow-800/50 rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 group backdrop-blur-sm"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.9 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+            >
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-yellow-100 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400 rounded-lg flex items-center justify-center">
-                  <Clock className="w-4 h-4" />
-                </div>
+                <motion.div
+                  className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-600 text-white rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                >
+                  <Clock className="w-5 h-5" />
+                </motion.div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">
+                  <motion.p
+                    className="text-2xl font-bold text-yellow-700 dark:text-yellow-300"
+                    initial={{ scale: 0.5 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.3, delay: 1.0 }}
+                  >
                     {
                       patients.filter(
                         (p) =>
                           p.status && p.status.toLowerCase() === "monitoring"
                       ).length
                     }
+                  </motion.p>
+                  <p className="text-sm text-yellow-600/80 dark:text-yellow-400/80 group-hover:text-yellow-700 dark:group-hover:text-yellow-300 transition-colors duration-300">
+                    Monitoring
                   </p>
-                  <p className="text-sm text-muted-foreground">Monitoring</p>
                 </div>
               </div>
-            </div>
-            <div className="bg-card border border-border rounded-lg p-4">
+            </motion.div>
+
+            <motion.div
+              className="bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/50 dark:to-red-900/30 border border-red-200/50 dark:border-red-800/50 rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 group backdrop-blur-sm"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 1.0 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+            >
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-lg flex items-center justify-center">
-                  <AlertTriangle className="w-4 h-4" />
-                </div>
+                <motion.div
+                  className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                >
+                  <AlertTriangle className="w-5 h-5" />
+                </motion.div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">
+                  <motion.p
+                    className="text-2xl font-bold text-red-700 dark:text-red-300"
+                    initial={{ scale: 0.5 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.3, delay: 1.1 }}
+                  >
                     {
                       patients.filter(
                         (p) => p.status && p.status.toLowerCase() === "critical"
                       ).length
                     }
+                  </motion.p>
+                  <p className="text-sm text-red-600/80 dark:text-red-400/80 group-hover:text-red-700 dark:group-hover:text-red-300 transition-colors duration-300">
+                    Critical
                   </p>
-                  <p className="text-sm text-muted-foreground">Critical</p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
 
-          {/* Patients List */}
-          <div className="bg-card border border-border rounded-lg overflow-hidden">
-            <div className="px-6 py-4 border-b border-border">
+          {/* Enhanced Patients List */}
+          <motion.div
+            className="bg-card/50 border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 backdrop-blur-sm"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.1 }}
+          >
+            <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-background/50 to-muted/20">
               <h2 className="text-lg font-semibold text-foreground">
                 Patient List
               </h2>
@@ -1006,19 +1150,26 @@ export default function PatientsPage() {
               </p>
             </div>
             <div className="divide-y divide-border">
-              {filteredPatients.map((patient) => (
-                <div
+              {filteredPatients.map((patient, index) => (
+                <motion.div
                   key={patient._id}
                   onClick={() => handlePatientClick(patient)}
-                  className="px-6 py-4 hover:bg-accent cursor-pointer transition-colors"
+                  className="px-6 py-4 hover:bg-accent/50 cursor-pointer transition-all duration-200 group hover:shadow-sm"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 1.2 + index * 0.05 }}
+                  whileHover={{ x: 4 }}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
+                      <motion.div
+                        className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 text-primary rounded-xl flex items-center justify-center group-hover:from-primary/30 group-hover:to-primary/20 transition-all duration-200"
+                        whileHover={{ scale: 1.05 }}
+                      >
                         <User className="w-5 h-5" />
-                      </div>
+                      </motion.div>
                       <div>
-                        <h3 className="font-medium text-foreground">
+                        <h3 className="font-medium text-foreground group-hover:text-primary transition-colors duration-200">
                           {patient.name}
                         </h3>
                         <p className="text-sm text-muted-foreground">
@@ -1052,17 +1203,28 @@ export default function PatientsPage() {
                             {patient.nextAppointment}
                           </p>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                        <motion.div
+                          animate={{ x: 0 }}
+                          whileHover={{ x: 4 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                        </motion.div>
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {filteredPatients.length === 0 && patients.length > 0 && (
-            <div className="bg-card border border-border rounded-lg p-12 text-center">
+            <motion.div
+              className="bg-card border border-border rounded-xl p-12 text-center shadow-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 1.3 }}
+            >
               <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium text-foreground mb-2">
                 No patients found
@@ -1070,11 +1232,16 @@ export default function PatientsPage() {
               <p className="text-muted-foreground">
                 Try adjusting your search or filter criteria
               </p>
-            </div>
+            </motion.div>
           )}
 
           {patients.length === 0 && !loading && (
-            <div className="bg-card border border-border rounded-lg p-12 text-center">
+            <motion.div
+              className="bg-card border border-border rounded-xl p-12 text-center shadow-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 1.3 }}
+            >
               <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium text-foreground mb-2">
                 No patients in database
@@ -1082,60 +1249,102 @@ export default function PatientsPage() {
               <p className="text-muted-foreground">
                 Add your first patient to get started
               </p>
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
       </div>
 
-      {/* Assign Patients Modal */}
+      {/* Enhanced Assign Patients Modal */}
       {showAssignModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b border-border">
-              <h2 className="text-xl font-semibold text-card-foreground">
-                Assign Patients to Yourself
-              </h2>
-              <button
+        <motion.div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          onClick={(e) =>
+            e.target === e.currentTarget && setShowAssignModal(false)
+          }
+        >
+          <motion.div
+            className="bg-card/95 backdrop-blur-sm rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden border border-border"
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ duration: 0.3, type: "spring", damping: 20 }}
+          >
+            <div className="flex items-center justify-between p-6 border-b border-border bg-gradient-to-r from-primary/5 to-secondary/5">
+              <div>
+                <h2 className="text-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Assign Patients to Yourself
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Select patients to assign to your care
+                </p>
+              </div>
+              <motion.button
                 onClick={() => setShowAssignModal(false)}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground p-2 hover:bg-accent rounded-lg transition-all duration-200"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
               >
                 ✕
-              </button>
+              </motion.button>
             </div>
 
             <div className="p-6">
-              {/* Search */}
-              <div className="relative mb-4">
-                <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+              {/* Enhanced Search */}
+              <motion.div
+                className="relative mb-4 group"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
+              >
+                <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
                 <input
                   type="text"
                   placeholder="Search available patients..."
                   value={assignSearchTerm}
                   onChange={(e) => setAssignSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring"
+                  className="w-full pl-10 pr-4 py-2 border border-border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary/50 bg-background/50 backdrop-blur-sm transition-all duration-200 hover:shadow-sm focus:shadow-md"
                 />
-              </div>
+              </motion.div>
 
               {/* Available Patients List */}
               <div className="max-h-96 overflow-y-auto">
                 {filteredAvailablePatients.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <motion.div
+                    className="text-center py-8 text-muted-foreground"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3, delay: 0.2 }}
+                  >
                     <Users className="w-12 h-12 mx-auto mb-2" />
                     <p>No available patients to assign</p>
-                  </div>
+                  </motion.div>
                 ) : (
                   <div className="space-y-2">
-                    {filteredAvailablePatients.map((patient) => (
-                      <div
+                    {filteredAvailablePatients.map((patient, index) => (
+                      <motion.div
                         key={patient._id || patient.id}
-                        className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent"
+                        className="flex items-center justify-between p-4 border border-border rounded-xl hover:bg-accent/50 group transition-all duration-200 hover:shadow-sm"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{
+                          duration: 0.3,
+                          delay: 0.3 + index * 0.05,
+                        }}
+                        whileHover={{ x: 4 }}
                       >
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                          <motion.div
+                            className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center group-hover:bg-primary/20 transition-all duration-200"
+                            whileHover={{ scale: 1.05 }}
+                          >
                             <User className="w-5 h-5 text-primary" />
-                          </div>
+                          </motion.div>
                           <div>
-                            <p className="font-medium text-card-foreground">
+                            <p className="font-medium text-card-foreground group-hover:text-primary transition-colors duration-200">
                               {patient.name}
                             </p>
                             <p className="text-sm text-muted-foreground">
@@ -1143,35 +1352,64 @@ export default function PatientsPage() {
                             </p>
                           </div>
                         </div>
-                        <button
+                        <motion.button
                           onClick={() =>
                             assignPatientToDoctor(
                               (patient._id || patient.id) as string
                             )
                           }
                           disabled={assigningPatient}
-                          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-4 py-2 bg-gradient-to-r from-primary/90 to-primary text-primary-foreground rounded-xl hover:from-primary hover:to-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
                         >
                           {assigningPatient ? "Assigning..." : "Assign"}
-                        </button>
-                      </div>
+                        </motion.button>
+                      </motion.div>
                     ))}
                   </div>
                 )}
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
 
-      {/* Add Patient Modal */}
+      {/* Enhanced Add Patient Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-card border border-border rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-semibold text-foreground">
-                Add New Patient
-              </h2>
+        <motion.div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <motion.div
+            className="bg-card/95 backdrop-blur-sm border border-border rounded-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl"
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ duration: 0.3, type: "spring", damping: 20 }}
+          >
+            <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-primary/5 to-secondary/5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                    Add New Patient
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Enter patient information
+                  </p>
+                </div>
+                <motion.button
+                  onClick={handleCloseAddModal}
+                  className="text-muted-foreground hover:text-foreground p-2 hover:bg-accent rounded-lg transition-all duration-200"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  ✕
+                </motion.button>
+              </div>
             </div>
             <form onSubmit={handleSubmitPatient} className="p-6 space-y-6">
               {/* Basic Information */}
@@ -1478,37 +1716,77 @@ export default function PatientsPage() {
 
               {/* Form Actions */}
               <div className="flex justify-end space-x-3 pt-4 border-t border-border">
-                <button
+                <motion.button
                   type="button"
                   onClick={handleCloseAddModal}
-                  className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-accent transition-colors"
+                  className="px-4 py-2 border border-border rounded-xl text-foreground hover:bg-accent transition-all duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   Cancel
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   type="submit"
                   disabled={addingPatient}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                  className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 shadow-sm hover:shadow-md"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   {addingPatient && (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                    >
+                      <Loader2 className="w-4 h-4" />
+                    </motion.div>
                   )}
                   <span>{addingPatient ? "Adding..." : "Add Patient"}</span>
-                </button>
+                </motion.button>
               </div>
             </form>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
 
-      {/* Edit Patient Modal */}
+      {/* Enhanced Edit Patient Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-card border border-border rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-semibold text-foreground">
-                Edit Patient
-              </h2>
+        <motion.div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <motion.div
+            className="bg-card/95 backdrop-blur-sm border border-border rounded-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl"
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ duration: 0.3, type: "spring", damping: 20 }}
+          >
+            <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-primary/5 to-secondary/5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    Edit Patient
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Update patient information
+                  </p>
+                </div>
+                <motion.button
+                  onClick={handleCloseEditModal}
+                  className="text-muted-foreground hover:text-foreground p-2 hover:bg-accent rounded-lg transition-all duration-200"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  ✕
+                </motion.button>
+              </div>
             </div>
             <form onSubmit={handleUpdatePatient} className="p-6 space-y-6">
               {/* Basic Information */}
@@ -1823,29 +2101,42 @@ export default function PatientsPage() {
 
               {/* Form Actions */}
               <div className="flex justify-end space-x-3 pt-4 border-t border-border">
-                <button
+                <motion.button
                   type="button"
                   onClick={handleCloseEditModal}
-                  className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-accent transition-colors"
+                  className="px-4 py-2 border border-border rounded-xl text-foreground hover:bg-accent transition-all duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   Cancel
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   type="submit"
                   disabled={editingPatient}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 shadow-sm hover:shadow-md"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   {editingPatient && (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                    >
+                      <Loader2 className="w-4 h-4" />
+                    </motion.div>
                   )}
                   <span>
                     {editingPatient ? "Updating..." : "Update Patient"}
                   </span>
-                </button>
+                </motion.button>
               </div>
             </form>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
     </DashboardLayout>
   );
