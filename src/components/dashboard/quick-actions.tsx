@@ -3,6 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
+
 import {
   Plus,
   Calendar,
@@ -32,6 +34,9 @@ interface QuickAction {
   onClick?: () => void;
 }
 
+
+
+
 /**
  * Mock quick actions data
  */
@@ -41,7 +46,7 @@ const primaryActions: QuickAction[] = [
     title: "Add New Patient",
     description: "Register a new patient",
     icon: Plus,
-    variant: "default",
+    variant: "outline",
     href: "/dashboard/patients/new",
   },
   {
@@ -49,7 +54,7 @@ const primaryActions: QuickAction[] = [
     title: "Schedule Appointment",
     description: "Book patient appointment",
     icon: Calendar,
-    variant: "secondary",
+    variant: "outline",
     href: "/dashboard/appointments/new",
   },
   {
@@ -59,7 +64,7 @@ const primaryActions: QuickAction[] = [
     icon: Stethoscope,
     variant: "outline",
     badge: "AI",
-    href: "/dashboard/prescriptions/new",
+    href: "/dashboard/prescriptions/new-d",
   },
   {
     id: "medical-records",
@@ -154,12 +159,12 @@ const utilityActions: QuickAction[] = [
  * - Badge indicators for pending items
  */
 export function QuickActions() {
+  const router = useRouter();
   const handleActionClick = (action: QuickAction) => {
     if (action.onClick) {
       action.onClick();
     } else if (action.href) {
-      // In a real app, you would use Next.js router here
-      console.log(`Navigate to: ${action.href}`);
+      router.push(action.href); // ✅ Navigate to route
     }
   };
 

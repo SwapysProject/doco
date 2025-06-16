@@ -6,8 +6,10 @@ import { PatientOverview } from "@/components/dashboard/patient-overview";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { RecentPatients } from "@/components/dashboard/recent-patients";
 import { UpcomingAppointments } from "@/components/dashboard/upcoming-appointments";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function DashboardPage() {
+  const { user, logout } = useAuth();
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -17,9 +19,9 @@ export default function DashboardPage() {
             Doctor Dashboard
           </h1>
           <p className="text-muted-foreground transition-all duration-300 ease-out group-hover:text-blue-600 group-hover:translate-x-2">
-            Welcome back, Dr. Smith. Here&apos;s your patient overview for
-            today.
+            Welcome back, Dr. {user?.name?.split(" ")[0] || "Smith"}. Here's your patient overview for today.
           </p>
+
         </div>
 
         {/* Dashboard Stats with Stagger Animation */}

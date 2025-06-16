@@ -88,17 +88,20 @@ export function DashboardSidebar() {
   return (
     <Sidebar className="border-r border-border/40 bg-background">
       <SidebarHeader className="border-b border-border/40 p-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
-            <Stethoscope className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard" className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
+              <Stethoscope className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">
+                DoctorCare
+              </h2>
+              <p className="text-sm text-muted-foreground">Medical System</p>
+            </div>
+            </Link>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">
-              DoctorCare
-            </h2>
-            <p className="text-sm text-muted-foreground">Medical System</p>
-          </div>
-        </div>
+        
       </SidebarHeader>
 
       <SidebarContent>

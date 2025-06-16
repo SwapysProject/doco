@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -146,13 +147,15 @@ export function RecentPatients() {
           <Users className="h-5 w-5" />
           Recent Patients
         </CardTitle>
-        <Button
-          variant="outline"
-          size="sm"
-          className="transition-all duration-200 hover:scale-105"
-        >
-          View All
-        </Button>
+        <Link href="/dashboard/patients">
+          <Button
+            variant="outline"
+            size="sm"
+            className="transition-all duration-200 hover:scale-105"
+          >
+            View All
+          </Button>
+        </Link>
       </CardHeader>
       <CardContent>
         {patients.length === 0 ? (
@@ -231,10 +234,13 @@ export function RecentPatients() {
                         align="end"
                         className="animate-in slide-in-from-right-2 duration-200"
                       >
-                        <DropdownMenuItem className="transition-colors duration-200 hover:bg-primary/10">
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Details
+                        <DropdownMenuItem asChild>
+                          <Link href={`/dashboard/patients?patientId=${patient.id}`} className="w-full">
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
+                          </Link>
                         </DropdownMenuItem>
+
                         <DropdownMenuItem className="transition-colors duration-200 hover:bg-primary/10">
                           <Edit className="mr-2 h-4 w-4" />
                           Edit Patient
