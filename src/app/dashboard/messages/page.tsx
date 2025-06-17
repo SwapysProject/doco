@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Send,
   Search,
@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSmartPolling } from "@/hooks/useSmartPolling";
 
 // Type definitions
 interface Doctor {
@@ -49,60 +50,73 @@ const MessagesPage: React.FC = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [sendingMessage, setSendingMessage] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null); // Simple connection state (replacing useSimplePolling)
-  const [isConnected, setIsConnected] = useState(true);
+  const [loading, setLoading] = useState(true);  const [sendingMessage, setSendingMessage] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Simple polling for new messages
-  useEffect(() => {
+  // Smart polling for messages
+  const pollForMessages = useCallback(async () => {
     if (!selectedDoctor || !user) return;
 
-    const pollForMessages = async () => {
-      try {
-        const response = await fetch(
-          `/api/doctor-messages?with=${selectedDoctor._id}&since=${Date.now() - 30000}`,
-          {
-            credentials: "include",
-          }
-        );
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.messages?.length > 0) {
-            setMessages((prev) => {
-              const newMessages = data.messages.filter(
-                (msg: Message) =>
-                  !prev.some((existingMsg) => existingMsg._id === msg._id)
-              );
-              return [...prev, ...newMessages].sort(
-                (a, b) =>
-                  new Date(a.createdAt).getTime() -
-                  new Date(b.createdAt).getTime()
-              );
-            });
-          }
+    try {
+      const response = await fetch(
+        `/api/doctor-messages?with=${selectedDoctor._id}&since=${Date.now() - 30000}`,
+        {
+          credentials: "include",
         }
-      } catch (error) {
-        console.error("Error polling for messages:", error);
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.messages?.length > 0) {
+          setMessages((prev) => {
+            const newMessages = data.messages.filter(
+              (msg: Message) =>
+                !prev.some((existingMsg) => existingMsg._id === msg._id)
+            );
+            return [...prev, ...newMessages].sort(
+              (a, b) =>
+                new Date(a.createdAt).getTime() -
+                new Date(b.createdAt).getTime()
+            );
+          });
+        }
       }
-    };
-
-    const interval = setInterval(pollForMessages, 5000); // Poll every 5 seconds
-    return () => clearInterval(interval);
+    } catch (error) {
+      console.error("Error polling for messages:", error);
+      throw error; // Let smart polling handle the error
+    }
   }, [selectedDoctor, user]);
 
-  // Simple functions (replacing useSimplePolling methods)
+  // Initialize smart polling
+  const { 
+    isConnected, 
+    isIntensiveMode, 
+    markActivity,
+    getPollingStatus 
+  } = useSmartPolling(
+    pollForMessages,
+    !!selectedDoctor && !!user,
+    {
+      intensiveInterval: 1000,  // Poll every 1 second when chat is active
+      normalInterval: 5000,     // Poll every 5 seconds when idle
+      idleTimeout: 30000,       // Switch to normal mode after 30 seconds of inactivity
+      maxRetries: 3
+    }
+  );
+
+  // Log polling status changes
+  useEffect(() => {
+    const status = getPollingStatus();
+    console.log(`📡 Polling Status: ${status.mode} mode (${status.interval}ms) - Connected: ${status.connected}`);
+  }, [isIntensiveMode, isConnected, getPollingStatus]);
+  // Simple functions for conversation management
   const joinConversation = (doctorId: string) => {
     console.log("Joining conversation with:", doctorId);
+    markActivity(); // Start intensive polling when joining a conversation
   };
 
   const leaveConversation = () => {
     console.log("Leaving conversation");
-  };
-
-  const pollingSendMessage = async (messageData: any) => {
-    // This will be handled by the regular sendMessage function
-    return true;
+    // Activity will naturally timeout to normal polling
   };
   // Fetch all doctors for messaging
   const fetchDoctors = async () => {
@@ -160,12 +174,14 @@ const MessagesPage: React.FC = () => {
     }
   };
 
-  // Send a message  // Send a message using the new polling approach
+  // Send a message  // Send a message using the smart polling approach
   const sendMessage = async () => {
     if (!messageInput.trim() || !selectedDoctor || sendingMessage || !user)
       return;
 
     setSendingMessage(true);
+    markActivity(); // Mark activity to trigger intensive polling
+    
     try {
       console.log(
         "🚀 Sending message to:",
@@ -175,17 +191,27 @@ const MessagesPage: React.FC = () => {
         ")"
       );
 
-      // Use the polling hook's sendMessage which handles polling automatically
-      const result = await pollingSendMessage(
-        selectedDoctor._id,
-        messageInput.trim()
-      );
+      const response = await fetch("/api/doctor-messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          receiverId: selectedDoctor._id,
+          message: messageInput.trim(),
+        }),
+      });
 
-      if (result?.success) {
-        console.log("✅ Message sent successfully, intensive polling started");
-        setMessageInput("");
-        // Refresh conversations to update unread counts
-        await fetchConversations();
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          console.log("✅ Message sent successfully, intensive polling started");
+          setMessageInput("");
+          // Refresh messages immediately
+          await fetchMessages(selectedDoctor._id);
+          // Refresh conversations to update unread counts
+          await fetchConversations();
+        }
       } else {
         console.error("❌ Failed to send message");
       }
@@ -222,23 +248,27 @@ const MessagesPage: React.FC = () => {
     // Leave previous conversation room if any
     if (selectedDoctor) {
       leaveConversation();
-    }
-
-    setSelectedDoctor(doctor);
+    }    setSelectedDoctor(doctor);
 
     // Join new conversation room
-    joinConversation([user.id, doctor._id]);
+    joinConversation(doctor._id);
 
     await fetchMessages(doctor._id);
     await markAsRead(doctor._id);
     await fetchConversations(); // Refresh to update unread count
   };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
+    markActivity(); // Mark activity on typing
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
+  };
+
+  // Mark activity when user types
+  const handleInputChange = (value: string) => {
+    setMessageInput(value);
+    markActivity(); // Mark activity on input change
   };
 
   useEffect(() => {
@@ -429,15 +459,32 @@ const MessagesPage: React.FC = () => {
                     {selectedDoctor.isOnline && (
                       <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
                     )}
-                  </div>
-                  <div>
+                  </div>                  <div className="flex-1">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                       Dr. {selectedDoctor.name}
                     </h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {selectedDoctor.specialization} •{" "}
-                      {selectedDoctor.isOnline ? "Online" : "Offline"}
-                    </p>
+                    <div className="flex items-center space-x-2">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {selectedDoctor.specialization} •{" "}
+                        {selectedDoctor.isOnline ? "Online" : "Offline"}
+                      </p>
+                      {/* Polling Status Indicator */}
+                      <div className="flex items-center space-x-1">
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            isConnected
+                              ? isIntensiveMode
+                                ? "bg-green-500 animate-pulse"
+                                : "bg-blue-500"
+                              : "bg-red-500"
+                          }`}
+                          title={`Polling: ${isIntensiveMode ? "Intensive (1s)" : "Normal (5s)"} - ${isConnected ? "Connected" : "Disconnected"}`}
+                        ></div>
+                        <span className="text-xs text-gray-400">
+                          {isIntensiveMode ? "🔥" : "💤"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -492,10 +539,9 @@ const MessagesPage: React.FC = () => {
 
               {/* Message Input */}
               <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
-                <div className="flex space-x-3">
-                  <textarea
+                <div className="flex space-x-3">                  <textarea
                     value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
+                    onChange={(e) => handleInputChange(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder={`Message Dr. ${selectedDoctor.name}...`}
                     rows={1}

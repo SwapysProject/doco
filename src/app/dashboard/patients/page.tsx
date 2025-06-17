@@ -425,11 +425,8 @@ export default function PatientsPage() {
 
   const handleMessagePatient = () => {
     if (selectedPatient) {
-      // For now, show a notification about patient messaging feature
-      alert(`Patient messaging feature will be available soon!\n\nYou can contact ${selectedPatient.name} at:\nEmail: ${selectedPatient.email}\nPhone: ${selectedPatient.phone}`);
-      
-      // Alternative: Navigate to messages page for doctor-to-doctor communication
-      // window.location.href = `/dashboard/messages`;
+      // Redirect to doctor-to-doctor messaging system
+      window.location.href = `/dashboard/messages`;
     }
   };
 
