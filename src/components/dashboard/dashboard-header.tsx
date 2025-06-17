@@ -250,20 +250,20 @@ export function DashboardHeader() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          {/* Enhanced User Menu - Positioned to the right */}
+          {/* Enhanced User Menu - Positioned to the right */}{" "}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="relative h-9 w-9 rounded-full transition-all duration-200 ease-in-out hover:scale-110 transform"
+                className="relative h-9 w-9 rounded-full transition-all duration-200 ease-in-out hover:scale-110 transform p-0 overflow-hidden"
               >
-                <Avatar className="h-9 w-9 ring-2 ring-gray-200 transition-all duration-300 ease-in-out hover:ring-blue-400 hover:ring-4">
+                <Avatar className="h-9 w-9 rounded-full ring-2 ring-gray-200 transition-all duration-300 ease-in-out hover:ring-blue-400 hover:ring-4 aspect-square">
                   <AvatarImage
                     src="/api/placeholder/36/36"
                     alt={user?.name || "Doctor"}
-                    className="transition-all duration-300 ease-in-out"
+                    className="transition-all duration-300 ease-in-out rounded-full object-cover w-full h-full aspect-square"
                   />
-                  <AvatarFallback className="bg-blue-600 text-white font-semibold transition-all duration-300 ease-in-out hover:bg-blue-700">
+                  <AvatarFallback className="bg-blue-600 text-white font-semibold transition-all duration-300 ease-in-out hover:bg-blue-700 rounded-full flex items-center justify-center w-full h-full aspect-square">
                     {getUserInitials()}
                   </AvatarFallback>
                 </Avatar>

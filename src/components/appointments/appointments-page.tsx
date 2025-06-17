@@ -276,8 +276,10 @@ function AddAppointmentModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
+      {" "}
       <motion.div
-        className="bg-card border border-border rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto shadow-2xl shadow-black/25"
+        className="bg-card border border-border rounded-xl max-w-md sm:max-w-lg w-full p-8 max-h-[90vh] overflow-y-auto shadow-2xl shadow-black/25"
+        style={{ maxWidth: "28rem" }}
         initial={{ opacity: 0, scale: 0.9, y: 40 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 40 }}
@@ -910,49 +912,22 @@ export function AppointmentsPage() {
           whileHover={{ scale: 1.02, y: -2 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <Card className="hover:shadow-xl transition-all duration-300 ease-out transform group cursor-pointer border-l-4 border-l-transparent hover:border-l-blue-500 bg-gradient-to-br from-blue-50/50 to-transparent hover:shadow-blue-500/10">
+          <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-blue-500 bg-gradient-to-br from-blue-50/50 to-blue-100/30 dark:from-blue-950/40 dark:to-blue-900/20 hover:shadow-blue-500/10 dark:hover:shadow-blue-400/20 hover:from-blue-100/60 hover:to-blue-200/40 dark:hover:from-blue-900/60 dark:hover:to-blue-800/40">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-semibold text-foreground group-hover:text-blue-700 transition-colors">
+              <CardTitle className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
                 Today&apos;s Appointments
               </CardTitle>
-              <motion.div
-                whileHover={{ rotate: 5, scale: 1.1 }}
-                transition={{ duration: 0.2 }}
-              >
-                <CalendarDays className="h-5 w-5 text-blue-600 group-hover:text-blue-700 transition-colors" />
-              </motion.div>
+              <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/60 transition-all duration-300 ease-out group-hover:bg-blue-100 dark:group-hover:bg-blue-900/80 group-hover:scale-110 group-hover:rotate-6">
+                <CalendarDays className="h-4 w-4 text-blue-600 dark:text-blue-400 transition-all duration-300 ease-out group-hover:scale-110" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-600 group-hover:text-blue-700 transition-colors">
+              <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-blue-700 dark:group-hover:text-blue-300 group-hover:scale-105">
                 {todayAppointments.length}
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-1 transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-400">
                 {confirmedToday} confirmed, {completedToday} completed
               </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-        <motion.div
-          whileHover={{ scale: 1.02, y: -2 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-        >
-          <Card className="hover:shadow-xl transition-all duration-300 ease-out transform group cursor-pointer border-l-4 border-l-transparent hover:border-l-green-500 bg-gradient-to-br from-green-50/50 to-transparent hover:shadow-green-500/10">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-semibold text-foreground group-hover:text-green-700 transition-colors">
-                Confirmed
-              </CardTitle>
-              <motion.div
-                whileHover={{ rotate: 5, scale: 1.1 }}
-                transition={{ duration: 0.2 }}
-              >
-                <CheckCircle className="h-5 w-5 text-green-600 group-hover:text-green-700 transition-colors" />
-              </motion.div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600 group-hover:text-green-700 transition-colors">
-                {confirmedToday}
-              </div>
-              <p className="text-xs text-muted-foreground">Ready for today</p>
             </CardContent>
           </Card>
         </motion.div>{" "}
@@ -960,49 +935,66 @@ export function AppointmentsPage() {
           whileHover={{ scale: 1.02, y: -2 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <Card className="hover:shadow-xl transition-all duration-300 ease-out transform group cursor-pointer border-l-4 border-l-transparent hover:border-l-emerald-500 bg-gradient-to-br from-emerald-50/50 to-transparent hover:shadow-emerald-500/10">
+          <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-green-500 bg-gradient-to-br from-green-50/50 to-green-100/30 dark:from-green-950/40 dark:to-green-900/20 hover:shadow-green-500/10 dark:hover:shadow-green-400/20 hover:from-green-100/60 hover:to-green-200/40 dark:hover:from-green-900/60 dark:hover:to-green-800/40">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-semibold text-foreground group-hover:text-emerald-700 transition-colors">
-                Completed
+              <CardTitle className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-green-600 dark:group-hover:text-green-400">
+                Confirmed
               </CardTitle>
-              <motion.div
-                whileHover={{ rotate: 5, scale: 1.1 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Activity className="h-5 w-5 text-emerald-600 group-hover:text-emerald-700 transition-colors" />
-              </motion.div>
+              <div className="p-2 rounded-lg bg-green-50 dark:bg-green-950/60 transition-all duration-300 ease-out group-hover:bg-green-100 dark:group-hover:bg-green-900/80 group-hover:scale-110 group-hover:rotate-6">
+                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 transition-all duration-300 ease-out group-hover:scale-110" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-emerald-600 group-hover:text-emerald-700 transition-colors">
-                {completedToday}
+              <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-green-700 dark:group-hover:text-green-300 group-hover:scale-105">
+                {confirmedToday}
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                Finished today
+              <p className="text-xs text-muted-foreground transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-400">
+                Ready for today
               </p>
             </CardContent>
           </Card>
-        </motion.div>
+        </motion.div>{" "}
         <motion.div
           whileHover={{ scale: 1.02, y: -2 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <Card className="hover:shadow-xl transition-all duration-300 ease-out transform group cursor-pointer border-l-4 border-l-transparent hover:border-l-red-500 bg-gradient-to-br from-red-50/50 to-transparent hover:shadow-red-500/10">
+          <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-emerald-500 bg-gradient-to-br from-emerald-50/50 to-emerald-100/30 dark:from-emerald-950/40 dark:to-emerald-900/20 hover:shadow-emerald-500/10 dark:hover:shadow-emerald-400/20 hover:from-emerald-100/60 hover:to-emerald-200/40 dark:hover:from-emerald-900/60 dark:hover:to-emerald-800/40">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-semibold text-foreground group-hover:text-red-700 transition-colors">
-                Cancelled
+              <CardTitle className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
+                Completed
               </CardTitle>
-              <motion.div
-                whileHover={{ rotate: 5, scale: 1.1 }}
-                transition={{ duration: 0.2 }}
-              >
-                <XCircle className="h-5 w-5 text-red-600 group-hover:text-red-700 transition-colors" />
-              </motion.div>
+              <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 transition-all duration-300 ease-out group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/80 group-hover:scale-110 group-hover:rotate-6">
+                <Activity className="h-4 w-4 text-emerald-600 dark:text-emerald-400 transition-all duration-300 ease-out group-hover:scale-110" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-red-600 group-hover:text-red-700 transition-colors">
+              <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-emerald-700 dark:group-hover:text-emerald-300 group-hover:scale-105">
+                {completedToday}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1 transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-400">
+                Finished today
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>{" "}
+        <motion.div
+          whileHover={{ scale: 1.02, y: -2 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        >
+          <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-red-500 bg-gradient-to-br from-red-50/50 to-red-100/30 dark:from-red-950/40 dark:to-red-900/20 hover:shadow-red-500/10 dark:hover:shadow-red-400/20 hover:from-red-100/60 hover:to-red-200/40 dark:hover:from-red-900/60 dark:hover:to-red-800/40">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-red-600 dark:group-hover:text-red-400">
+                Cancelled
+              </CardTitle>
+              <div className="p-2 rounded-lg bg-red-50 dark:bg-red-950/60 transition-all duration-300 ease-out group-hover:bg-red-100 dark:group-hover:bg-red-900/80 group-hover:scale-110 group-hover:rotate-6">
+                <XCircle className="h-4 w-4 text-red-600 dark:text-red-400 transition-all duration-300 ease-out group-hover:scale-110" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-red-700 dark:group-hover:text-red-300 group-hover:scale-105">
                 {cancelledToday}
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-1 transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-400">
                 Cancelled today
               </p>
             </CardContent>
@@ -1015,17 +1007,18 @@ export function AppointmentsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.5 }}
       >
-        <Card className="transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 border-l-4 border-l-transparent hover:border-l-blue-500">
+        {" "}
+        <Card className="transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 dark:hover:shadow-blue-400/20 border-l-4 border-l-transparent hover:border-l-blue-500 bg-gradient-to-br from-blue-50/20 to-transparent dark:from-blue-950/20 dark:to-blue-900/10">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-1">
                 <div className="relative group">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 transition-colors group-focus-within:text-blue-500" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 transition-colors group-focus-within:text-blue-500 dark:group-focus-within:text-blue-400" />
                   <Input
                     placeholder="Search appointments by patient or reason..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 transition-all duration-300 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 hover:border-blue-300"
+                    className="pl-10 transition-all duration-300 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 hover:border-blue-300 dark:hover:border-blue-500"
                   />
                 </div>
               </div>
@@ -1036,7 +1029,7 @@ export function AppointmentsPage() {
                 className="md:w-48"
               >
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="transition-all duration-300 hover:border-blue-400 focus:ring-2 focus:ring-blue-500/20">
+                  <SelectTrigger className="transition-all duration-300 hover:border-blue-400 dark:hover:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1055,8 +1048,9 @@ export function AppointmentsPage() {
                 whileHover={{ scale: 1.01 }}
                 transition={{ duration: 0.2 }}
               >
+                {" "}
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="w-full md:w-48 transition-all duration-300 hover:border-blue-400">
+                  <SelectTrigger className="w-full md:w-48 transition-all duration-300 hover:border-blue-400 dark:hover:border-blue-500">
                     <SelectValue placeholder="Filter by type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1074,8 +1068,9 @@ export function AppointmentsPage() {
                 whileHover={{ scale: 1.01 }}
                 transition={{ duration: 0.2 }}
               >
+                {" "}
                 <Select value={dateFilter} onValueChange={setDateFilter}>
-                  <SelectTrigger className="w-full md:w-48 transition-all duration-300 hover:border-blue-400">
+                  <SelectTrigger className="w-full md:w-48 transition-all duration-300 hover:border-blue-400 dark:hover:border-blue-500">
                     <SelectValue placeholder="Filter by date" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1096,16 +1091,17 @@ export function AppointmentsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.7 }}
       >
-        <Card className="transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 border-l-4 border-l-transparent hover:border-l-blue-500 bg-gradient-to-br from-blue-50/30 to-transparent">
-          <CardHeader className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 border-b border-border/50">
+        {" "}
+        <Card className="transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 dark:hover:shadow-blue-400/20 border-l-4 border-l-transparent hover:border-l-blue-500 bg-gradient-to-br from-blue-50/30 to-transparent dark:from-blue-950/20 dark:to-blue-900/10">
+          <CardHeader className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-950/50 dark:to-purple-950/50 border-b border-border/50">
             <CardTitle className="flex items-center space-x-3">
               <motion.div
                 whileHover={{ rotate: 5, scale: 1.1 }}
                 transition={{ duration: 0.2 }}
               >
-                <Calendar className="w-6 h-6 text-blue-600" />
+                <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </motion.div>
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-bold">
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent font-bold">
                 Appointments ({filteredAppointments.length})
               </span>
             </CardTitle>
@@ -1118,7 +1114,7 @@ export function AppointmentsPage() {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
               >
-                <Loader2 className="animate-spin h-8 w-8 text-blue-600" />
+                <Loader2 className="animate-spin h-8 w-8 text-blue-600 dark:text-blue-400" />
                 <span className="ml-2 text-muted-foreground">
                   Loading appointments...
                 </span>
@@ -1484,8 +1480,10 @@ function EditAppointmentModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
+      {" "}
       <motion.div
         className="bg-card border border-border rounded-lg max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto"
+        style={{ maxWidth: "32rem" }}
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}

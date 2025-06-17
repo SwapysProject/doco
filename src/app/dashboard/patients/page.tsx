@@ -2,6 +2,7 @@
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Search,
   Filter,
@@ -878,7 +879,7 @@ export default function PatientsPage() {
                       No medical history recorded
                     </p>
                   )}
-                </div>
+                </div>{" "}
               </div>
             </div>
           </div>
@@ -907,17 +908,17 @@ export default function PatientsPage() {
               >
                 <div className="flex items-center space-x-4">
                   <motion.div
-                    className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-xl flex items-center justify-center shadow-lg"
+                    className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 text-white rounded-xl flex items-center justify-center shadow-lg dark:shadow-xl dark:shadow-blue-500/20"
                     whileHover={{ scale: 1.05, rotate: 5 }}
                     transition={{ duration: 0.2 }}
                   >
                     <Users className="w-6 h-6" />
                   </motion.div>
                   <div>
-                    <h1 className="text-3xl font-bold transition-all duration-300 ease-out group-hover:scale-105 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    <h1 className="text-3xl font-bold transition-all duration-300 ease-out group-hover:scale-105 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
                       My Patients
                     </h1>
-                    <p className="text-muted-foreground transition-all duration-300 ease-out group-hover:text-blue-600 group-hover:translate-x-2">
+                    <p className="text-muted-foreground transition-all duration-300 ease-out group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-2">
                       Manage and track your assigned patients
                     </p>
                   </div>
@@ -931,7 +932,7 @@ export default function PatientsPage() {
               >
                 <motion.button
                   onClick={handleRefresh}
-                  className="px-4 py-2 bg-secondary/80 text-secondary-foreground rounded-lg border border-border shadow-sm hover:shadow-md hover:bg-secondary transition-all duration-200 flex items-center space-x-2 group"
+                  className="px-4 py-2 bg-secondary/80 dark:bg-secondary/90 text-secondary-foreground rounded-lg border border-border shadow-sm hover:shadow-md hover:bg-secondary dark:hover:bg-secondary/100 transition-all duration-200 flex items-center space-x-2 group"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -946,7 +947,7 @@ export default function PatientsPage() {
                 </motion.button>
                 <motion.button
                   onClick={handleAssignPatient}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-sm hover:shadow-md hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2 group"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white rounded-lg shadow-sm hover:shadow-md hover:from-blue-600 hover:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 transition-all duration-200 flex items-center space-x-2 group"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -955,7 +956,7 @@ export default function PatientsPage() {
                 </motion.button>
                 <motion.button
                   onClick={handleAddPatient}
-                  className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow-sm hover:shadow-md hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center space-x-2 group"
+                  className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 text-white rounded-lg shadow-sm hover:shadow-md hover:from-green-600 hover:to-green-700 dark:hover:from-green-700 dark:hover:to-green-800 transition-all duration-200 flex items-center space-x-2 group"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -969,7 +970,7 @@ export default function PatientsPage() {
 
         {/* Enhanced Search and Filter Bar */}
         <motion.div
-          className="px-6 py-4 bg-card/50 backdrop-blur-sm border-b border-border"
+          className="px-6 py-4 bg-card/50 dark:bg-card/80 backdrop-blur-sm border-b border-border"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.3 }}
@@ -981,13 +982,13 @@ export default function PatientsPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4, delay: 0.4 }}
             >
-              <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
+              <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground group-focus-within:text-primary dark:group-focus-within:text-primary transition-colors duration-200" />
               <input
                 type="text"
                 placeholder="Search patients by name, condition, or phone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-background/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 text-foreground placeholder:text-muted-foreground transition-all duration-200 hover:shadow-sm focus:shadow-md backdrop-blur-sm"
+                className="w-full pl-10 pr-4 py-2 bg-background/50 dark:bg-background/80 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 dark:focus:border-primary/60 text-foreground placeholder:text-muted-foreground transition-all duration-200 hover:shadow-sm focus:shadow-md backdrop-blur-sm"
               />
             </motion.div>
             <motion.div
@@ -996,11 +997,11 @@ export default function PatientsPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4, delay: 0.5 }}
             >
-              <Filter className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors duration-200" />
+              <Filter className="w-4 h-4 text-muted-foreground group-hover:text-primary dark:group-hover:text-primary transition-colors duration-200" />
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 bg-background/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 text-foreground transition-all duration-200 hover:shadow-sm focus:shadow-md backdrop-blur-sm"
+                className="px-3 py-2 bg-background/50 dark:bg-background/80 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 dark:focus:border-primary/60 text-foreground transition-all duration-200 hover:shadow-sm focus:shadow-md backdrop-blur-sm"
               >
                 <option value="all">All Status</option>
                 <option value="stable">Stable</option>
@@ -1014,143 +1015,127 @@ export default function PatientsPage() {
 
         {/* Enhanced Stats Cards */}
         <motion.div
-          className="px-6 py-4"
+          className="px-6 py-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.6 }}
         >
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <motion.div
-              className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/30 border border-blue-200/50 dark:border-blue-800/50 rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 group backdrop-blur-sm"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.7 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
               whileHover={{ scale: 1.02, y: -2 }}
             >
-              <div className="flex items-center space-x-3">
-                <motion.div
-                  className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                >
-                  <Users className="w-5 h-5" />
-                </motion.div>
-                <div>
-                  <motion.p
-                    className="text-2xl font-bold text-blue-700 dark:text-blue-300"
-                    initial={{ scale: 0.5 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.3, delay: 0.8 }}
-                  >
-                    {patients.length}
-                  </motion.p>
-                  <p className="text-sm text-blue-600/80 dark:text-blue-400/80 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors duration-300">
+              <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-blue-500 bg-gradient-to-br from-blue-50/50 to-blue-100/30 dark:from-blue-950/40 dark:to-blue-900/20 hover:shadow-blue-500/10 dark:hover:shadow-blue-400/20 hover:from-blue-100/60 hover:to-blue-200/40 dark:hover:from-blue-900/60 dark:hover:to-blue-800/40">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
                     Total Patients
+                  </CardTitle>
+                  <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/60 transition-all duration-300 ease-out group-hover:bg-blue-100 dark:group-hover:bg-blue-900/80 group-hover:scale-110 group-hover:rotate-6">
+                    <Users className="h-4 w-4 text-blue-600 dark:text-blue-400 transition-all duration-300 ease-out group-hover:scale-110" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-blue-700 dark:group-hover:text-blue-300 group-hover:scale-105">
+                    {patients.length}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-400">
+                    Currently assigned to you
                   </p>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </motion.div>
 
             <motion.div
-              className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/50 dark:to-green-900/30 border border-green-200/50 dark:border-green-800/50 rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 group backdrop-blur-sm"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.8 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
               whileHover={{ scale: 1.02, y: -2 }}
             >
-              <div className="flex items-center space-x-3">
-                <motion.div
-                  className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                >
-                  <CheckCircle className="w-5 h-5" />
-                </motion.div>
-                <div>
-                  <motion.p
-                    className="text-2xl font-bold text-green-700 dark:text-green-300"
-                    initial={{ scale: 0.5 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.3, delay: 0.9 }}
-                  >
+              <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-green-500 bg-gradient-to-br from-green-50/50 to-green-100/30 dark:from-green-950/40 dark:to-green-900/20 hover:shadow-green-500/10 dark:hover:shadow-green-400/20 hover:from-green-100/60 hover:to-green-200/40 dark:hover:from-green-900/60 dark:hover:to-green-800/40">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-green-600 dark:group-hover:text-green-400">
+                    Stable Patients
+                  </CardTitle>
+                  <div className="p-2 rounded-lg bg-green-50 dark:bg-green-950/60 transition-all duration-300 ease-out group-hover:bg-green-100 dark:group-hover:bg-green-900/80 group-hover:scale-110 group-hover:rotate-6">
+                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 transition-all duration-300 ease-out group-hover:scale-110" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-green-700 dark:group-hover:text-green-300 group-hover:scale-105">
                     {
                       patients.filter(
                         (p) => p.status && p.status.toLowerCase() === "stable"
                       ).length
                     }
-                  </motion.p>
-                  <p className="text-sm text-green-600/80 dark:text-green-400/80 group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors duration-300">
-                    Stable
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-400">
+                    In stable condition
                   </p>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </motion.div>
 
             <motion.div
-              className="bg-gradient-to-br from-yellow-50 to-yellow-100/50 dark:from-yellow-950/50 dark:to-yellow-900/30 border border-yellow-200/50 dark:border-yellow-800/50 rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 group backdrop-blur-sm"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.9 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
               whileHover={{ scale: 1.02, y: -2 }}
             >
-              <div className="flex items-center space-x-3">
-                <motion.div
-                  className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-600 text-white rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                >
-                  <Clock className="w-5 h-5" />
-                </motion.div>
-                <div>
-                  <motion.p
-                    className="text-2xl font-bold text-yellow-700 dark:text-yellow-300"
-                    initial={{ scale: 0.5 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.3, delay: 1.0 }}
-                  >
+              <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-yellow-500 bg-gradient-to-br from-yellow-50/50 to-yellow-100/30 dark:from-yellow-950/40 dark:to-yellow-900/20 hover:shadow-yellow-500/10 dark:hover:shadow-yellow-400/20 hover:from-yellow-100/60 hover:to-yellow-200/40 dark:hover:from-yellow-900/60 dark:hover:to-yellow-800/40">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-yellow-600 dark:group-hover:text-yellow-400">
+                    Monitoring
+                  </CardTitle>
+                  <div className="p-2 rounded-lg bg-yellow-50 dark:bg-yellow-950/60 transition-all duration-300 ease-out group-hover:bg-yellow-100 dark:group-hover:bg-yellow-900/80 group-hover:scale-110 group-hover:rotate-6">
+                    <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400 transition-all duration-300 ease-out group-hover:scale-110" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-yellow-700 dark:group-hover:text-yellow-300 group-hover:scale-105">
                     {
                       patients.filter(
                         (p) =>
                           p.status && p.status.toLowerCase() === "monitoring"
                       ).length
                     }
-                  </motion.p>
-                  <p className="text-sm text-yellow-600/80 dark:text-yellow-400/80 group-hover:text-yellow-700 dark:group-hover:text-yellow-300 transition-colors duration-300">
-                    Monitoring
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-400">
+                    Under close monitoring
                   </p>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </motion.div>
 
             <motion.div
-              className="bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/50 dark:to-red-900/30 border border-red-200/50 dark:border-red-800/50 rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 group backdrop-blur-sm"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 1.0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
               whileHover={{ scale: 1.02, y: -2 }}
             >
-              <div className="flex items-center space-x-3">
-                <motion.div
-                  className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                >
-                  <AlertTriangle className="w-5 h-5" />
-                </motion.div>
-                <div>
-                  <motion.p
-                    className="text-2xl font-bold text-red-700 dark:text-red-300"
-                    initial={{ scale: 0.5 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.3, delay: 1.1 }}
-                  >
+              <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-red-500 bg-gradient-to-br from-red-50/50 to-red-100/30 dark:from-red-950/40 dark:to-red-900/20 hover:shadow-red-500/10 dark:hover:shadow-red-400/20 hover:from-red-100/60 hover:to-red-200/40 dark:hover:from-red-900/60 dark:hover:to-red-800/40">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-red-600 dark:group-hover:text-red-400">
+                    Critical Patients
+                  </CardTitle>
+                  <div className="p-2 rounded-lg bg-red-50 dark:bg-red-950/60 transition-all duration-300 ease-out group-hover:bg-red-100 dark:group-hover:bg-red-900/80 group-hover:scale-110 group-hover:rotate-6">
+                    <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400 transition-all duration-300 ease-out group-hover:scale-110" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-red-700 dark:group-hover:text-red-300 group-hover:scale-105">
                     {
                       patients.filter(
                         (p) => p.status && p.status.toLowerCase() === "critical"
                       ).length
                     }
-                  </motion.p>
-                  <p className="text-sm text-red-600/80 dark:text-red-400/80 group-hover:text-red-700 dark:group-hover:text-red-300 transition-colors duration-300">
-                    Critical
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-400">
+                    Require immediate attention
                   </p>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </motion.div>
           </div>
 
@@ -1405,7 +1390,8 @@ export default function PatientsPage() {
           transition={{ duration: 0.3 }}
         >
           <motion.div
-            className="bg-card/95 backdrop-blur-sm border border-border rounded-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl"
+            className="bg-card/95 backdrop-blur-sm border border-border rounded-xl max-w-md sm:max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl"
+            style={{ maxWidth: "36rem" }}
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -1782,7 +1768,8 @@ export default function PatientsPage() {
           transition={{ duration: 0.3 }}
         >
           <motion.div
-            className="bg-card/95 backdrop-blur-sm border border-border rounded-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl"
+            className="bg-card/95 backdrop-blur-sm border border-border rounded-xl max-w-md sm:max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl"
+            style={{ maxWidth: "28rem" }}
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
