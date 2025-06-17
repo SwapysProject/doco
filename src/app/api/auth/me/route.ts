@@ -31,11 +31,11 @@ export async function GET(request: NextRequest) {
         { status: 404 }
       );
     }
-
     return NextResponse.json({
       success: true,
       user: {
         id: doctor._id.toString(),
+        doctorId: currentUser.doctorId, // Include the doctorId from JWT
         email: doctor.email,
         name: doctor.name,
         role: doctor.role || "doctor",

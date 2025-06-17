@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 
 interface User {
   id: string;
+  doctorId: string; // Add doctorId field
   email: string;
   name: string;
   role: "doctor" | "admin";

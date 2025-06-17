@@ -179,29 +179,36 @@ export function PrescriptionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  // Load prescriptions from API - only for current doctor and assigned patients
+  const [error, setError] = useState<string | null>(null); // Load prescriptions from API - only for current doctor and assigned patients
   useEffect(() => {
     const loadPrescriptions = async () => {
       try {
         setIsLoading(true);
         setError(null);
 
+        console.log("🔍 Loading prescriptions from /api/my-prescriptions...");
+
         // Use the new my-prescriptions endpoint that filters by doctor and assigned patients
         const response = await fetch("/api/my-prescriptions");
         const result = await response.json();
 
+        console.log("🔍 API Response:", result);
+
         if (result.success && result.data) {
+          console.log("✅ Loaded prescriptions:", result.data.length);
           setPrescriptions(result.data);
         } else if (result.success && result.data?.length === 0) {
+          console.log("📝 No prescriptions found for this doctor");
           setPrescriptions([]);
-          console.log("No prescriptions found for this doctor");
         } else {
-          console.log("No prescriptions found or API error, using mock data");
+          console.log(
+            "⚠️ No prescriptions found or API error, using mock data:",
+            result.message
+          );
           setPrescriptions(mockPrescriptions);
         }
       } catch (error) {
-        console.error("Failed to load prescriptions:", error);
+        console.error("❌ Failed to load prescriptions:", error);
         setError("Failed to load prescriptions");
         // Fallback to mock data
         setPrescriptions(mockPrescriptions);

@@ -810,6 +810,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(result);
     }
     if (action === "save_prescription") {
+      console.log(
+        "💾 Saving prescription with data:",
+        JSON.stringify(body.prescription, null, 2)
+      );
+
       // Save the AI-generated prescription to database
       const client = await clientPromise;
       const db = client.db("Patient");
@@ -828,7 +833,14 @@ export async function POST(req: NextRequest) {
         createdAt: new Date().toISOString(),
       };
 
+      console.log(
+        "💾 Final prescription data being saved:",
+        JSON.stringify(prescriptionData, null, 2)
+      );
+
       const result = await collection.insertOne(prescriptionData);
+
+      console.log("💾 Save result:", result.insertedId);
 
       return NextResponse.json({
         success: true,

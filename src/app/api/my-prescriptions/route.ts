@@ -6,6 +6,8 @@ export async function GET(req: NextRequest) {
   try {
     // Get current user from JWT
     const currentUser = getCurrentUser(req);
+    console.log("Current user from JWT:", currentUser);
+
     if (!currentUser) {
       return NextResponse.json(
         { success: false, message: "Not authenticated" },
@@ -22,65 +24,59 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get("status");
     const limit = parseInt(searchParams.get("limit") || "20");
     const page = parseInt(searchParams.get("page") || "1");
-    const skip = (page - 1) * limit;
-
-    // First, get all patients assigned to this doctor
-    const assignmentsCollection = db.collection("patient_assignments");
+    const skip = (page - 1) * limit; // First, get all patients assigned to this doctor
+    const assignmentsCollection = db.collection("doctor_patient_assignments"); // Fixed collection name
     const assignments = await assignmentsCollection
       .find({ doctorId: currentUser.doctorId })
       .toArray();
-
     const assignedPatientIds = assignments.map(
       (assignment) => assignment.patientId
     );
+    console.log("Doctor ID:", currentUser.doctorId);
+    console.log("Assigned patient IDs:", assignedPatientIds);
 
-    if (assignedPatientIds.length === 0) {
-      return NextResponse.json({
-        success: true,
-        data: [],
-        pagination: {
-          page,
-          limit,
-          total: 0,
-          pages: 0,
-        },
-        message: "No patients assigned to this doctor",
-      });
-    } // Build query filter for prescriptions
+    // Modified: Show all prescriptions for this doctor, even if no patient assignments exist
+    // This is useful during development when patient assignments might not be set up
     const query: Record<string, unknown> = {
-      $and: [
-        // Filter by assigned patients OR prescriptions created by this doctor
-        {
-          $or: [
-            { patientId: { $in: assignedPatientIds } },
-            { doctorId: currentUser.doctorId },
-          ],
-        },
+      $or: [
+        // Prescriptions created by this doctor
+        { doctorId: currentUser.doctorId },
+        // Prescriptions for assigned patients (if any assignments exist)
+        ...(assignedPatientIds.length > 0
+          ? [{ patientId: { $in: assignedPatientIds } }]
+          : []),
       ],
-    };
+    }; // Add additional filters
+    const finalQuery: Record<string, unknown> = { ...query };
 
-    // Add additional filters
-    if (patientName) {
-      (query.$and as Array<Record<string, unknown>>).push({
-        patientName: { $regex: patientName, $options: "i" },
-      });
-    }
+    if (patientName || status) {
+      finalQuery.$and = finalQuery.$and || [];
+      const andArray = finalQuery.$and as Array<Record<string, unknown>>;
 
-    if (status) {
-      (query.$and as Array<Record<string, unknown>>).push({ status });
-    }
+      if (patientName) {
+        andArray.push({
+          patientName: { $regex: patientName, $options: "i" },
+        });
+      }
 
-    // Get prescriptions with pagination
+      if (status) {
+        andArray.push({ status });
+      }
+    } // Get prescriptions with pagination
     const prescriptionsCollection = db.collection("prescriptions");
+    console.log("Query filter:", JSON.stringify(finalQuery, null, 2));
+
     const prescriptions = await prescriptionsCollection
-      .find(query)
+      .find(finalQuery)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .toArray();
 
+    console.log("Found prescriptions:", prescriptions.length);
+
     // Get total count
-    const totalCount = await prescriptionsCollection.countDocuments(query);
+    const totalCount = await prescriptionsCollection.countDocuments(finalQuery);
 
     // Transform data to ensure consistent format
     const formattedPrescriptions = prescriptions.map((prescription) => ({

@@ -96,6 +96,8 @@ export async function GET(request: NextRequest) {
           $group: {
             _id: "$conversationWith",
             lastMessage: { $first: "$$ROOT" },
+            lastMessageText: { $first: "$message" },
+            lastMessageTime: { $first: "$createdAt" },
             unreadCount: {
               $sum: {
                 $cond: {
@@ -113,8 +115,21 @@ export async function GET(request: NextRequest) {
           },
         },
       ];
-
       messages = await messagesCollection.aggregate(pipeline).toArray();
+
+      // Format conversations for better display
+      const conversations = messages.map((conv) => ({
+        doctorId: conv._id,
+        lastMessage: conv.lastMessageText,
+        lastMessageTime: conv.lastMessageTime,
+        unreadCount: conv.unreadCount,
+        lastMessageFull: conv.lastMessage,
+      }));
+
+      return NextResponse.json({
+        success: true,
+        conversations: conversations,
+      });
     }
 
     return NextResponse.json({

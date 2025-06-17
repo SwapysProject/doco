@@ -591,7 +591,7 @@ export function NewPrescriptionPage() {
           prescription: {
             patientId: selectedPatient.id || selectedPatient._id,
             patientName: selectedPatient.name,
-            doctorId: user?.id || "unknown",
+            doctorId: user?.doctorId || user?.id || "unknown", // Use doctorId first, then fallback to id
             doctorName: user?.name || "Dr. Unknown",
             date: new Date().toISOString().split("T")[0],
             diagnosis: diagnosis || "AI-generated from symptoms",
@@ -612,9 +612,7 @@ export function NewPrescriptionPage() {
       if (result.success) {
         alert(
           "✅ Prescription saved successfully! The AI analyzed patient history and provided safe recommendations."
-        );
-
-        // Reset form
+        ); // Reset form
         setAiResponse(null);
         setSymptoms("");
         setDiagnosis("");
@@ -626,6 +624,11 @@ export function NewPrescriptionPage() {
           checkPrescriptionStatus(patientId);
           loadPastPrescriptions(patientId);
         }
+
+        // Trigger a page refresh after 1 second to show the new prescription
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         throw new Error(result.error || "Failed to save prescription");
       }
