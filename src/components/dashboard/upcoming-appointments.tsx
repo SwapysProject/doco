@@ -138,57 +138,59 @@ export function UpcomingAppointments() {
   const todayString = currentTime.toDateString();
 
   useEffect(() => {
-  const fetchAppointments = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    const fetchAppointments = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const response = await fetch("/api/appointments", {
-        method: "GET",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
+        const response = await fetch("/api/upcoming-appointments", {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        });
 
-      if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+        if (!response.ok)
+          throw new Error(`Failed to fetch: ${response.status}`);
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (data.success) {
-        const today = new Date().toISOString().split("T")[0];
+        if (data.success) {
+          const today = new Date().toISOString().split("T")[0];
 
-        const transformed = data.appointments.map((apt: any) => ({
-          _id: apt._id,
-          appointmentId: apt._id,
-          patientName: apt.patientName,
-          patientId: apt.patientId,
-          date: new Date(apt.appointmentDate).toISOString().split("T")[0],
-          time: apt.appointmentTime,
-          duration: apt.duration || 30,
-          type: apt.type,
-          status: apt.status,
-          location: apt.isVirtual ? "Virtual" : "Clinic",
-          isVirtual: apt.isVirtual || false,
-          notes: apt.notes || "",
-          avatar: "", // Optional enhancement
-          doctorId: "", // Optional if needed
-        }));
+          const transformed = data.appointments.map((apt: any) => ({
+            _id: apt._id,
+            appointmentId: apt._id,
+            patientName: apt.patientName,
+            patientId: apt.patientId,
+            date: new Date(apt.appointmentDate).toISOString().split("T")[0],
+            time: apt.appointmentTime,
+            duration: apt.duration || 30,
+            type: apt.type,
+            status: apt.status,
+            location: apt.isVirtual ? "Virtual" : "Clinic",
+            isVirtual: apt.isVirtual || false,
+            notes: apt.notes || "",
+            avatar: "", // Optional enhancement
+            doctorId: "", // Optional if needed
+          }));
 
-        const todayAppointments = transformed.filter((a: Appointment) => a.date === today);
-        setAppointments(todayAppointments);
-      } else {
-        throw new Error(data.message || "Failed to load appointments");
+          const todayAppointments = transformed.filter(
+            (a: Appointment) => a.date === today
+          );
+          setAppointments(todayAppointments);
+        } else {
+          throw new Error(data.message || "Failed to load appointments");
+        }
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
+        setError(error instanceof Error ? error.message : "Unknown error");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching appointments:", error);
-      setError(error instanceof Error ? error.message : "Unknown error");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchAppointments();
-}, []);
-
+    fetchAppointments();
+  }, []);
 
   // Filter for today's appointments
   const todayAppointments = appointments.filter((appointment) => {
@@ -224,40 +226,40 @@ export function UpcomingAppointments() {
   }
 
   // ✅ Place this above the return on line 111
-const cancelAppointment = async (appointmentId: string) => {
-  if (!confirm("Are you sure you want to cancel this appointment?")) {
-    return;
-  }
-
-  try {
-    const response = await fetch("/api/appointments", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        appointmentId,
-        status: "cancelled",
-      }),
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      setAppointments((prev) =>
-        prev.map((apt) =>
-          apt._id === appointmentId ? { ...apt, status: "cancelled" } : apt
-        )
-      );
-    } else {
-      alert(data.message || "Failed to cancel appointment");
+  const cancelAppointment = async (appointmentId: string) => {
+    if (!confirm("Are you sure you want to cancel this appointment?")) {
+      return;
     }
-  } catch (error) {
-    console.error("Error cancelling appointment:", error);
-    alert("Failed to cancel appointment");
-  }
-};
+
+    try {
+      const response = await fetch("/api/appointments", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          appointmentId,
+          status: "cancelled",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setAppointments((prev) =>
+          prev.map((apt) =>
+            apt._id === appointmentId ? { ...apt, status: "cancelled" } : apt
+          )
+        );
+      } else {
+        alert(data.message || "Failed to cancel appointment");
+      }
+    } catch (error) {
+      console.error("Error cancelling appointment:", error);
+      alert("Failed to cancel appointment");
+    }
+  };
 
   return (
     <Card>
@@ -394,12 +396,11 @@ const cancelAppointment = async (appointmentId: string) => {
                         </DropdownMenuItem>
                         <DropdownMenuItem>Add Notes</DropdownMenuItem>
                         <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={() => cancelAppointment(appointment._id)}
-                      >
-                        Cancel Appointment
-                      </DropdownMenuItem>
-
+                          className="text-destructive"
+                          onClick={() => cancelAppointment(appointment._id)}
+                        >
+                          Cancel Appointment
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>

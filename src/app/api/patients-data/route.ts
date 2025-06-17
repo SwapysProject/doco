@@ -123,9 +123,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate a unique patient ID
-    const count = await collection.countDocuments();
-    const nextId = `P${String(count + 1).padStart(3, "0")}`;
+    // Generate a unique patient ID by finding the highest existing ID
+    let nextId;
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    while (attempts < maxAttempts) {
+      // Find the highest existing patient ID
+      const lastPatient = await collection.findOne(
+        { id: { $regex: /^P\d{3}$/ } }, // Only match P001, P002 format
+        { sort: { id: -1 } }
+      );
+
+      let nextNumber = 1;
+      if (lastPatient && lastPatient.id) {
+        const currentNumber = parseInt(lastPatient.id.substring(1));
+        nextNumber = currentNumber + 1;
+      }
+
+      nextId = `P${String(nextNumber).padStart(3, "0")}`;
+
+      // Check if this ID already exists
+      const existingWithId = await collection.findOne({ id: nextId });
+      if (!existingWithId) {
+        break; // Found a unique ID
+      }
+
+      // If ID exists, try the next number
+      nextNumber++;
+      nextId = `P${String(nextNumber).padStart(3, "0")}`;
+      attempts++;
+    }
+
+    if (attempts >= maxAttempts) {
+      // Fallback to using timestamp-based ID if we can't find a sequential one
+      nextId = `P${Date.now().toString().slice(-6)}`;
+    }
 
     // Add the generated ID and assign to current doctor
     const patientData = {
@@ -138,15 +171,48 @@ export async function POST(request: NextRequest) {
       status: body.status || "active",
     };
 
-    const result = await collection.insertOne(patientData);
-    return NextResponse.json(
-      {
-        message: "Patient added successfully and assigned to you",
-        id: result.insertedId,
-        patientId: nextId,
-      },
-      { status: 201 }
-    );
+    try {
+      const result = await collection.insertOne(patientData);
+      return NextResponse.json(
+        {
+          message: "Patient added successfully and assigned to you",
+          id: result.insertedId,
+          patientId: nextId,
+        },
+        { status: 201 }
+      );
+    } catch (insertError: unknown) {
+      console.error("Insert error:", insertError);
+      if (
+        insertError &&
+        typeof insertError === "object" &&
+        "code" in insertError &&
+        insertError.code === 11000
+      ) {
+        // Duplicate key error - try with timestamp-based ID
+        const timestampId = `P${Date.now().toString().slice(-6)}`;
+        const fallbackData = { ...patientData, id: timestampId };
+
+        try {
+          const fallbackResult = await collection.insertOne(fallbackData);
+          return NextResponse.json(
+            {
+              message: "Patient added successfully and assigned to you",
+              id: fallbackResult.insertedId,
+              patientId: timestampId,
+            },
+            { status: 201 }
+          );
+        } catch (fallbackError) {
+          console.error("Fallback insert error:", fallbackError);
+          return NextResponse.json(
+            { message: "Failed to generate unique patient ID" },
+            { status: 500 }
+          );
+        }
+      }
+      throw insertError; // Re-throw if it's not a duplicate key error
+    }
   } catch (error) {
     console.error("POST error:", error);
     return NextResponse.json(

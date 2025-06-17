@@ -308,7 +308,19 @@ export default function PatientsPage() {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json();
+        if (response.status === 409) {
+          // Handle conflict error (duplicate email/phone)
+          setError(
+            errorData.message ||
+              "Patient with this email or phone number already exists"
+          );
+        } else {
+          setError(
+            `Failed to add patient: ${errorData.message || `HTTP error! status: ${response.status}`}`
+          );
+        }
+        return;
       }
 
       const result = await response.json();
@@ -408,6 +420,16 @@ export default function PatientsPage() {
         },
       });
       setShowEditModal(true);
+    }
+  };
+
+  const handleMessagePatient = () => {
+    if (selectedPatient) {
+      // For now, show a notification about patient messaging feature
+      alert(`Patient messaging feature will be available soon!\n\nYou can contact ${selectedPatient.name} at:\nEmail: ${selectedPatient.email}\nPhone: ${selectedPatient.phone}`);
+      
+      // Alternative: Navigate to messages page for doctor-to-doctor communication
+      // window.location.href = `/dashboard/messages`;
     }
   };
 
@@ -605,6 +627,7 @@ export default function PatientsPage() {
                   <span>Edit</span>
                 </motion.button>
                 <motion.button
+                  onClick={handleMessagePatient}
                   className="px-4 py-2 bg-gradient-to-r from-primary/90 to-primary text-primary-foreground rounded-xl hover:from-primary hover:to-primary/90 transition-all duration-200 flex items-center space-x-2 shadow-sm hover:shadow-md"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
