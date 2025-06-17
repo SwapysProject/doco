@@ -15,10 +15,10 @@ export default function DashboardPage() {
       <div className="space-y-6">
         {/* Enhanced Page Header with Motion */}
         <div className="group" style={{ animation: "slideInUp 0.6s ease-out" }}>
-          <h1 className="text-3xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-blue-700 group-hover:scale-105">
+          <h1 className=" pl-2 text-3xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-blue-700 group-hover:scale-105">
             Doctor Dashboard
           </h1>
-          <p className="text-muted-foreground transition-all duration-300 ease-out group-hover:text-blue-600 group-hover:translate-x-2">
+          <p className=" pl-2 text-muted-foreground transition-all duration-300 ease-out group-hover:text-blue-600 group-hover:translate-x-2">
             Welcome back, Dr. {user?.name?.split(" ")[0] || "Smith"}. Here's your patient overview for today.
           </p>
 
