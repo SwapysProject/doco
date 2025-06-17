@@ -2,7 +2,6 @@
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import Link from "next/link"
 import {
   Search,
   Filter,
@@ -605,16 +604,14 @@ export default function PatientsPage() {
                   <Edit className="w-4 h-4" />
                   <span>Edit</span>
                 </motion.button>
-                {selectedPatient?.id && (
-                  <Link
-                    href={`/dashboard/patients/new-p?patientId=${selectedPatient.id}`}
-                    className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl shadow-sm hover:shadow-md hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 flex items-center space-x-2"
-                  >
-                    <Pill className="w-4 h-4" />
-                    <span>New Prescription</span>
-                  </Link>
-                )}
-
+                <motion.button
+                  className="px-4 py-2 bg-gradient-to-r from-primary/90 to-primary text-primary-foreground rounded-xl hover:from-primary hover:to-primary/90 transition-all duration-200 flex items-center space-x-2 shadow-sm hover:shadow-md"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Message</span>
+                </motion.button>
               </div>
             </div>
           </div>
