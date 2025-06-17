@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
+import { createNotification } from "@/lib/notifications-server";
+import { getCurrentUser } from "@/lib/jwt";
 
 export async function GET(req: NextRequest) {
   try {
@@ -83,6 +85,14 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const currentUser = getCurrentUser(req);
+    if (!currentUser) {
+      return NextResponse.json(
+        { success: false, error: "Not authenticated" },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
     const client = await clientPromise;
     const db = client.db("Patient"); // Use consistent database name
@@ -92,12 +102,27 @@ export async function POST(req: NextRequest) {
     const prescriptionData = {
       ...body,
       prescriptionId: body.prescriptionId || `RX${Date.now()}`,
+      doctorId: currentUser.doctorId,
+      doctorName: currentUser.name,
       createdAt: new Date(),
       updatedAt: new Date(),
       status: body.status || "active",
     };
 
-    const result = await collection.insertOne(prescriptionData);
+    const result = await collection.insertOne(prescriptionData); // Create notification for new prescription
+    const medicationNames =
+      prescriptionData.medications
+        ?.map((med: { name: string }) => med.name)
+        .join(", ") || "Multiple medications";
+    await createNotification({
+      doctorId: currentUser.doctorId,
+      type: "prescription_created",
+      title: "New Prescription Created",
+      message: `Prescription created for ${prescriptionData.patientName} - ${medicationNames}`,
+      patientId: prescriptionData.patientId,
+      prescriptionId: result.insertedId.toString(),
+    });
+
     return NextResponse.json({
       success: true,
       insertedId: result.insertedId,

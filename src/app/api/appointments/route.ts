@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { getCurrentUser } from "@/lib/jwt";
 import { ObjectId } from "mongodb";
+import { createNotification } from "@/lib/notifications-server";
 
 // GET: Fetch appointments for the current doctor
 export async function GET(request: NextRequest) {
@@ -130,8 +131,17 @@ export async function POST(request: NextRequest) {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-
     const result = await appointmentsCollection.insertOne(appointment);
+
+    // Create notification for new appointment
+    await createNotification({
+      doctorId: currentUser.doctorId,
+      type: "appointment_scheduled",
+      title: "New Appointment Scheduled",
+      message: `Appointment with ${appointmentData.patientName} scheduled for ${new Date(appointmentData.appointmentDate).toLocaleDateString()} at ${appointmentData.appointmentTime}`,
+      patientId: appointmentData.patientId,
+      appointmentId: result.insertedId.toString(),
+    });
 
     return NextResponse.json(
       {
@@ -179,9 +189,7 @@ export async function PUT(request: NextRequest) {
     const updateFields = {
       ...updateData,
       updatedAt: new Date(),
-    };
-
-    // Update the appointment
+    }; // Update the appointment
     const result = await appointmentsCollection.updateOne(
       {
         _id: new ObjectId(appointmentId),
@@ -195,6 +203,25 @@ export async function PUT(request: NextRequest) {
         { success: false, message: "Appointment not found" },
         { status: 404 }
       );
+    }
+
+    // Create notification if appointment status changed to cancelled
+    if (updateData.status === "cancelled") {
+      // Get the appointment details for notification
+      const updatedAppointment = await appointmentsCollection.findOne({
+        _id: new ObjectId(appointmentId),
+      });
+
+      if (updatedAppointment) {
+        await createNotification({
+          doctorId: currentUser.doctorId,
+          type: "appointment_cancelled",
+          title: "Appointment Cancelled",
+          message: `Appointment with ${updatedAppointment.patientName} on ${new Date(updatedAppointment.appointmentDate).toLocaleDateString()} has been cancelled`,
+          patientId: updatedAppointment.patientId,
+          appointmentId: appointmentId,
+        });
+      }
     }
 
     return NextResponse.json(

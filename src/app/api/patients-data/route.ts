@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { getCurrentUser } from "@/lib/jwt";
+import { createNotification } from "@/lib/notifications-server";
 
 // GET: Fetch patients assigned to the current doctor
 export async function GET(request: NextRequest) {
@@ -173,6 +174,16 @@ export async function POST(request: NextRequest) {
 
     try {
       const result = await collection.insertOne(patientData);
+
+      // Create notification for new patient
+      await createNotification({
+        doctorId: currentUser.doctorId,
+        type: "patient_added",
+        title: "New Patient Added",
+        message: `${patientData.name} has been added to your patient list`,
+        patientId: nextId,
+      });
+
       return NextResponse.json(
         {
           message: "Patient added successfully and assigned to you",
@@ -195,6 +206,16 @@ export async function POST(request: NextRequest) {
 
         try {
           const fallbackResult = await collection.insertOne(fallbackData);
+
+          // Create notification for new patient
+          await createNotification({
+            doctorId: currentUser.doctorId,
+            type: "patient_added",
+            title: "New Patient Added",
+            message: `${fallbackData.name} has been added to your patient list`,
+            patientId: timestampId,
+          });
+
           return NextResponse.json(
             {
               message: "Patient added successfully and assigned to you",

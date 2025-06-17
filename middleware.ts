@@ -10,6 +10,7 @@ const protectedRoutes = [
   "/api/medical-history",
   "/api/medications",
   "/api/allergies",
+  "/api/notifications",
 ];
 
 // Define public routes that should redirect to dashboard if authenticated
