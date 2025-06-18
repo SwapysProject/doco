@@ -94,7 +94,7 @@ export function ChatWindow({
         </header>
 
         <div className="flex-1 p-4 overflow-y-auto space-y-4">
-          {messages.length === 0 && (
+          {!messages.some(msg => msg.role === 'user') && (
             <div className="space-y-4">
               <div className="text-center text-muted-foreground text-sm mb-4">
                 <div className="bg-primary/10 rounded-lg p-4 mb-4">
