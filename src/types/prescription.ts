@@ -20,6 +20,7 @@ export interface Medication {
   duration: string;
   instructions: string;
   refills: number;
+  priority?: "critical" | "high" | "medium" | "low";
   cost?: number;
   contraindications?: string[];
   sideEffects?: string[];
@@ -69,7 +70,8 @@ export interface AiPrescriptionRequest {
 export interface AiPrescriptionResponse {
   medications: Medication[];
   reasoning: string;
+  fullReasoning?: string; // Full AI analysis (optional, for toggle display)
   confidence: number;
   warnings: string[];
-  alternatives?: Medication[];
+  alternatives?: Medication[] | string[]; // Can be alternative medications or recommendation strings
 }

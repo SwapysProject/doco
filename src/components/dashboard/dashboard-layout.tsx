@@ -22,7 +22,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <DashboardHeader />
 
           {/* Page Content */}
-          <main className="flex-1 p-6">{children}</main>
+          <main className="flex-1 p-6 overflow-x-hidden max-w-full">
+            {children}
+          </main>
         </div>
       </div>
     </SidebarProvider>

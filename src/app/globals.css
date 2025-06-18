@@ -221,6 +221,11 @@
 /* Smooth scroll behavior */
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
 }
 
 /* Add motion-reduce support for accessibility */
@@ -264,4 +269,75 @@ html {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 400% 100%;
   animation: shimmer 1.5s infinite;
+}
+
+/* Table responsive styling */
+.table-container {
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Prevent horizontal overflow */
+* {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Prescription table specific styles */
+.prescriptions-table {
+  table-layout: fixed;
+  width: 100%;
+  max-width: 100%;
+}
+
+.prescriptions-table th,
+.prescriptions-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 8px 4px;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .prescriptions-table th:nth-child(3),
+  .prescriptions-table td:nth-child(3) {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .prescriptions-table th:nth-child(5),
+  .prescriptions-table td:nth-child(5) {
+    display: none;
+  }
+}
+
+/* Ensure container doesn't overflow */
+body {
+  overflow-x: hidden;
+}
+
+.main-container {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Avatar styling for perfect circles */
+.avatar-circle {
+  border-radius: 50% !important;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.avatar-circle img {
+  border-radius: 50% !important;
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+/* Ensure all avatar components are circular */
+[role="img"], .avatar, .avatar-image, .avatar-fallback {
+  border-radius: 50% !important;
 }

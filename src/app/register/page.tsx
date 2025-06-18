@@ -83,10 +83,12 @@ export default function RegisterPage() {
       setIsLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md shadow-lg">
+      <Card
+        className="w-full max-w-md mx-auto shadow-lg"
+        style={{ maxWidth: "28rem" }}
+      >
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
             <div className="p-3 bg-blue-100 rounded-full">

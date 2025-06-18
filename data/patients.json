@@ -1,0 +1,47 @@
+[
+  {
+    "id": "P001",
+    "name": "Sarah Johnson",
+    "age": 34,
+    "gender": "female",
+    "allergies": ["Penicillin"],
+    "currentMedications": ["Lisinopril 10mg"],
+    "medicalHistory": ["Hypertension"]
+  },
+  {
+    "id": "P002",
+    "name": "Michael Chen",
+    "age": 45,
+    "gender": "male",
+    "allergies": [],
+    "currentMedications": ["Metformin 500mg"],
+    "medicalHistory": ["Type 2 Diabetes"]
+  },
+  {
+    "id": "P003",
+    "name": "Emily Davis",
+    "age": 28,
+    "gender": "female",
+    "allergies": ["Sulfa drugs"],
+    "currentMedications": [],
+    "medicalHistory": ["Asthma"]
+  },
+  {
+    "id": "P004",
+    "name": "James Wilson",
+    "age": 52,
+    "gender": "male",
+    "allergies": ["Latex"],
+    "currentMedications": ["Atorvastatin 20mg", "Metoprolol 50mg"],
+    "medicalHistory": ["High Cholesterol", "Hypertension"]
+  },
+  {
+    "id": "P005",
+    "name": "Lisa Martinez",
+    "age": 29,
+    "gender": "female",
+    "allergies": [],
+    "currentMedications": ["Oral Contraceptive"],
+    "medicalHistory": ["Migraine"]
+  }
+]

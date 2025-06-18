@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+// import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,8 +36,11 @@ import {
 import {
   AiPrescriptionRequest,
   AiPrescriptionResponse,
+  Medication,
 } from "@/types/prescription";
 import Link from "next/link";
+import { motion } from "framer-motion";
+
 import { useAuth } from "@/contexts/AuthContext";
 
 /**
@@ -248,25 +251,67 @@ export function NewPrescriptionPage() {
     }>
   >([]);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
-  const [isManualMode, setIsManualMode] = useState(false); // Load patients from API
+  const [isManualMode, setIsManualMode] = useState(false);
+  const [showFullAnalysis, setShowFullAnalysis] = useState(false);
+  const [editingAiMedication, setEditingAiMedication] = useState<{
+    index: number;
+    medication: Medication;
+  } | null>(null);
+  const [editedAiMedications, setEditedAiMedications] = useState<Medication[]>(
+    []
+  );
+  // Load patients from API
   useEffect(() => {
     const loadPatients = async () => {
       try {
         setIsLoadingPatients(true);
-        const response = await fetch("/api/my-patients");
+        console.log("🚀 === MCP PATIENT LOADING STARTED ==="); // Debug log
+        console.log("Loading patients via MCP..."); // Debug log
+
+        // Call MCP list_patients tool
+        const response = await fetch("/api/mcp-prescription", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tool: "list_patients",
+            args: {
+              doctorId: user?.id, // Optional doctor filtering
+            },
+          }),
+        });
+
         const result = await response.json();
-        console.log("Patients API response:", result); // Debug log
-        if (result.patients) {
-          setPatients(result.patients);
-          setFilteredPatients(result.patients);
-          console.log("Loaded patients:", result.patients.length); // Debug log
+        console.log("📦 MCP Patients response:", result); // Debug log
+        console.log("🔍 MCP Response success:", result.success); // Debug log
+        console.log("📄 MCP Response content:", result.content); // Debug log
+
+        if (result.success && result.content?.[0]?.text) {
+          const mcpData = JSON.parse(result.content[0].text);
+          console.log("✅ MCP Data parsed:", mcpData); // Debug log
+          if (mcpData.patients && mcpData.patients.length > 0) {
+            setPatients(mcpData.patients);
+            setFilteredPatients(mcpData.patients);
+            console.log(
+              "🎉 SUCCESS: Loaded patients via MCP:",
+              mcpData.patients.length
+            ); // Debug log
+            console.log("👥 MCP Patient data:", mcpData.patients); // Debug log
+          } else {
+            console.log("⚠️  No patients from MCP, using mock data");
+            setPatients(mockPatients);
+            setFilteredPatients(mockPatients);
+          }
         } else {
-          console.log("No patients in response, using mock data");
+          console.log("❌ MCP patients call failed, using mock data");
+          console.log("Error details:", result);
           setPatients(mockPatients);
           setFilteredPatients(mockPatients);
         }
+        console.log("🏁 === MCP PATIENT LOADING FINISHED ==="); // Debug log
       } catch (error) {
-        console.error("Failed to load patients:", error);
+        console.error("💥 Failed to load patients via MCP:", error);
         // Fallback to mock data
         setPatients(mockPatients);
         setFilteredPatients(mockPatients);
@@ -275,7 +320,7 @@ export function NewPrescriptionPage() {
       }
     };
     loadPatients();
-  }, []);
+  }, [user?.id]);
   // Filter patients based on search query with improved matching
   useEffect(() => {
     if (!patientSearchQuery.trim()) {
@@ -349,20 +394,60 @@ export function NewPrescriptionPage() {
       checkPrescriptionStatus(patientId);
       loadPastPrescriptions(patientId);
     }
-  };
-
-  // Load past prescriptions for the selected patient
+  }; // Load past prescriptions for the selected patient
   const loadPastPrescriptions = async (patientId: string) => {
     setIsLoadingPastPrescriptions(true);
     try {
-      const response = await fetch(`/api/prescriptions?patientId=${patientId}`);
+      console.log("🚀 === MCP PRESCRIPTION LOADING STARTED ==="); // Debug log
+      console.log("Loading past prescriptions via MCP for patient:", patientId); // Debug log
+
+      // Call MCP search_prescriptions tool
+      const response = await fetch("/api/mcp-prescription", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tool: "search_prescriptions",
+          args: {
+            patientId: patientId,
+            doctorId: user?.id, // Optional doctor filtering
+          },
+        }),
+      });
+
       const result = await response.json();
-      if (result.success) {
-        setPastPrescriptions(result.data || []);
-        setShowPastPrescriptions(result.data && result.data.length > 0);
+      console.log("📦 MCP Past prescriptions response:", result); // Debug log
+      console.log("🔍 MCP Response success:", result.success); // Debug log
+      console.log("📄 MCP Response content:", result.content); // Debug log
+
+      if (result.success && result.content?.[0]?.text) {
+        const mcpData = JSON.parse(result.content[0].text);
+        console.log("✅ MCP Prescription data parsed:", mcpData); // Debug log
+        if (mcpData.prescriptions) {
+          setPastPrescriptions(mcpData.prescriptions);
+          setShowPastPrescriptions(mcpData.prescriptions.length > 0);
+          console.log(
+            "🎉 SUCCESS: Loaded past prescriptions via MCP:",
+            mcpData.prescriptions.length
+          ); // Debug log
+          console.log("💊 MCP Prescription data:", mcpData.prescriptions); // Debug log
+        } else {
+          setPastPrescriptions([]);
+          setShowPastPrescriptions(false);
+          console.log("📝 No past prescriptions found via MCP");
+        }
+      } else {
+        console.log("❌ MCP past prescriptions call failed");
+        console.log("Error details:", result);
+        setPastPrescriptions([]);
+        setShowPastPrescriptions(false);
       }
+      console.log("🏁 === MCP PRESCRIPTION LOADING FINISHED ==="); // Debug log
     } catch (error) {
-      console.error("Failed to load past prescriptions:", error);
+      console.error("💥 Failed to load past prescriptions via MCP:", error);
+      setPastPrescriptions([]);
+      setShowPastPrescriptions(false);
     } finally {
       setIsLoadingPastPrescriptions(false);
     }
@@ -401,30 +486,24 @@ export function NewPrescriptionPage() {
   // Save manual prescription
   const saveManualPrescription = async () => {
     if (!selectedPatient || manualMedications.length === 0) return;
-
     try {
-      const response = await fetch("/api/ai-prescription-enhanced", {
+      console.log("🚀 Using MCP for manual prescription save");
+
+      // Create a manual prescription using MCP (we'll use create_prescription_with_gemini but with manual flag)
+      const response = await fetch("/api/mcp-prescription", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          action: "save_prescription",
-          prescription: {
-            patientId: selectedPatient.id || selectedPatient._id,
-            patientName: selectedPatient.name,
-            doctorId: user?.id || "unknown",
-            doctorName: user?.name || "Dr. Unknown",
-            date: new Date().toISOString().split("T")[0],
-            diagnosis: diagnosis || "Manual prescription",
-            symptoms: symptoms.split(",").map((s: string) => s.trim()),
-            medications: manualMedications,
-            notes: customNotes || "Manual prescription created by doctor",
-            status: "active",
-            isAiGenerated: false,
-            aiConfidence: 0,
-            aiWarnings: [],
-          },
+          action: "create_prescription_with_gemini",
+          patientId: selectedPatient.id || selectedPatient._id,
+          symptoms: symptoms.split(",").map((s: string) => s.trim()),
+          diagnosis: diagnosis || "Manual prescription",
+          doctorId: user?.id || "unknown",
+          doctorName: user?.name || "Dr. Unknown",
+          notes: `Manual prescription: ${customNotes || "Created by doctor"}`,
+          manualMedications: manualMedications, // Pass manual medications
         }),
       });
 
@@ -483,17 +562,38 @@ export function NewPrescriptionPage() {
         break;
     }
   };
-
   // Check prescription status when patient is selected
   const checkPrescriptionStatus = async (patientId: string) => {
     setIsCheckingStatus(true);
     try {
-      const response = await fetch(
-        `/api/prescription-status?patientId=${patientId}`
-      );
+      console.log("🚀 Using MCP to check prescription status");
+
+      const response = await fetch("/api/mcp-prescription", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "search_prescriptions",
+          patientId: patientId,
+          status: "active",
+        }),
+      });
+
       const result = await response.json();
-      if (result.success) {
-        setPrescriptionStatus(result.data);
+      if (result.success && result.data?.content?.[0]?.text) {
+        const mcpData = JSON.parse(result.data.content[0].text);
+        const activePrescriptions = mcpData.prescriptions || [];
+        setPrescriptionStatus({
+          hasActivePrescriptions: activePrescriptions.length > 0,
+          hasRecentPrescriptions: activePrescriptions.length > 0,
+          activePrescriptions: activePrescriptions,
+          recentPrescriptions: activePrescriptions,
+          warnings: [],
+          recommendations: [],
+        });
+
+        console.log("✅ MCP prescription status check complete");
       }
     } catch (error) {
       console.error("Failed to check prescription status:", error);
@@ -518,125 +618,252 @@ export function NewPrescriptionPage() {
     }
 
     setIsGenerating(true);
-
     try {
-      // Use the new enhanced AI prescription service with Gemini integration
-      const response = await fetch("/api/ai-prescription-enhanced", {
+      console.log("🚀 === MCP AI PRESCRIPTION GENERATION STARTED ===");
+      console.log(
+        "🧠 Using MCP create_prescription_with_gemini tool with Gemini API"
+      );
+      console.log("👤 Current user:", user);
+      console.log("🏥 Selected patient:", selectedPatient);
+      console.log("💊 Sending to MCP:", {
+        patientId: patientId,
+        symptoms: symptoms.split(",").map((s) => s.trim()),
+        diagnosis: diagnosis || undefined,
+        doctorId: user?.id || "unknown",
+        doctorName: user?.name || "Dr. Unknown",
+      });
+
+      // Use MCP create_prescription_with_gemini tool
+      const response = await fetch("/api/mcp-prescription", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          action: "analyze_and_generate",
-          patientId: patientId,
-          symptoms: symptoms.split(",").map((s) => s.trim()),
-          diagnosis: diagnosis || undefined,
-          doctorId: user?.id || "unknown",
-          doctorName: user?.name || "Dr. Unknown",
+          tool: "create_prescription_with_gemini",
+          args: {
+            patientId: patientId,
+            symptoms: symptoms.split(",").map((s) => s.trim()),
+            diagnosis: diagnosis || undefined,
+            doctorId: user?.id || "unknown",
+            doctorName: user?.name || "Dr. Unknown",
+            notes: `Generated from symptoms: ${symptoms}`,
+          },
         }),
       });
 
       const result = await response.json();
+      console.log("📦 MCP AI Prescription Response:", result);
 
-      if (result.success) {
-        // Transform the AI response to match the expected format
+      if (result.success && result.data?.content?.[0]?.text) {
+        console.log("✅ MCP prescription generation successful");
+
+        // Parse the MCP response - data is wrapped in result.data
+        const mcpData = JSON.parse(result.data.content[0].text);
+        console.log("🧠 Parsed MCP AI data:", mcpData);
+        const prescription = mcpData.prescription || mcpData;
+        console.log("💊 Prescription object:", prescription);
+        console.log("🧠 Gemini response:", prescription.geminiResponse);
+        console.log("💉 Medications:", prescription.medications); // Extract both full and concise reasoning
+        let reasoning = "AI-generated with Gemini analysis";
+        let fullReasoning = reasoning;
+        if (prescription.geminiResponse) {
+          try {
+            if (typeof prescription.geminiResponse === "string") {
+              const geminiData = JSON.parse(prescription.geminiResponse);
+              fullReasoning =
+                geminiData.reasoning || geminiData.final_diagnosis || reasoning;
+              // Create a concise version (max 5 lines) for initial display
+              reasoning = fullReasoning.split("\n").slice(0, 5).join("\n");
+              if (fullReasoning.split("\n").length > 5) {
+                reasoning += "\n... (click to view full analysis)";
+              }
+            }
+          } catch {
+            console.log("📝 Using raw Gemini response as reasoning");
+          }
+        } // Transform the MCP response to match the expected format
         const aiResponse: AiPrescriptionResponse = {
-          medications: result.prescription.medications || [],
-          reasoning:
-            result.aiInsights?.reasoning ||
-            result.prescription.aiAnalysis?.reasoning ||
-            "AI analysis completed",
-          confidence:
-            result.aiInsights?.confidence ||
-            result.prescription.aiConfidence ||
-            0.7,
-          warnings: [
-            ...(result.aiInsights?.conflictWarnings || []),
-            ...(result.historyAnalysis?.warnings || []),
+          medications: prescription.medications || [],
+          reasoning: reasoning,
+          fullReasoning: fullReasoning, // Store full reasoning for toggle
+          confidence: prescription.aiConfidence || 0.9,
+          warnings: prescription.warnings || [
+            "AI-generated prescription - please review carefully",
           ],
-          alternatives: [], // Can be enhanced later
+          alternatives: prescription.alternatives || [],
         };
 
+        console.log("🎯 Transformed AI response:", aiResponse);
+
+        // Check if AI provided medications
+        if (!aiResponse.medications || aiResponse.medications.length === 0) {
+          console.log("⚠️ AI did not prescribe medications");
+          setIsManualMode(true);
+          setShowPrescriptionModal(true);
+          return;
+        }
+
+        console.log("✅ AI response validation passed");
         setAiResponse(aiResponse);
         setIsManualMode(false);
         setShowPrescriptionModal(true);
+        console.log("🏁 === MCP AI PRESCRIPTION GENERATION FINISHED ===");
       } else {
-        console.error("AI prescription generation failed:", result.error);
-        // Show manual prescription option when AI fails
+        console.error("❌ AI prescription generation failed:", result.error);
         setIsManualMode(true);
         setShowPrescriptionModal(true);
       }
     } catch (error) {
       console.error("Error generating prescription:", error);
-      // Show manual prescription option when AI fails
       setIsManualMode(true);
       setShowPrescriptionModal(true);
     } finally {
       setIsGenerating(false);
     }
   };
-
   const handleSavePrescription = async () => {
     if (!selectedPatient || !aiResponse) return;
 
     try {
-      // Use the enhanced AI prescription API to save
-      const response = await fetch("/api/ai-prescription-enhanced", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "save_prescription",
-          prescription: {
-            patientId: selectedPatient.id || selectedPatient._id,
-            patientName: selectedPatient.name,
-            doctorId: user?.doctorId || user?.id || "unknown", // Use doctorId first, then fallback to id
-            doctorName: user?.name || "Dr. Unknown",
-            date: new Date().toISOString().split("T")[0],
-            diagnosis: diagnosis || "AI-generated from symptoms",
-            symptoms: symptoms.split(",").map((s) => s.trim()),
-            medications: aiResponse.medications,
-            notes: `${customNotes ? customNotes + "\n\n" : ""}AI Analysis:\n${
-              aiResponse.reasoning
-            }`,
-            status: "active",
-            isAiGenerated: true,
-            aiConfidence: aiResponse.confidence,
-            aiWarnings: aiResponse.warnings || [],
+      // Check if medications were edited
+      const originalMeds = aiResponse.medications || [];
+      const hasEdits =
+        JSON.stringify(originalMeds) !== JSON.stringify(editedAiMedications);
+
+      if (hasEdits) {
+        console.log(
+          "🔄 Medications were edited, saving updated prescription..."
+        );
+
+        // Save the updated prescription with edited medications
+        const response = await fetch("/api/mcp-prescription", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-        }),
-      });
+          body: JSON.stringify({
+            action: "save_prescription",
+            patientId: selectedPatient.id || selectedPatient._id,
+            medications: editedAiMedications,
+            diagnosis: diagnosis || "AI-generated prescription (edited)",
+            symptoms: symptoms.split(",").map((s: string) => s.trim()),
+            doctorId: user?.id || "unknown",
+            doctorName: user?.name || "Dr. Unknown",
+            notes: `${customNotes || "AI-generated prescription with doctor modifications"}`,
+            isAiGenerated: true,
+            aiConfidence: aiResponse.confidence || 0.9,
+          }),
+        });
 
-      const result = await response.json();
-      if (result.success) {
-        alert(
-          "✅ Prescription saved successfully! The AI analyzed patient history and provided safe recommendations."
-        ); // Reset form
-        setAiResponse(null);
-        setSymptoms("");
-        setDiagnosis("");
-        setCustomNotes("");
-
-        // Refresh prescription status and past prescriptions
-        const patientId = selectedPatient.id || selectedPatient._id;
-        if (patientId) {
-          checkPrescriptionStatus(patientId);
-          loadPastPrescriptions(patientId);
+        if (!response.ok) {
+          throw new Error("Failed to save edited prescription");
         }
 
-        // Trigger a page refresh after 1 second to show the new prescription
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        console.log("✅ Updated prescription saved successfully");
+        alert(
+          "✅ Updated prescription saved successfully! Your modifications have been applied."
+        );
       } else {
-        throw new Error(result.error || "Failed to save prescription");
+        console.log("✅ No edits made, prescription already saved by MCP");
+        alert(
+          "✅ Prescription saved successfully using MCP! The AI analyzed patient history and provided safe recommendations."
+        );
       }
+
+      // Reset form
+      setAiResponse(null);
+      setEditedAiMedications([]);
+      setSymptoms("");
+      setDiagnosis("");
+      setCustomNotes("");
+
+      // Refresh prescription status and past prescriptions
+      const patientId = selectedPatient?.id || selectedPatient?._id;
+      if (patientId) {
+        checkPrescriptionStatus(patientId);
+        loadPastPrescriptions(patientId);
+      }
+
+      // Trigger a page refresh after 1 second to show the new prescription
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
-      console.error("Failed to save prescription:", error);
-      alert("Failed to save prescription. Please try again.");
+      console.error("Error handling prescription save:", error);
+      alert("Failed to process prescription. Please try again.");
     }
   };
+
+  // Initialize edited AI medications when AI response is received
+  useEffect(() => {
+    if (aiResponse?.medications) {
+      setEditedAiMedications([...aiResponse.medications]);
+    }
+  }, [aiResponse]);
+
+  // Edit AI medication
+  const editAiMedication = (index: number) => {
+    const medication = editedAiMedications[index];
+    setEditingAiMedication({ index, medication: { ...medication } });
+  };
+
+  // Save AI medication edit
+  const saveAiMedicationEdit = (updatedMedication: Medication) => {
+    if (editingAiMedication) {
+      const updated = [...editedAiMedications];
+      updated[editingAiMedication.index] = updatedMedication;
+      setEditedAiMedications(updated);
+      setEditingAiMedication(null);
+    }
+  };
+
+  // Cancel AI medication edit
+  const cancelAiMedicationEdit = () => {
+    setEditingAiMedication(null);
+  };
+  // Remove AI medication
+  const removeAiMedication = (index: number) => {
+    const updated = editedAiMedications.filter((_, i) => i !== index);
+    setEditedAiMedications(updated);
+  };
+
+  // Helper function to get priority badge color and text
+  const getPriorityDisplay = (priority: string | undefined) => {
+    switch (priority) {
+      case "critical":
+        return {
+          color: "bg-red-100 text-red-800 border-red-300",
+          text: "CRITICAL",
+          icon: "🚨",
+        };
+      case "high":
+        return {
+          color: "bg-orange-100 text-orange-800 border-orange-300",
+          text: "HIGH",
+          icon: "⚡",
+        };
+      case "medium":
+        return {
+          color: "bg-yellow-100 text-yellow-800 border-yellow-300",
+          text: "MEDIUM",
+          icon: "⚠️",
+        };
+      case "low":
+        return {
+          color: "bg-green-100 text-green-800 border-green-300",
+          text: "LOW",
+          icon: "ℹ️",
+        };
+      default:
+        return {
+          color: "bg-gray-100 text-gray-800 border-gray-300",
+          text: "MEDIUM",
+          icon: "⚠️",
+        };
+    }
+  };
+
   return (
     <motion.div
       className="space-y-6"
@@ -1336,10 +1563,11 @@ export function NewPrescriptionPage() {
                 <div className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
                   <p>Always review AI suggestions before prescribing</p>{" "}
-                </div>
-              </CardContent>
+                </div>{" "}
+              </CardContent>{" "}
             </Card>
-          </motion.div>{" "}
+          </motion.div>
+
           {/* Alternative Medications */}
           {aiResponse?.alternatives && aiResponse.alternatives.length > 0 && (
             <motion.div
@@ -1357,20 +1585,30 @@ export function NewPrescriptionPage() {
                   {" "}
                   {aiResponse.alternatives.map((alt, index) => (
                     <motion.div
-                      key={alt.id || `alt-${index}`}
+                      key={
+                        typeof alt === "string"
+                          ? `alt-${index}`
+                          : alt.id || `alt-${index}`
+                      }
                       className="p-3 border rounded-lg hover:shadow-md transition-all duration-200 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950"
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.1 }}
                       whileHover={{ scale: 1.02, x: 4 }}
                     >
-                      <h5 className="font-medium">{alt.name}</h5>
-                      <p className="text-sm text-muted-foreground">
-                        {alt.strength} {alt.form}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {alt.frequency}
-                      </p>
+                      {typeof alt === "string" ? (
+                        <p className="text-sm">{alt}</p>
+                      ) : (
+                        <>
+                          <h5 className="font-medium">{alt.name}</h5>
+                          <p className="text-sm text-muted-foreground">
+                            {alt.strength} {alt.form}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {alt.frequency}
+                          </p>
+                        </>
+                      )}
                     </motion.div>
                   ))}
                 </CardContent>
@@ -1448,11 +1686,31 @@ export function NewPrescriptionPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
               >
-                {/* AI Reasoning */}
+                {" "}
+                {/* AI Reasoning - Full Analysis with Toggle */}
                 <Alert>
                   <Bot className="h-4 w-4" />
-                  <AlertTitle>Intelligent Analysis</AlertTitle>
-                  <AlertDescription>{aiResponse.reasoning}</AlertDescription>
+                  <div className="flex items-center justify-between">
+                    <AlertTitle>AI Analysis</AlertTitle>
+                    {aiResponse.fullReasoning &&
+                      aiResponse.fullReasoning.split("\n").length > 5 && (
+                        <Button
+                          onClick={() => setShowFullAnalysis(!showFullAnalysis)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs"
+                        >
+                          {showFullAnalysis
+                            ? "Show Summary"
+                            : "Show Full Analysis"}
+                        </Button>
+                      )}
+                  </div>
+                  <AlertDescription className="whitespace-pre-wrap">
+                    {showFullAnalysis && aiResponse.fullReasoning
+                      ? aiResponse.fullReasoning
+                      : aiResponse.reasoning}
+                  </AlertDescription>
                 </Alert>
                 {/* Warnings if any */}
                 {aiResponse.warnings && aiResponse.warnings.length > 0 && (
@@ -1473,91 +1731,205 @@ export function NewPrescriptionPage() {
                     </AlertDescription>
                   </Alert>
                 )}{" "}
-                {/* AI Medications */}
+                {/* AI Medications - Always Display All Generated Medications */}
                 <motion.div
                   className="space-y-4"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
                 >
-                  <h4 className="font-medium bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-                    Recommended Medications
-                  </h4>
-                  {aiResponse.medications.map((med, medIndex) => (
-                    <motion.div
-                      key={med.id || `med-${medIndex}`}
-                      className="p-4 border rounded-lg space-y-2 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-blue-50/50 to-green-50/50 dark:from-blue-950/50 dark:to-green-950/50"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: medIndex * 0.1 }}
-                      whileHover={{ scale: 1.02, x: 4 }}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h5 className="font-medium">{med.name}</h5>
-                          <p className="text-sm text-muted-foreground">
-                            {med.genericName} - {med.strength} {med.form}
-                          </p>
+                  {" "}
+                  {/* Always show medications section if any exist */}
+                  {editedAiMedications && editedAiMedications.length > 0 && (
+                    <>
+                      {" "}
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                          AI Generated Medications ({editedAiMedications.length}
+                          )
+                          {JSON.stringify(aiResponse.medications || []) !==
+                            JSON.stringify(editedAiMedications) && (
+                            <Badge variant="secondary" className="ml-2 text-xs">
+                              Modified
+                            </Badge>
+                          )}
+                        </h4>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            onClick={() => {
+                              const newMed: Medication = {
+                                id: `AI${Date.now()}`,
+                                name: "",
+                                strength: "",
+                                dosage: "",
+                                frequency: "",
+                                duration: "",
+                                instructions: "",
+                                priority: "medium", // Default priority for new meds
+                                quantity: 0,
+                                refills: 0,
+                                form: "tablet",
+                              };
+                              setEditedAiMedications([
+                                ...editedAiMedications,
+                                newMed,
+                              ]);
+                              editAiMedication(editedAiMedications.length);
+                            }}
+                            variant="outline"
+                            size="sm"
+                            className="text-xs"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add Medication
+                          </Button>
+                          <div className="text-xs text-muted-foreground">
+                            Click Edit to modify
+                          </div>
                         </div>
-                        {med.cost && (
-                          <Badge variant="outline">${med.cost}</Badge>
-                        )}
                       </div>
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <Label className="text-xs text-muted-foreground">
-                            Dosage
-                          </Label>
-                          <p>{med.dosage}</p>
-                        </div>
-                        <div>
-                          <Label className="text-xs text-muted-foreground">
-                            Frequency
-                          </Label>
-                          <p>{med.frequency}</p>
-                        </div>
-                        <div>
-                          <Label className="text-xs text-muted-foreground">
-                            Duration
-                          </Label>
-                          <p>{med.duration}</p>
-                        </div>
-                        <div>
-                          <Label className="text-xs text-muted-foreground">
-                            Quantity
-                          </Label>
-                          <p>{med.quantity}</p>
-                        </div>
+                      <div className="grid gap-3">
+                        {editedAiMedications.map((med, medIndex) => (
+                          <motion.div
+                            key={med.id || `med-${medIndex}`}
+                            className="p-3 border rounded-lg bg-gradient-to-br from-blue-50/50 to-green-50/50 dark:from-blue-950/50 dark:to-green-950/50"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{
+                              duration: 0.3,
+                              delay: medIndex * 0.1,
+                            }}
+                          >
+                            {" "}
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h5 className="font-medium text-sm">
+                                    {med.name}
+                                  </h5>
+                                  {(() => {
+                                    const priority = getPriorityDisplay(
+                                      med.priority
+                                    );
+                                    return (
+                                      <Badge
+                                        variant="outline"
+                                        className={`text-xs px-2 py-0.5 ${priority.color}`}
+                                      >
+                                        {priority.icon} {priority.text}
+                                      </Badge>
+                                    );
+                                  })()}
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  {med.strength}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {med.cost && (
+                                  <Badge variant="outline" className="text-xs">
+                                    ${med.cost}
+                                  </Badge>
+                                )}
+                                <Button
+                                  onClick={() => editAiMedication(medIndex)}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <Edit3 className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  onClick={() => removeAiMedication(medIndex)}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <span>
+                                <strong>Dose:</strong> {med.dosage}
+                              </span>
+                              <span>
+                                <strong>Frequency:</strong> {med.frequency}
+                              </span>
+                              <span>
+                                <strong>Duration:</strong> {med.duration}
+                              </span>
+                              <span>
+                                <strong>Quantity:</strong> {med.quantity}
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                              {med.instructions}
+                            </p>
+                            {med.sideEffects && med.sideEffects.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {med.sideEffects
+                                  .slice(0, 3)
+                                  .map((effect, idx) => (
+                                    <Badge
+                                      key={idx}
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {effect}
+                                    </Badge>
+                                  ))}
+                                {med.sideEffects.length > 3 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{med.sideEffects.length - 3} more
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
+                          </motion.div>
+                        ))}
                       </div>
-
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">
-                          Instructions
-                        </Label>
-                        <p className="text-sm">{med.instructions}</p>
+                    </>
+                  )}
+                  {/* Show alternatives/recommendations if no medications or additional recommendations exist */}
+                  {aiResponse.alternatives &&
+                    aiResponse.alternatives.length > 0 && (
+                      <div className="space-y-3">
+                        <h4 className="font-medium bg-gradient-to-r from-blue-600 to-amber-600 bg-clip-text text-transparent">
+                          Additional Clinical Recommendations
+                        </h4>
+                        <ul className="space-y-2">
+                          {" "}
+                          {aiResponse.alternatives.map((rec, index) => (
+                            <li
+                              key={index}
+                              className="flex items-start gap-2 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg"
+                            >
+                              <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                              <span className="text-sm">
+                                {typeof rec === "string" ? rec : rec.name}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-
-                      {med.sideEffects && med.sideEffects.length > 0 && (
-                        <div>
-                          <Label className="text-xs text-muted-foreground">
-                            Side Effects
-                          </Label>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {med.sideEffects.map((effect, idx) => (
-                              <Badge
-                                key={`side-effect-${medIndex}-${idx}`}
-                                variant="outline"
-                                className="text-xs"
-                              >
-                                {effect}
-                              </Badge>
-                            ))}
-                          </div>{" "}
-                        </div>
-                      )}
-                    </motion.div>
-                  ))}
+                    )}
+                  {/* Show message only if truly no medications AND no alternatives */}
+                  {(!aiResponse.medications ||
+                    aiResponse.medications.length === 0) &&
+                    (!aiResponse.alternatives ||
+                      aiResponse.alternatives.length === 0) && (
+                      <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+                        <Brain className="h-4 w-4 text-blue-600" />
+                        <AlertTitle className="text-blue-800 dark:text-blue-200">
+                          Further Assessment Recommended
+                        </AlertTitle>
+                        <AlertDescription className="text-blue-700 dark:text-blue-300">
+                          The AI analysis is complete but suggests additional
+                          clinical evaluation before prescribing medications.
+                        </AlertDescription>
+                      </Alert>
+                    )}
                 </motion.div>
               </motion.div>
             )}
@@ -1799,6 +2171,161 @@ export function NewPrescriptionPage() {
               )}
             </motion.div>
           </motion.div>
+        </DialogContent>
+      </Dialog>
+      {/* AI Medication Edit Dialog */}
+      <Dialog
+        open={editingAiMedication !== null}
+        onOpenChange={() => setEditingAiMedication(null)}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit AI Generated Medication</DialogTitle>
+            <DialogDescription>
+              Modify the AI-suggested medication details as needed
+            </DialogDescription>
+          </DialogHeader>
+          {editingAiMedication && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-med-name">Medication Name</Label>
+                  <Input
+                    id="edit-med-name"
+                    value={editingAiMedication.medication.name}
+                    onChange={(e) =>
+                      setEditingAiMedication({
+                        ...editingAiMedication,
+                        medication: {
+                          ...editingAiMedication.medication,
+                          name: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-med-strength">Strength</Label>
+                  <Input
+                    id="edit-med-strength"
+                    value={editingAiMedication.medication.strength}
+                    onChange={(e) =>
+                      setEditingAiMedication({
+                        ...editingAiMedication,
+                        medication: {
+                          ...editingAiMedication.medication,
+                          strength: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-med-dosage">Dosage</Label>
+                  <Input
+                    id="edit-med-dosage"
+                    value={editingAiMedication.medication.dosage}
+                    onChange={(e) =>
+                      setEditingAiMedication({
+                        ...editingAiMedication,
+                        medication: {
+                          ...editingAiMedication.medication,
+                          dosage: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-med-frequency">Frequency</Label>
+                  <Input
+                    id="edit-med-frequency"
+                    value={editingAiMedication.medication.frequency}
+                    onChange={(e) =>
+                      setEditingAiMedication({
+                        ...editingAiMedication,
+                        medication: {
+                          ...editingAiMedication.medication,
+                          frequency: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-med-duration">Duration</Label>
+                  <Input
+                    id="edit-med-duration"
+                    value={editingAiMedication.medication.duration}
+                    onChange={(e) =>
+                      setEditingAiMedication({
+                        ...editingAiMedication,
+                        medication: {
+                          ...editingAiMedication.medication,
+                          duration: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-med-quantity">Quantity</Label>
+                  <Input
+                    id="edit-med-quantity"
+                    type="number"
+                    value={editingAiMedication.medication.quantity}
+                    onChange={(e) =>
+                      setEditingAiMedication({
+                        ...editingAiMedication,
+                        medication: {
+                          ...editingAiMedication.medication,
+                          quantity: parseInt(e.target.value) || 0,
+                        },
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-med-instructions">Instructions</Label>
+                <Textarea
+                  id="edit-med-instructions"
+                  value={editingAiMedication.medication.instructions}
+                  onChange={(e) =>
+                    setEditingAiMedication({
+                      ...editingAiMedication,
+                      medication: {
+                        ...editingAiMedication.medication,
+                        instructions: e.target.value,
+                      },
+                    })
+                  }
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <Button onClick={cancelAiMedicationEdit} variant="outline">
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() =>
+                    saveAiMedicationEdit(editingAiMedication.medication)
+                  }
+                  className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </motion.div>

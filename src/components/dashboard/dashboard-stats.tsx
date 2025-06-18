@@ -186,17 +186,18 @@ export function DashboardStats() {
       {/* Main Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* Total Patients */}
-        <Card className="hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-blue-500">
+        <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-blue-500 bg-gradient-to-br from-blue-50/50 to-blue-100/30 dark:from-blue-950/40 dark:to-blue-900/20 hover:shadow-blue-500/10 dark:hover:shadow-blue-400/20 hover:from-blue-100/60 hover:to-blue-200/40 dark:hover:from-blue-900/60 dark:hover:to-blue-800/40">
+          {" "}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground transition-colors duration-300 group-hover:text-blue-600">
+            <CardTitle className="text-sm font-medium text-muted-foreground transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
               Total Patients
             </CardTitle>
-            <div className="p-2 rounded-lg bg-blue-50 transition-all duration-300 ease-out group-hover:bg-blue-100 group-hover:scale-110 group-hover:rotate-6">
+            <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/60 transition-all duration-300 ease-out group-hover:bg-blue-100 dark:group-hover:bg-blue-900/80 group-hover:scale-110 group-hover:rotate-6">
               <Users className="h-4 w-4 text-blue-600 transition-all duration-300 ease-out group-hover:scale-110" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-blue-700 group-hover:scale-105">
+            <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-blue-700 dark:group-hover:text-blue-300 group-hover:scale-105">
               {loading ? "..." : stats.totalPatients}
             </div>
             <div className="flex items-center gap-2 mt-1">
@@ -214,9 +215,9 @@ export function DashboardStats() {
         </Card>
 
         {/* Today's Appointments */}
-        <Card className="hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-green-500">
+        <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-green-500 bg-gradient-to-br from-green-50/50 to-green-100/30 dark:from-green-950/40 dark:to-green-900/20 hover:shadow-green-500/10 dark:hover:shadow-green-400/20 hover:from-green-100/60 hover:to-green-200/40 dark:hover:from-green-900/60 dark:hover:to-green-800/40">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground transition-colors duration-300 group-hover:text-green-600">
+            <CardTitle className="text-sm font-medium text-muted-foreground transition-colors duration-300 group-hover:text-green-600 dark:group-hover:text-green-400">
               Today&apos;s Appointments
             </CardTitle>
             <div className="p-2 rounded-lg bg-green-50 transition-all duration-300 ease-out group-hover:bg-green-100 group-hover:scale-110 group-hover:rotate-6">
@@ -242,9 +243,9 @@ export function DashboardStats() {
         </Card>
 
         {/* Critical Cases */}
-        <Card className="hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-red-500">
+        <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-red-500 bg-gradient-to-br from-red-50/50 to-red-100/30 dark:from-red-950/40 dark:to-red-900/20 hover:shadow-red-500/10 dark:hover:shadow-red-400/20 hover:from-red-100/60 hover:to-red-200/40 dark:hover:from-red-900/60 dark:hover:to-red-800/40">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground transition-colors duration-300 group-hover:text-red-600">
+            <CardTitle className="text-sm font-medium text-muted-foreground transition-colors duration-300 group-hover:text-red-600 dark:group-hover:text-red-400">
               Critical Cases
             </CardTitle>
             <div className="p-2 rounded-lg bg-red-50 transition-all duration-300 ease-out group-hover:bg-red-100 group-hover:scale-110 group-hover:rotate-6">
@@ -270,9 +271,9 @@ export function DashboardStats() {
         </Card>
 
         {/* Total Appointments */}
-        <Card className="hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-purple-500">
+        <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-purple-500 bg-gradient-to-br from-purple-50/50 to-purple-100/30 dark:from-purple-950/40 dark:to-purple-900/20 hover:shadow-purple-500/10 dark:hover:shadow-purple-400/20 hover:from-purple-100/60 hover:to-purple-200/40 dark:hover:from-purple-900/60 dark:hover:to-purple-800/40">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground transition-colors duration-300 group-hover:text-purple-600">
+            <CardTitle className="text-sm font-medium text-muted-foreground transition-colors duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">
               Total Appointments
             </CardTitle>
             <div className="p-2 rounded-lg bg-purple-50 transition-all duration-300 ease-out group-hover:bg-purple-100 group-hover:scale-110 group-hover:rotate-6">
