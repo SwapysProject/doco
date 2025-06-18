@@ -103,36 +103,62 @@ export function DashboardStats() {
         let todayAppointments = 0;
         let totalAppointments = 0;
         try {
-          const appointmentsResponse = await fetch(
-            "/api/upcoming-appointments",
-            {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
-
+          const appointmentsResponse = await fetch("/api/appointments", {
+            credentials: "include",
+          });
           if (appointmentsResponse.ok) {
             const appointmentsData = await appointmentsResponse.json();
-            if (appointmentsData.success && appointmentsData.data) {
-              const appointments: Appointment[] = appointmentsData.data;
-              totalAppointments = appointments.length;
-
-              // Count today's appointments
+            if (appointmentsData.success && appointmentsData.appointments) {
+              const appointments: Appointment[] = appointmentsData.appointments;
+              totalAppointments = appointments.length; // Count today's appointments
               const today = new Date().toISOString().split("T")[0];
-              todayAppointments = appointments.filter((apt: Appointment) => {
-                const aptDate = apt.date || apt.appointmentDate;
-                if (aptDate) {
-                  // Handle both string dates and Date objects
-                  const dateStr =
-                    typeof aptDate === "string"
-                      ? aptDate
-                      : new Date(aptDate).toISOString().split("T")[0];
-                  return dateStr === today;
+              console.log("🔍 Today's date:", today);
+              console.log("🔍 All appointments:", appointments);
+
+              const todayAppointmentsArray = appointments.filter(
+                (apt: Appointment) => {
+                  const aptDate = apt.date || apt.appointmentDate;
+                  console.log("🔍 Checking appointment date:", aptDate);
+
+                  if (aptDate) {
+                    // Handle both string dates and Date objects
+                    let dateStr: string;
+                    if (typeof aptDate === "string") {
+                      // Handle various string formats
+                      if (aptDate.includes("T")) {
+                        dateStr = aptDate.split("T")[0];
+                      } else if (aptDate.includes("/")) {
+                        // Handle DD/MM/YYYY format like "18/06/2025"
+                        const parts = aptDate.split("/");
+                        if (parts.length === 3) {
+                          dateStr = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+                        } else {
+                          dateStr = aptDate;
+                        }
+                      } else {
+                        dateStr = aptDate;
+                      }
+                    } else {
+                      dateStr = new Date(aptDate).toISOString().split("T")[0];
+                    }
+
+                    console.log(
+                      "🔍 Processed date string:",
+                      dateStr,
+                      "comparing with today:",
+                      today
+                    );
+                    return dateStr === today;
+                  }
+                  return false;
                 }
-                return false;
-              }).length;
+              );
+
+              console.log(
+                "🔍 Today's appointments count:",
+                todayAppointmentsArray.length
+              );
+              todayAppointments = todayAppointmentsArray.length;
             }
           }
         } catch (appointmentErr) {

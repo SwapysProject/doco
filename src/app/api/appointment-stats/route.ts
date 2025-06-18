@@ -1,8 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
+import { getCurrentUser } from "@/lib/jwt";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const currentUser = getCurrentUser(request);
+    if (!currentUser) {
+      return NextResponse.json(
+        { success: false, message: "Not authenticated" },
+        { status: 401 }
+      );
+    }
+
     const client = await clientPromise;
     const db = client.db("Patient");
 
@@ -21,7 +30,24 @@ export async function GET() {
     thisWeekStart.setDate(today.getDate() - today.getDay() + 1);
 
     // Get this month's start
-    const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1); // Base query filter for this doctor
+    const doctorFilter = { doctorId: currentUser.doctorId };
+
+    // Debug: Let's see what appointments exist and their structure
+    const allAppointments = await db
+      .collection("appointments")
+      .find({})
+      .limit(5)
+      .toArray();
+    console.log("🔍 Debug - All appointments sample:", allAppointments);
+    console.log("🔍 Debug - Looking for doctorId:", currentUser.doctorId);
+
+    // Check if there are any appointments with this doctorId
+    const doctorAppointments = await db
+      .collection("appointments")
+      .find(doctorFilter)
+      .toArray();
+    console.log("🔍 Debug - Doctor's appointments:", doctorAppointments);
 
     // Parallel count fetching for better performance
     const [
@@ -38,38 +64,55 @@ export async function GET() {
       emergencyCount,
       surgeryCount,
     ] = await Promise.all([
-      // Total appointments
-      db.collection("appointments").countDocuments({}),
+      // Total appointments for this doctor
+      db.collection("appointments").countDocuments(doctorFilter),
 
-      // Today's appointments
+      // Today's appointments for this doctor
       db.collection("appointments").countDocuments({
+        ...doctorFilter,
         appointmentDate: {
           $gte: todayStart,
           $lt: todayEnd,
         },
-      }),
-
-      // This week's appointments
+      }), // This week's appointments for this doctor
       db.collection("appointments").countDocuments({
+        ...doctorFilter,
         appointmentDate: { $gte: thisWeekStart },
       }),
 
-      // This month's appointments
+      // This month's appointments for this doctor
       db.collection("appointments").countDocuments({
+        ...doctorFilter,
         appointmentDate: { $gte: thisMonthStart },
       }),
 
-      // Status counts
-      db.collection("appointments").countDocuments({ status: "scheduled" }),
-      db.collection("appointments").countDocuments({ status: "confirmed" }),
-      db.collection("appointments").countDocuments({ status: "completed" }),
-      db.collection("appointments").countDocuments({ status: "cancelled" }),
+      // Status counts for this doctor
+      db
+        .collection("appointments")
+        .countDocuments({ ...doctorFilter, status: "scheduled" }),
+      db
+        .collection("appointments")
+        .countDocuments({ ...doctorFilter, status: "confirmed" }),
+      db
+        .collection("appointments")
+        .countDocuments({ ...doctorFilter, status: "completed" }),
+      db
+        .collection("appointments")
+        .countDocuments({ ...doctorFilter, status: "cancelled" }),
 
-      // Type counts
-      db.collection("appointments").countDocuments({ type: "consultation" }),
-      db.collection("appointments").countDocuments({ type: "follow-up" }),
-      db.collection("appointments").countDocuments({ type: "emergency" }),
-      db.collection("appointments").countDocuments({ type: "surgery" }),
+      // Type counts for this doctor
+      db
+        .collection("appointments")
+        .countDocuments({ ...doctorFilter, type: "consultation" }),
+      db
+        .collection("appointments")
+        .countDocuments({ ...doctorFilter, type: "follow-up" }),
+      db
+        .collection("appointments")
+        .countDocuments({ ...doctorFilter, type: "emergency" }),
+      db
+        .collection("appointments")
+        .countDocuments({ ...doctorFilter, type: "surgery" }),
     ]);
 
     // Calculate pending appointments (scheduled + confirmed)

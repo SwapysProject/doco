@@ -1,9 +1,17 @@
-import { Bot, X, Send, CornerDownLeft, Eraser } from 'lucide-react'; // <-- Add Eraser
+import {
+  Bot,
+  X,
+  Send,
+  CornerDownLeft,
+  Eraser,
+  AlertTriangle,
+} from "lucide-react";
 
 export const ChatIcons = {
   bot: Bot,
   close: X,
   send: Send,
   enter: CornerDownLeft,
-  clear: Eraser, // <-- Add clear icon
+  clear: Eraser,
+  warning: AlertTriangle,
 };
