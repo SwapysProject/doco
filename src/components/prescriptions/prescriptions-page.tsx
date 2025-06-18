@@ -1294,10 +1294,7 @@ export function PrescriptionsPage() {
                                 <FileText className="mr-2 h-4 w-4" />
                                 Preview PDF
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit Prescription
-                              </DropdownMenuItem>
+                              
                               <DropdownMenuItem>
                                 <Printer className="mr-2 h-4 w-4" />
                                 Print Prescription
