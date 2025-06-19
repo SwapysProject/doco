@@ -305,7 +305,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
             >
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-semibold leading-none text-gray-900">
+                  <p className="text-sm font-semibold leading-none text-gray-900 dark:text-gray-100">
                     {user?.name || "Doctor"}
                   </p>
                   <p className="text-xs leading-none text-gray-500">
@@ -320,26 +320,13 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
               <DropdownMenuSeparator />{" "}
               <DropdownMenuItem
                 className="py-2 transition-all duration-150 ease-in-out hover:bg-blue-50 hover:translate-x-1 transform cursor-pointer"
-                onClick={() => handleNavigate("/dashboard/profile")}
+                onClick={() => handleNavigate("/dashboard/settings")}
               >
                 <User className="mr-3 h-4 w-4 text-gray-500 transition-colors duration-150 ease-in-out" />
                 <span>My Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                className="py-2 transition-all duration-150 ease-in-out hover:bg-blue-50 hover:translate-x-1 transform cursor-pointer"
-                onClick={() => handleNavigate("/dashboard/settings")}
-              >
-                <Settings className="mr-3 h-4 w-4 text-gray-500 transition-colors duration-150 ease-in-out" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="py-2 transition-all duration-150 ease-in-out hover:bg-blue-50 hover:translate-x-1 transform cursor-pointer"
-                onClick={() => handleNavigate("/dashboard/activity")}
-              >
-                <Activity className="mr-3 h-4 w-4 text-gray-500 transition-colors duration-150 ease-in-out" />
-                <span>Activity Log</span>
-              </DropdownMenuItem>{" "}
-              <DropdownMenuSeparator />
+              
+              
               <DropdownMenuItem
                 className="py-2 text-red-600 focus:text-red-600 transition-all duration-150 ease-in-out hover:bg-red-50 hover:translate-x-1 transform"
                 onClick={handleLogout}

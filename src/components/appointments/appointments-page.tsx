@@ -1240,7 +1240,7 @@ export function AppointmentsPage() {
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-10 w-10 p-0">
+                              <Button variant="ghost" className="h-10 w-10 p-0 hover:bg-accent/50 group-hover:bg-accent transition-all duration-200">
                                 <MoreHorizontal className="h-6 w-6" /> 
                               </Button>
                             </DropdownMenuTrigger>{" "}

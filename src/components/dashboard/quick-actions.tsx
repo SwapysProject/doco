@@ -47,7 +47,7 @@ const primaryActions: QuickAction[] = [
     description: "Register a new patient",
     icon: Plus,
     variant: "outline",
-    href: "/dashboard/patients/new",
+    href: "/dashboard/patients",
   },
   {
     id: "schedule-appointment",
@@ -55,7 +55,7 @@ const primaryActions: QuickAction[] = [
     description: "Book patient appointment",
     icon: Calendar,
     variant: "outline",
-    href: "/dashboard/appointments/new",
+    href: "/dashboard/appointments",
   },
   {
     id: "create-prescription",
@@ -66,34 +66,11 @@ const primaryActions: QuickAction[] = [
     badge: "AI",
     href: "/dashboard/prescriptions/new-d",
   },
-  {
-    id: "medical-records",
-    title: "Medical Records",
-    description: "Access patient files",
-    icon: FileText,
-    variant: "outline",
-    href: "/dashboard/records",
-  },
+  
 ];
 
 const secondaryActions: QuickAction[] = [
-  {
-    id: "patient-search",
-    title: "Search Patients",
-    description: "Find patient records",
-    icon: Search,
-    variant: "outline",
-    href: "/dashboard/patients/search",
-  },
-  {
-    id: "emergency-alerts",
-    title: "Emergency Alerts",
-    description: "Critical notifications",
-    icon: AlertTriangle,
-    variant: "outline",
-    badge: "3",
-    href: "/dashboard/alerts",
-  },
+  
   {
     id: "messages",
     title: "Messages",
@@ -114,40 +91,7 @@ const secondaryActions: QuickAction[] = [
   },
 ];
 
-const utilityActions: QuickAction[] = [
-  {
-    id: "export-data",
-    title: "Export Reports",
-    description: "Download patient data",
-    icon: Download,
-    variant: "outline",
-    onClick: () => console.log("Export initiated"),
-  },
-  {
-    id: "import-data",
-    title: "Import Records",
-    description: "Upload medical files",
-    icon: Upload,
-    variant: "outline",
-    onClick: () => console.log("Import initiated"),
-  },
-  {
-    id: "shift-handover",
-    title: "Shift Handover",
-    description: "Transfer responsibilities",
-    icon: Clock,
-    variant: "outline",
-    href: "/dashboard/handover",
-  },
-  {
-    id: "team-schedule",
-    title: "Team Schedule",
-    description: "View staff availability",
-    icon: Users,
-    variant: "outline",
-    href: "/dashboard/schedule",
-  },
-];
+
 
 /**
  * Quick Actions Component
@@ -267,40 +211,7 @@ export function QuickActions() {
           </div>
         </CardContent>
       </Card>{" "}
-      {/* Utility Actions with Motion */}
-      <Card className="transition-all duration-300 ease-out hover:shadow-lg group">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold transition-colors duration-300 group-hover:text-blue-700">
-            Utilities
-          </CardTitle>
-        </CardHeader>
 
-        <CardContent>
-          <div className="space-y-2">
-            {utilityActions.map((action, index) => {
-              const IconComponent = action.icon;
-
-              return (
-                <Button
-                  key={action.id}
-                  variant={action.variant}
-                  size="sm"
-                  className="w-full justify-start gap-2 transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-md group/btn"
-                  onClick={() => handleActionClick(action)}
-                  style={{
-                    animation: `slideInRight 0.6s ease-out ${index * 100 + 1000}ms both`,
-                  }}
-                >
-                  <IconComponent className="h-4 w-4 transition-all duration-300 ease-out group-hover/btn:scale-110 group-hover/btn:rotate-6" />
-                  <span className="text-sm transition-all duration-300 ease-out group-hover/btn:translate-x-1 group-hover/btn:text-blue-700">
-                    {action.title}
-                  </span>
-                </Button>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
       {/* Emergency Contact with Motion */}
       <Card
         className="border-red-200 bg-red-50/50 transition-all duration-300 ease-out hover:shadow-lg hover:scale-[1.02] group"

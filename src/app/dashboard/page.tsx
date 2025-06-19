@@ -38,15 +38,16 @@ export default function DashboardPage() {
           <div className="lg:col-span-2 space-y-6">
             <div
               className="transition-all duration-300 ease-out hover:scale-[1.01]"
-              style={{ animation: "slideInLeft 0.6s ease-out 0.6s both" }}
-            >
-              <RecentPatients />
-            </div>
-            <div
-              className="transition-all duration-300 ease-out hover:scale-[1.01]"
               style={{ animation: "slideInLeft 0.6s ease-out 0.8s both" }}
             >
               <UpcomingAppointments />
+            </div>
+
+            <div
+              className="transition-all duration-300 ease-out hover:scale-[1.01]"
+              style={{ animation: "slideInLeft 0.6s ease-out 0.6s both" }}
+            >
+              <RecentPatients />
             </div>
           </div>
 

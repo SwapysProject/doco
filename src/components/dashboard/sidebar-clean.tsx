@@ -171,40 +171,43 @@ export function DashboardSidebar({ isOpen, onClose }: DashboardSidebarProps) {
       </nav>{" "}
       {/* Footer */}{" "}
       <motion.div
-        className="p-4 border-t border-gray-200 dark:border-gray-700 mt-auto"
+        className="p-1 border-t border-gray-200 dark:border-gray-700 mt-10"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.6 }}
       >
-        <motion.div
-          className="flex items-center mb-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
-          whileHover={{ scale: 1.02 }}
-          transition={{ duration: 0.2 }}
-        >
-          {" "}
+        <Link href="/dashboard/settings">
           <motion.div
-            className="w-10 h-10 bg-blue-600 dark:bg-gray-700 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-md"
-            whileHover={{
-              scale: 1.1,
-              boxShadow: "0 8px 25px -8px rgb(0 0 0 / 0.3)",
-            }}
+            className="flex items-center mb-3 p-0 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
+            whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
-            {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+            {" "}
+            
+              <motion.div
+                className="w-10 h-10 bg-blue-600 dark:bg-gray-700 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-md cursor-pointer"
+                whileHover={{
+                  scale: 1.1,
+                  boxShadow: "0 8px 25px -8px rgb(0 0 0 / 0.3)",
+                }}
+                transition={{ duration: 0.2 }}
+              >
+                {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+              </motion.div>
+            
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                {user?.name || "User"}
+              </p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Medical Professional
+              </p>
+            </div>
           </motion.div>
-          <div className="ml-3">
-            <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {user?.name || "User"}
-            </p>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              Medical Professional
-            </p>
-          </div>
-        </motion.div>
-
+        </Link>
         <motion.button
           onClick={() => { logout(); onClose(); }} // Close sidebar on logout as well
-          className="flex items-center w-full px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-400 transition-all duration-200"
+          className="flex items-center w-full px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-400 transition-all duration-200 cursor-pointer"
           whileHover={{
             scale: 1.02,
             x: 4,

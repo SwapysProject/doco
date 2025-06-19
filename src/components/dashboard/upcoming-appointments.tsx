@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Link from "next/link";
 import {
   Calendar,
   Clock,
@@ -14,6 +15,8 @@ import {
   User,
   MoreHorizontal,
   Loader2,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -25,7 +28,13 @@ import {
 /**
  * Appointment type definition
  */
-type AppointmentType = "consultation" | "follow-up" | "surgery" | "emergency";
+type AppointmentType =
+  | "consultation"
+  | "follow-up"
+  | "surgery"
+  | "emergency"
+  | "checkup";
+
 type AppointmentStatus =
   | "scheduled"
   | "confirmed"
@@ -74,9 +83,17 @@ function getAppointmentTypeBadge(type: AppointmentType) {
       className: "bg-orange-500/10 text-orange-700 hover:bg-orange-500/20",
       label: "Emergency",
     },
+    checkup: {
+      className: "bg-purple-500/10 text-purple-700 hover:bg-purple-500/20",
+      label: "Checkup",
+    },
   };
 
-  const config = typeConfig[type];
+  const config = typeConfig[type] || {
+    className: "bg-gray-500/10 text-gray-700 hover:bg-gray-500/20",
+    label: type ? type.charAt(0).toUpperCase() + type.slice(1) : "General",
+  };
+
   return (
     <Badge variant="secondary" className={config.className}>
       {config.label}
@@ -121,13 +138,6 @@ function getStatusBadge(status: AppointmentStatus) {
 
 /**
  * Upcoming Appointments Component
- *
- * Displays today's scheduled appointments with:
- * - Time and duration information
- * - Patient details and appointment type
- * - Location (physical or virtual)
- * - Quick action buttons for each appointment
- * - Status tracking and management
  */
 export function UpcomingAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -143,7 +153,7 @@ export function UpcomingAppointments() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch("/api/upcoming-appointments", {
+        const response = await fetch("/api/appointments", {
           method: "GET",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
@@ -170,14 +180,22 @@ export function UpcomingAppointments() {
             location: apt.isVirtual ? "Virtual" : "Clinic",
             isVirtual: apt.isVirtual || false,
             notes: apt.notes || "",
-            avatar: "", // Optional enhancement
-            doctorId: "", // Optional if needed
+            avatar: "",
+            doctorId: "",
           }));
 
-          const todayAppointments = transformed.filter(
-            (a: Appointment) => a.date === today
-          );
-          setAppointments(todayAppointments);
+          // MODIFIED: Filter out 'completed' AND 'cancelled' appointments.
+          const activeUpcoming = transformed
+            .filter((a: Appointment) => a.date === today)
+            .filter(
+              (a: Appointment) =>
+                a.status !== "completed" && a.status !== "cancelled"
+            )
+            .sort((a: Appointment, b: Appointment) =>
+              a.time.localeCompare(b.time)
+            );
+
+          setAppointments(activeUpcoming.slice(0, 3));
         } else {
           throw new Error(data.message || "Failed to load appointments");
         }
@@ -192,12 +210,42 @@ export function UpcomingAppointments() {
     fetchAppointments();
   }, []);
 
-  // Filter for today's appointments
-  const todayAppointments = appointments.filter((appointment) => {
-    const appointmentDate = new Date(appointment.date);
-    const today = new Date();
-    return appointmentDate.toDateString() === today.toDateString();
-  });
+  const handleUpdateStatus = async (
+    appointmentId: string,
+    newStatus: AppointmentStatus
+  ) => {
+    if (newStatus === 'cancelled' && !confirm("Are you sure you want to cancel this appointment?")) {
+      return;
+    }
+    
+    try {
+      const response = await fetch("/api/appointments", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          appointmentId,
+          status: newStatus,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // MODIFIED: Remove the item if it becomes 'completed' or 'cancelled'.
+        setAppointments((prev) =>
+          prev.filter((apt) => apt._id !== appointmentId)
+        );
+      } else {
+        alert(data.message || `Failed to update status to ${newStatus}`);
+      }
+    } catch (error) {
+      console.error(`Error updating status to ${newStatus}:`, error);
+      alert(`Failed to update status to ${newStatus}`);
+    }
+  };
 
   if (loading) {
     return (
@@ -225,68 +273,34 @@ export function UpcomingAppointments() {
     );
   }
 
-  // ✅ Place this above the return on line 111
-  const cancelAppointment = async (appointmentId: string) => {
-    if (!confirm("Are you sure you want to cancel this appointment?")) {
-      return;
-    }
-
-    try {
-      const response = await fetch("/api/appointments", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          appointmentId,
-          status: "cancelled",
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setAppointments((prev) =>
-          prev.map((apt) =>
-            apt._id === appointmentId ? { ...apt, status: "cancelled" } : apt
-          )
-        );
-      } else {
-        alert(data.message || "Failed to cancel appointment");
-      }
-    } catch (error) {
-      console.error("Error cancelling appointment:", error);
-      alert("Failed to cancel appointment");
-    }
-  };
-
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle className="text-xl font-semibold flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Today&apos;s Appointments
+            Next 3 Active Appointments
           </CardTitle>
           <p className="text-sm text-muted-foreground mt-1">
-            {todayString} • {todayAppointments.length} appointments scheduled
+            {todayString} • Showing next {appointments.length} active appointment{appointments.length !== 1 ? 's' : ''}
           </p>
         </div>
+        <Link href="/dashboard/appointments">
         <Button variant="outline" size="sm">
-          Manage Schedule
+          View All
         </Button>
+        </Link>
       </CardHeader>
 
       <CardContent>
-        {todayAppointments.length === 0 ? (
+        {appointments.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No appointments scheduled for today</p>
+            <p>No active upcoming appointments for today</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {todayAppointments.map((appointment) => (
+            {appointments.map((appointment) => (
               <div
                 key={appointment._id}
                 className="flex items-center gap-4 p-4 rounded-lg border bg-muted/25 hover:bg-muted/50 transition-colors"
@@ -359,23 +373,7 @@ export function UpcomingAppointments() {
                   {getStatusBadge(appointment.status)}
 
                   <div className="flex gap-1">
-                    {appointment.isVirtual ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 w-8 p-0"
-                      >
-                        <Video className="h-4 w-4" />
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 w-8 p-0"
-                      >
-                        <Phone className="h-4 w-4" />
-                      </Button>
-                    )}
+                    
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -389,16 +387,21 @@ export function UpcomingAppointments() {
                       </DropdownMenuTrigger>
 
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Start Appointment</DropdownMenuItem>
-                        <DropdownMenuItem>Reschedule</DropdownMenuItem>
-                        <DropdownMenuItem>
-                          View Patient Details
+                        <DropdownMenuItem
+                          onClick={() =>
+                            handleUpdateStatus(appointment._id, "completed")
+                          }
+                        >
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Mark Completed
                         </DropdownMenuItem>
-                        <DropdownMenuItem>Add Notes</DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive"
-                          onClick={() => cancelAppointment(appointment._id)}
+                          onClick={() =>
+                            handleUpdateStatus(appointment._id, "cancelled")
+                          }
                         >
+                          <XCircle className="mr-2 h-4 w-4" />
                           Cancel Appointment
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -407,22 +410,6 @@ export function UpcomingAppointments() {
                 </div>
               </div>
             ))}
-          </div>
-        )}
-
-        {/* Schedule Summary */}
-        {todayAppointments.length > 0 && (
-          <div className="mt-6 pt-4 border-t">
-            <div className="flex items-center justify-between text-sm">
-              <div className="text-muted-foreground">
-                Total appointments today: {todayAppointments.length}
-              </div>
-              <div className="flex gap-4 text-muted-foreground">
-                <span>Next: {todayAppointments[0]?.time || "None"}</span>
-                <span>•</span>
-                <span>Free time: 12:00 - 13:00</span>
-              </div>
-            </div>
           </div>
         )}
       </CardContent>

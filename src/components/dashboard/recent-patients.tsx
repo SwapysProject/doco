@@ -70,7 +70,8 @@ export function RecentPatients() {
         const data = await response.json();
 
         if (data.success) {
-          setPatients(data.patients);
+          // MODIFIED: Use .slice(0, 5) to get only the first 5 patients
+          setPatients(data.patients.slice(0, 3));
           setError(null);
         } else {
           setError(data.message || "Failed to load recent patients");
@@ -219,39 +220,7 @@ export function RecentPatients() {
                       {formatDate(patient.lastVisit)}
                     </span>
                   </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="animate-in slide-in-from-right-2 duration-200"
-                      >
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/patients?patientId=${patient.id}`} className="w-full">
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </Link>
-                        </DropdownMenuItem>
-
-                        <DropdownMenuItem className="transition-colors duration-200 hover:bg-primary/10">
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit Patient
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="transition-colors duration-200 hover:bg-primary/10">
-                          <FileText className="mr-2 h-4 w-4" />
-                          Medical Records
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                  
                 </TableRow>
               ))}
             </TableBody>
