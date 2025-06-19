@@ -1,3 +1,5 @@
+// components/dashboard/sidebar-clean.tsx
+
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,12 +12,19 @@ import {
   Home,
   LogOut,
   Stethoscope,
+  X, // Import X icon for close button
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 
-export function DashboardSidebar() {
+// Add props for controlling mobile state
+interface DashboardSidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function DashboardSidebar({ isOpen, onClose }: DashboardSidebarProps) {
   const { user, logout } = useAuth();
   const pathname = usePathname();
 
@@ -60,17 +69,32 @@ export function DashboardSidebar() {
       icon: Settings,
     },
   ];
+
+  // Function to handle navigation and close sidebar on mobile
+  const handleNavLinkClick = () => {
+    // Only close sidebar if it's open (implies mobile)
+    if (isOpen) {
+      onClose();
+    }
+  };
+
   return (
-    // Changed h-full to h-screen here
-    <div className="fixed top-0 left-0 w-64 h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col shadow-sm">
+    // CRITICAL CHANGES HERE FOR MOBILE RESPONSIVENESS
+    <div
+      className={`
+        fixed top-0 left-0 w-64 h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col shadow-lg z-50
+        transform transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'} /* Mobile slide in/out */
+        md:translate-x-0 /* Always visible on medium screens and up */
+      `}
+    >
       {/* Header */}
       <motion.div
-        className="p-6 border-b border-gray-200 dark:border-gray-700"
+        className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between" // Added justify-between
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        {" "}
         <div className="flex items-center gap-3">
           <motion.div
             className="p-2 bg-blue-600 dark:bg-gray-700 rounded-lg shadow-md"
@@ -88,9 +112,15 @@ export function DashboardSidebar() {
             </p>
           </div>
         </div>
+        {/* Close Button for Mobile */}
+        <button
+          onClick={onClose}
+          className="md:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors"
+        >
+          <X className="h-5 w-5" />
+        </button>
       </motion.div>
       {/* Navigation */}
-      {/* This already has flex-1 and overflow-y-auto, which is correct */}
       <nav className="flex-1 p-4 overflow-y-auto">
         <ul className="space-y-1">
           {menuItems.map((item, index) => {
@@ -103,6 +133,7 @@ export function DashboardSidebar() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
+                onClick={handleNavLinkClick}
               >
                 <Link href={item.url}>
                   {" "}
@@ -138,8 +169,7 @@ export function DashboardSidebar() {
           })}
         </ul>
       </nav>{" "}
-      {/* Footer */}
-      {/* This already has mt-auto, which is correct in combination with h-screen on the parent and flex-1 on the nav */}
+      {/* Footer */}{" "}
       <motion.div
         className="p-4 border-t border-gray-200 dark:border-gray-700 mt-auto"
         initial={{ opacity: 0, y: 10 }}
@@ -173,7 +203,7 @@ export function DashboardSidebar() {
         </motion.div>
 
         <motion.button
-          onClick={logout}
+          onClick={() => { logout(); onClose(); }} // Close sidebar on logout as well
           className="flex items-center w-full px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-400 transition-all duration-200"
           whileHover={{
             scale: 1.02,

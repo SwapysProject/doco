@@ -21,7 +21,7 @@ import {
   LogOut,
   Moon,
   Sun,
-  Menu,
+  Menu, // Make sure Menu icon is imported
   Calendar,
   MessageSquare,
   Activity,
@@ -32,7 +32,12 @@ import { useRouter } from "next/navigation";
 import { useNotifications } from "@/hooks/useNotifications";
 import { getNotificationColor } from "@/lib/notifications-client";
 
-export function DashboardHeader() {
+// Add prop for menu click handler
+interface DashboardHeaderProps {
+  onMenuClick: () => void;
+}
+
+export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const [isDark, setIsDark] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const { user, logout } = useAuth();
@@ -49,9 +54,29 @@ export function DashboardHeader() {
     return () => clearInterval(timer);
   }, []);
 
+  // Sync theme with browser/system preference or stored value
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const initialDark = localStorage.getItem('theme') === 'dark' || (localStorage.getItem('theme') === null && mediaQuery.matches);
+    setIsDark(initialDark);
+    document.documentElement.classList.toggle('dark', initialDark);
+
+    const handleChange = (e: MediaQueryListEvent) => {
+        if (localStorage.getItem('theme') === null) { // Only react to system if no user preference
+            setIsDark(e.matches);
+            document.documentElement.classList.toggle('dark', e.matches);
+        }
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+}, []);
+
+
   const toggleTheme = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle("dark");
+    const newIsDark = !isDark;
+    setIsDark(newIsDark);
+    document.documentElement.classList.toggle("dark", newIsDark);
+    localStorage.setItem('theme', newIsDark ? 'dark' : 'light'); // Store user preference
   };
   const handleNotificationClick = async (notificationId: string) => {
     await markAsRead(notificationId);
@@ -98,14 +123,14 @@ export function DashboardHeader() {
   };
 
   return (
-    // CRITICAL CHANGE HERE: `fixed top-0 left-64 right-0`
-    <header className="fixed top-0 left-64 right-0 z-50 h-16 border-b border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-900 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-900/60 shadow-sm transition-all duration-300 ease-in-out">
-      {/* Use h-full here so the flex items fill the 16px height of the fixed header */}
+    // CRITICAL CHANGES HERE FOR MOBILE RESPONSIVENESS
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-900 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-900/60 shadow-sm transition-all duration-300 ease-in-out md:left-64">
       <div className="flex h-full items-center px-6 gap-6">
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu Button - ONLY VISIBLE ON MOBILE */}
         <Button
           variant="ghost"
           size="sm"
+          onClick={onMenuClick} // Call the passed onMenuClick prop
           className="md:hidden p-2 hover:scale-105 transition-all duration-200 ease-in-out"
         >
           <Menu className="h-5 w-5 transition-transform duration-200 ease-in-out" />
