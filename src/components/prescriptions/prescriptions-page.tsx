@@ -1290,25 +1290,12 @@ export function PrescriptionsPage() {
                                 Preview PDF
                               </DropdownMenuItem>
 
-                              <DropdownMenuItem>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit Prescription
-                              </DropdownMenuItem>
-
-                              <DropdownMenuItem>
-                                <Printer className="mr-2 h-4 w-4" />
-                                Print Prescription
-                              </DropdownMenuItem>
-
                               <DropdownMenuItem onClick={() => downloadPrescription(prescription)}>
                                 <Download className="mr-2 h-4 w-4" />
                                 Download PDF
                               </DropdownMenuItem>
 
-                              <DropdownMenuItem onClick={() => displayPrescription(prescription)}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Details
-                              </DropdownMenuItem>
+                        
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>

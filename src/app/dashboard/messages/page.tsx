@@ -296,8 +296,17 @@ const MessagesPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+  const chatContainer = messagesEndRef.current?.parentElement;
+  if (!chatContainer) return;
+
+  const isNearBottom =
+    chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < 100;
+
+  if (isNearBottom) {
     scrollToBottom();
-  }, [messages]);
+  }
+}, [messages]);
+
   const filteredDoctors = doctors.filter((doctor) => {
     const matchesName = doctor.name
       .toLowerCase()
