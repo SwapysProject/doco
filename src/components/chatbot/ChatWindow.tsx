@@ -2,8 +2,57 @@
 
 "use client";
 
+// Web Speech API type declarations
+declare global {
+  interface Window {
+    SpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: typeof SpeechRecognition;
+  }
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onstart: ((this: SpeechRecognition, ev: Event) => void) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => void) | null;
+  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void) | null;
+  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => void) | null;
+}
+
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
+
+interface SpeechRecognitionResultList {
+  [index: number]: SpeechRecognitionResult;
+  length: number;
+}
+
+interface SpeechRecognitionResult {
+  [index: number]: SpeechRecognitionAlternative;
+  length: number;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+declare const SpeechRecognition: {
+  prototype: SpeechRecognition;
+  new (): SpeechRecognition;
+};
+
 // 1. We've already imported these, but just confirming they are needed.
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { ChatIcons } from "./icons";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -22,6 +71,13 @@ interface ChatWindowProps {
   onClearMemory: () => void;
 }
 
+// Voice assistant interface
+interface VoiceState {
+  isListening: boolean;
+  isSpeaking: boolean;
+  isSupported: boolean;
+}
+
 export function ChatWindow({
   onClose,
   messages,
@@ -34,6 +90,120 @@ export function ChatWindow({
 
   // 2. Create a ref that will point to our input element
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Voice assistant state
+  const [voiceState, setVoiceState] = useState<VoiceState>({
+    isListening: false,
+    isSpeaking: false,
+    isSupported: false,
+  });
+
+  // Voice recognition refs
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Voice assistant functions
+  const handleSend = useCallback((message?: string) => {
+    const textToSend = message || input;
+    if (textToSend.trim()) {
+      onSendMessage(textToSend);
+      setInput("");
+    }
+  }, [input, onSendMessage]);
+
+  const speakMessage = useCallback((text: string) => {
+    if ('speechSynthesis' in window) {
+      // Stop any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      // Remove markdown formatting for better speech
+      const cleanText = text.replace(/[*_`#\[\]()]/g, '').replace(/\n/g, ' ');
+      
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      utterance.volume = 0.8;
+      
+      utterance.onstart = () => {
+        setVoiceState(prev => ({ ...prev, isSpeaking: true }));
+      };
+      
+      utterance.onend = () => {
+        setVoiceState(prev => ({ ...prev, isSpeaking: false }));
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    }
+  }, []);
+
+  const startListening = useCallback(() => {
+    if (recognitionRef.current && voiceState.isSupported) {
+      recognitionRef.current.start();
+    }
+  }, [voiceState.isSupported]);
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+  }, []);
+
+  const stopSpeaking = useCallback(() => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setVoiceState(prev => ({ ...prev, isSpeaking: false }));
+    }
+  }, []);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      
+      if (SpeechRecognition) {
+        setVoiceState(prev => ({ ...prev, isSupported: true }));
+        
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+        
+        recognition.onstart = () => {
+          setVoiceState(prev => ({ ...prev, isListening: true }));
+        };
+        
+        recognition.onend = () => {
+          setVoiceState(prev => ({ ...prev, isListening: false }));
+        };
+        
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          setInput(transcript);
+          // Auto-send the voice message
+          setTimeout(() => {
+            handleSend(transcript);
+          }, 500);
+        };
+        
+        recognition.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+          setVoiceState(prev => ({ ...prev, isListening: false }));
+        };
+        
+        recognitionRef.current = recognition;
+      }
+    }
+  }, [handleSend]);
+
+  // Text-to-speech for AI responses
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.role === 'assistant' && !isLoading) {
+        speakMessage(lastMessage.content);
+      }
+    }
+  }, [messages, isLoading, speakMessage]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -337,22 +507,95 @@ export function ChatWindow({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about patients, medications, symptoms..."
-              className="w-full pr-12 py-3 pl-4 bg-background border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-all duration-200 text-sm placeholder:text-muted-foreground"
+              className="w-full pr-24 py-3 pl-4 bg-background border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-all duration-200 text-sm placeholder:text-muted-foreground"
               disabled={isLoading}
             />
-            <button
-              type="submit"
-              disabled={isLoading || !input.trim()}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-primary text-primary-foreground disabled:bg-primary/50 disabled:cursor-not-allowed focus-ring hover:bg-primary/90 transition-colors"
-            >
-              <ChatIcons.send className="h-4 w-4" />
-            </button>
+            
+            {/* Voice Controls */}
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              {voiceState.isSupported && (
+                <>
+                  {/* Microphone Button */}
+                  <button
+                    type="button"
+                    onClick={voiceState.isListening ? stopListening : startListening}
+                    disabled={isLoading}
+                    className={`p-2 rounded-lg transition-all duration-200 focus-ring ${
+                      voiceState.isListening 
+                        ? "bg-red-500 text-white animate-pulse" 
+                        : "bg-blue-500 text-white hover:bg-blue-600"
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    title={voiceState.isListening ? "Stop listening" : "Start voice input"}
+                  >
+                    {voiceState.isListening ? (
+                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 6h4v12H6zm8-6h4v12h-4z"/>
+                      </svg>
+                    ) : (
+                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                      </svg>
+                    )}
+                  </button>
+                  
+                  {/* Speaker Button */}
+                  <button
+                    type="button"
+                    onClick={voiceState.isSpeaking ? stopSpeaking : () => {}}
+                    disabled={isLoading || !voiceState.isSpeaking}
+                    className={`p-2 rounded-lg transition-all duration-200 focus-ring ${
+                      voiceState.isSpeaking 
+                        ? "bg-orange-500 text-white" 
+                        : "bg-gray-400 text-white"
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    title={voiceState.isSpeaking ? "Stop speaking" : "AI voice output"}
+                  >
+                    {voiceState.isSpeaking ? (
+                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M3 10v4c0 .55.45 1 1 1h3l3.29 3.29c.63.63 1.71.18 1.71-.71V6.41c0-.89-1.08-1.34-1.71-.71L7 9H4c-.55 0-1 .45-1 1zm13.5 2c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                      </svg>
+                    ) : (
+                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M3 10v4c0 .55.45 1 1 1h3l3.29 3.29c.63.63 1.71.18 1.71-.71V6.41c0-.89-1.08-1.34-1.71-.71L7 9H4c-.55 0-1 .45-1 1zm13.5 2c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+                        <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" opacity="0.3"/>
+                      </svg>
+                    )}
+                  </button>
+                </>
+              )}
+              
+              {/* Send Button */}
+              <button
+                type="submit"
+                disabled={isLoading || !input.trim()}
+                className="p-2 rounded-lg bg-primary text-primary-foreground disabled:bg-primary/50 disabled:cursor-not-allowed focus-ring hover:bg-primary/90 transition-colors"
+              >
+                <ChatIcons.send className="h-4 w-4" />
+              </button>
+            </div>
           </form>
+          
           <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-            <span>💡 Try asking about specific patients or conditions</span>
+            <div className="flex items-center gap-2">
+              <span>💡 Try asking about specific patients or conditions</span>
+              {voiceState.isSupported && (
+                <span className="text-blue-500">🎤 Voice enabled</span>
+              )}
+            </div>
             <div className="flex items-center gap-1">
-              <span className="animate-pulse">●</span>
-              <span>AI Ready</span>
+              {voiceState.isListening && (
+                <span className="text-red-500 animate-pulse">● Listening...</span>
+              )}
+              {voiceState.isSpeaking && (
+                <span className="text-orange-500 animate-pulse">🔊 Speaking...</span>
+              )}
+              {!voiceState.isListening && !voiceState.isSpeaking && (
+                <>
+                  <span className="animate-pulse">●</span>
+                  <span>AI Ready</span>
+                </>
+              )}
             </div>
           </div>
         </div>
