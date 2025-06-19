@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 import {
   Search,
   Filter,
@@ -157,7 +158,7 @@ export default function PatientsPage() {
         id: patient._id, // Add id field for compatibility
       }));
 
-      setPatients(transformedPatients);
+      setPatients(transformedPatients.reverse()); // Reverse to show recent first
     } catch (error) {
       console.error("Error fetching assigned patients:", error);
       setError("Failed to load your assigned patients. Please try again.");
@@ -569,695 +570,705 @@ export default function PatientsPage() {
     );
   }
 
-  if (view === "detail" && selectedPatient) {
-    return (
-      <motion.div
-        className="min-h-screen bg-background"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        {/* Enhanced Header */}
-        <motion.div
-          className="border-b border-border bg-card/80 backdrop-blur-sm"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <motion.button
-                  onClick={handleBackToList}
-                  className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors group"
-                  whileHover={{ x: -4 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <ArrowLeft className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                  <span className="text-sm">Back to Patients</span>
-                </motion.button>
-                <div className="flex items-center space-x-3">
-                  <motion.div
-                    className="w-10 h-10 bg-gradient-to-br from-primary/80 to-primary text-primary-foreground rounded-xl flex items-center justify-center shadow-lg"
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <User className="w-5 h-5" />
-                  </motion.div>
-                  <div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                      {selectedPatient.name}
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                      Patient Details
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <motion.button
-                  onClick={handleEditPatient}
-                  className="px-4 py-2 bg-gradient-to-r from-secondary/80 to-secondary text-secondary-foreground rounded-xl hover:from-secondary hover:to-secondary/90 transition-all duration-200 flex items-center space-x-2 shadow-sm hover:shadow-md"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Edit className="w-4 h-4" />
-                  <span>Edit</span>
-                </motion.button>
-                <motion.button
-                  onClick={handleMessagePatient}
-                  className="px-4 py-2 bg-gradient-to-r from-primary/90 to-primary text-primary-foreground rounded-xl hover:from-primary hover:to-primary/90 transition-all duration-200 flex items-center space-x-2 shadow-sm hover:shadow-md"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Message</span>
-                </motion.button>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Patient Detail Content */}
-        <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Patient Info */}
-            <div className="lg:col-span-1 space-y-6">
-              {/* Basic Info Card */}
-              <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">
-                  Patient Information
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Age</span>
-                    <span className="text-sm font-medium text-foreground">
-                      {selectedPatient.age} years
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Gender
-                    </span>
-                    <span className="text-sm font-medium text-foreground">
-                      {selectedPatient.gender}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Blood Type
-                    </span>
-                    <span className="text-sm font-medium text-foreground">
-                      {selectedPatient.bloodType}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Status
-                    </span>
-                    <div
-                      className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        selectedPatient.status
-                      )}`}
-                    >
-                      {getStatusIcon(selectedPatient.status)}
-                      <span>{selectedPatient.status || "Unknown"}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Contact Info Card */}
-              <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">
-                  Contact Information
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Phone className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-foreground">
-                      {selectedPatient.phone}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Mail className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-foreground">
-                      {selectedPatient.email}
-                    </span>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
-                    <span className="text-sm text-foreground">
-                      {selectedPatient.address}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Vitals Card */}
-              <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">
-                  Latest Vitals
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Blood Pressure
-                    </span>
-                    <span className="text-sm font-medium text-foreground">
-                      {selectedPatient.vitals.bloodPressure}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Heart Rate
-                    </span>
-                    <span className="text-sm font-medium text-foreground">
-                      {selectedPatient.vitals.heartRate}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Temperature
-                    </span>
-                    <span className="text-sm font-medium text-foreground">
-                      {selectedPatient.vitals.temperature}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Weight
-                    </span>
-                    <span className="text-sm font-medium text-foreground">
-                      {selectedPatient.vitals.weight}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Height
-                    </span>
-                    <span className="text-sm font-medium text-foreground">
-                      {selectedPatient.vitals.height}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Medical Details */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Appointments Card */}
-              <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">
-                  Appointments
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-muted/50 rounded-lg p-4">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-foreground">
-                        Last Visit
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {selectedPatient.lastVisit}
-                    </p>
-                  </div>
-                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Calendar className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-medium text-foreground">
-                        Next Appointment
-                      </span>
-                    </div>
-                    <p className="text-sm text-primary font-medium">
-                      {selectedPatient.nextAppointment}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Current Medications */}
-              <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">
-                  Current Medications
-                </h3>
-                <div className="space-y-3">
-                  {selectedPatient.medications &&
-                  selectedPatient.medications.length > 0 ? (
-                    selectedPatient.medications.map((medication, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg"
-                      >
-                        <Pill className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm text-foreground">
-                          {medication}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No medications recorded
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Allergies */}
-              <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">
-                  Allergies
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {selectedPatient.allergies &&
-                  selectedPatient.allergies.length > 0 ? (
-                    selectedPatient.allergies.map((allergy, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 rounded-full text-xs font-medium"
-                      >
-                        {allergy}
-                      </span>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No known allergies
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Medical History */}
-              <div className="bg-card border border-border rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">
-                  Medical History
-                </h3>
-                <div className="space-y-4">
-                  {selectedPatient.medicalHistory &&
-                  selectedPatient.medicalHistory.length > 0 ? (
-                    selectedPatient.medicalHistory.map((record, index) => (
-                      <div
-                        key={index}
-                        className="border-l-2 border-primary/20 pl-4 pb-4"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="text-sm font-medium text-foreground">
-                            {record.condition}
-                          </h4>
-                          <span className="text-xs text-muted-foreground">
-                            {record.date}
-                          </span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {record.notes}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No medical history recorded
-                    </p>
-                  )}
-                </div>{" "}
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    );
-  }
-
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-background">
-        {/* Enhanced Header - Mobile Responsive */}
-        <motion.div
-          className="border-b border-border bg-card/80 backdrop-blur-sm"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-        >
-          <div className="px-3 sm:px-4 md:px-6 py-4 sm:py-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <motion.div
-                className="flex items-center space-x-3 sm:space-x-4 group"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-              >
-                <div className="flex items-center space-x-3 sm:space-x-4">
-                  <motion.div
-                    className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 text-white rounded-xl flex items-center justify-center shadow-lg dark:shadow-xl dark:shadow-blue-500/20"
-                    whileHover={{ scale: 1.05, rotate: 5 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Users className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </motion.div>
-                  <div>
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold transition-all duration-300 ease-out group-hover:scale-105 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-                      My Patients
-                    </h1>
-                    <p className="text-sm sm:text-base text-muted-foreground transition-all duration-300 ease-out group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-2">
-                      Manage and track your assigned patients
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-              <motion.div
-                className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                <motion.button
-                  onClick={handleRefresh}
-                  className="px-3 sm:px-4 py-2 bg-secondary/80 dark:bg-secondary/90 text-secondary-foreground rounded-lg border border-border shadow-sm hover:shadow-md hover:bg-secondary dark:hover:bg-secondary/100 transition-all duration-200 flex items-center justify-center space-x-2 group min-h-[44px]"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <motion.div
-                    animate={{ rotate: 0 }}
-                    whileHover={{ rotate: 180 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Activity className="w-4 h-4" />
-                  </motion.div>
-                  <span className="text-sm sm:text-base">Refresh</span>
-                </motion.button>
-                <motion.button
-                  onClick={handleAssignPatient}
-                  className="px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white rounded-lg shadow-sm hover:shadow-md hover:from-blue-600 hover:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 transition-all duration-200 flex items-center justify-center space-x-2 group min-h-[44px]"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Users className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                  <span>Assign Patients</span>
-                </motion.button>
-                <motion.button
-                  onClick={handleAddPatient}
-                  className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 text-white rounded-lg shadow-sm hover:shadow-md hover:from-green-600 hover:to-green-700 dark:hover:from-green-700 dark:hover:to-green-800 transition-all duration-200 flex items-center space-x-2 group"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Plus className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                  <span>Add Patient</span>
-                </motion.button>
-              </motion.div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Enhanced Search and Filter Bar - Mobile Responsive */}
-        <motion.div
-          className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 bg-card/50 dark:bg-card/80 backdrop-blur-sm border-b border-border"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-        >
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-            <motion.div
-              className="flex-1 relative group"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: 0.4 }}
-            >
-              <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground group-focus-within:text-primary dark:group-focus-within:text-primary transition-colors duration-200" />
-              <input
-                type="text"
-                placeholder="Search patients..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-background/50 dark:bg-background/80 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 dark:focus:border-primary/60 text-foreground placeholder:text-muted-foreground transition-all duration-200 hover:shadow-sm focus:shadow-md backdrop-blur-sm text-sm sm:text-base"
-              />
-            </motion.div>
-            <motion.div
-              className="flex items-center space-x-2 group"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: 0.5 }}
-            >
-              <Filter className="w-4 h-4 text-muted-foreground group-hover:text-primary dark:group-hover:text-primary transition-colors duration-200" />
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2.5 bg-background/50 dark:bg-background/80 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 dark:focus:border-primary/60 text-foreground transition-all duration-200 hover:shadow-sm focus:shadow-md backdrop-blur-sm text-sm sm:text-base min-w-[120px]"
-              >
-                <option value="all">All Status</option>
-                <option value="stable">Stable</option>
-                <option value="monitoring">Monitoring</option>
-                <option value="critical">Critical</option>
-                <option value="active">Active</option>
-              </select>
-            </motion.div>
-          </div>
-        </motion.div>
-
-        {/* Enhanced Stats Cards - Mobile Responsive */}
-        <motion.div
-          className="px-3 sm:px-4 md:px-6 py-4 sm:py-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              whileHover={{ scale: 1.02, y: -2 }}
-            >
-              <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-blue-500 bg-gradient-to-br from-blue-50/50 to-blue-100/30 dark:from-blue-950/40 dark:to-blue-900/20 hover:shadow-blue-500/10 dark:hover:shadow-blue-400/20 hover:from-blue-100/60 hover:to-blue-200/40 dark:hover:from-blue-900/60 dark:hover:to-blue-800/40">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                    Total Patients
-                  </CardTitle>
-                  <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/60 transition-all duration-300 ease-out group-hover:bg-blue-100 dark:group-hover:bg-blue-900/80 group-hover:scale-110 group-hover:rotate-6">
-                    <Users className="h-4 w-4 text-blue-600 dark:text-blue-400 transition-all duration-300 ease-out group-hover:scale-110" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-blue-700 dark:group-hover:text-blue-300 group-hover:scale-105">
-                    {patients.length}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1 transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-400">
-                    Currently assigned to you
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              whileHover={{ scale: 1.02, y: -2 }}
-            >
-              <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-green-500 bg-gradient-to-br from-green-50/50 to-green-100/30 dark:from-green-950/40 dark:to-green-900/20 hover:shadow-green-500/10 dark:hover:shadow-green-400/20 hover:from-green-100/60 hover:to-green-200/40 dark:hover:from-green-900/60 dark:hover:to-green-800/40">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-green-600 dark:group-hover:text-green-400">
-                    Stable Patients
-                  </CardTitle>
-                  <div className="p-2 rounded-lg bg-green-50 dark:bg-green-950/60 transition-all duration-300 ease-out group-hover:bg-green-100 dark:group-hover:bg-green-900/80 group-hover:scale-110 group-hover:rotate-6">
-                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 transition-all duration-300 ease-out group-hover:scale-110" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-green-700 dark:group-hover:text-green-300 group-hover:scale-105">
-                    {
-                      patients.filter(
-                        (p) => p.status && p.status.toLowerCase() === "stable"
-                      ).length
-                    }
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1 transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-400">
-                    In stable condition
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              whileHover={{ scale: 1.02, y: -2 }}
-            >
-              <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-yellow-500 bg-gradient-to-br from-yellow-50/50 to-yellow-100/30 dark:from-yellow-950/40 dark:to-yellow-900/20 hover:shadow-yellow-500/10 dark:hover:shadow-yellow-400/20 hover:from-yellow-100/60 hover:to-yellow-200/40 dark:hover:from-yellow-900/60 dark:hover:to-yellow-800/40">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-yellow-600 dark:group-hover:text-yellow-400">
-                    Monitoring
-                  </CardTitle>
-                  <div className="p-2 rounded-lg bg-yellow-50 dark:bg-yellow-950/60 transition-all duration-300 ease-out group-hover:bg-yellow-100 dark:group-hover:bg-yellow-900/80 group-hover:scale-110 group-hover:rotate-6">
-                    <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400 transition-all duration-300 ease-out group-hover:scale-110" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-yellow-700 dark:group-hover:text-yellow-300 group-hover:scale-105">
-                    {
-                      patients.filter(
-                        (p) =>
-                          p.status && p.status.toLowerCase() === "monitoring"
-                      ).length
-                    }
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1 transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-400">
-                    Under close monitoring
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              whileHover={{ scale: 1.02, y: -2 }}
-            >
-              <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-red-500 bg-gradient-to-br from-red-50/50 to-red-100/30 dark:from-red-950/40 dark:to-red-900/20 hover:shadow-red-500/10 dark:hover:shadow-red-400/20 hover:from-red-100/60 hover:to-red-200/40 dark:hover:from-red-900/60 dark:hover:to-red-800/40">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-red-600 dark:group-hover:text-red-400">
-                    Critical Patients
-                  </CardTitle>
-                  <div className="p-2 rounded-lg bg-red-50 dark:bg-red-950/60 transition-all duration-300 ease-out group-hover:bg-red-100 dark:group-hover:bg-red-900/80 group-hover:scale-110 group-hover:rotate-6">
-                    <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400 transition-all duration-300 ease-out group-hover:scale-110" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-red-700 dark:group-hover:text-red-300 group-hover:scale-105">
-                    {
-                      patients.filter(
-                        (p) => p.status && p.status.toLowerCase() === "critical"
-                      ).length
-                    }
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1 transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-400">
-                    Require immediate attention
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
-
-          {/* Enhanced Patients List */}
+      {view === "list" ? (
+        // =================== LIST VIEW ===================
+        <div className="min-h-screen bg-background">
+          {/* Enhanced Header - Mobile Responsive */}
           <motion.div
-            className="bg-card/50 border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 backdrop-blur-sm"
-            initial={{ opacity: 0, y: 20 }}
+            className="border-b border-border bg-card/80 backdrop-blur-sm"
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.1 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-background/50 to-muted/20">
-              <h2 className="text-lg font-semibold text-foreground">
-                Patient List
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {filteredPatients.length} of {patients.length} patients
-              </p>
-            </div>
-            <div className="divide-y divide-border">
-              {filteredPatients.map((patient, index) => (
+            <div className="px-3 sm:px-4 md:px-6 py-4 sm:py-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <motion.div
-                  key={patient._id}
-                  onClick={() => handlePatientClick(patient)}
-                  className="px-6 py-4 hover:bg-accent/50 cursor-pointer transition-all duration-200 group hover:shadow-sm"
+                  className="flex items-center space-x-3 sm:space-x-4 group"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: 1.2 + index * 0.05 }}
-                  whileHover={{ x: 4 }}
+                  transition={{ duration: 0.6, delay: 0.1 }}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-3 sm:space-x-4">
+                    <motion.div
+                      className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 text-white rounded-xl flex items-center justify-center shadow-lg dark:shadow-xl dark:shadow-blue-500/20"
+                      whileHover={{ scale: 1.05, rotate: 5 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Users className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </motion.div>
+                    <div>
+                      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold transition-all duration-300 ease-out group-hover:scale-105 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                        My Patients
+                      </h1>
+                      <p className="text-sm sm:text-base text-muted-foreground transition-all duration-300 ease-out group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-2">
+                        Manage and track your assigned patients
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+                <motion.div
+                  className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                >
+                  <motion.button
+                    onClick={handleRefresh}
+                    className="px-3 sm:px-4 py-2 bg-secondary/80 dark:bg-secondary/90 text-secondary-foreground rounded-lg border border-border shadow-sm hover:shadow-md hover:bg-secondary dark:hover:bg-secondary/100 transition-all duration-200 flex items-center justify-center space-x-2 group min-h-[44px]"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <motion.div
+                      animate={{ rotate: 0 }}
+                      whileHover={{ rotate: 180 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Activity className="w-4 h-4" />
+                    </motion.div>
+                    <span className="text-sm sm:text-base">Refresh</span>
+                  </motion.button>
+                  <motion.button
+                    onClick={handleAssignPatient}
+                    className="px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white rounded-lg shadow-sm hover:shadow-md hover:from-blue-600 hover:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 transition-all duration-200 flex items-center justify-center space-x-2 group min-h-[44px]"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Users className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+                    <span>Assign Patients</span>
+                  </motion.button>
+                  <motion.button
+                    onClick={handleAddPatient}
+                    className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 text-white rounded-lg shadow-sm hover:shadow-md hover:from-green-600 hover:to-green-700 dark:hover:from-green-700 dark:hover:to-green-800 transition-all duration-200 flex items-center space-x-2 group"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Plus className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+                    <span>Add Patient</span>
+                  </motion.button>
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Enhanced Search and Filter Bar - Mobile Responsive */}
+          <motion.div
+            className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 bg-card/50 dark:bg-card/80 backdrop-blur-sm border-b border-border"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+          >
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+              <motion.div
+                className="flex-1 relative group"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.4 }}
+              >
+                <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground group-focus-within:text-primary dark:group-focus-within:text-primary transition-colors duration-200" />
+                <input
+                  type="text"
+                  placeholder="Search patients..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-background/50 dark:bg-background/80 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 dark:focus:border-primary/60 text-foreground placeholder:text-muted-foreground transition-all duration-200 hover:shadow-sm focus:shadow-md backdrop-blur-sm text-sm sm:text-base"
+                />
+              </motion.div>
+              <motion.div
+                className="flex items-center space-x-2 group"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.5 }}
+              >
+                <Filter className="w-4 h-4 text-muted-foreground group-hover:text-primary dark:group-hover:text-primary transition-colors duration-200" />
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="px-3 py-2.5 bg-background/50 dark:bg-background/80 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 dark:focus:border-primary/60 text-foreground transition-all duration-200 hover:shadow-sm focus:shadow-md backdrop-blur-sm text-sm sm:text-base min-w-[120px]"
+                >
+                  <option value="all">All Status</option>
+                  <option value="stable">Stable</option>
+                  <option value="monitoring">Monitoring</option>
+                  <option value="critical">Critical</option>
+                  <option value="active">Active</option>
+                </select>
+              </motion.div>
+            </div>
+          </motion.div>
+
+          {/* Enhanced Stats Cards - Mobile Responsive */}
+          <motion.div
+            className="px-3 sm:px-4 md:px-6 py-4 sm:py-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                whileHover={{ scale: 1.02, y: -2 }}
+              >
+                <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-blue-500 bg-gradient-to-br from-blue-50/50 to-blue-100/30 dark:from-blue-950/40 dark:to-blue-900/20 hover:shadow-blue-500/10 dark:hover:shadow-blue-400/20 hover:from-blue-100/60 hover:to-blue-200/40 dark:hover:from-blue-900/60 dark:hover:to-blue-800/40">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                    <CardTitle className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                      Total Patients
+                    </CardTitle>
+                    <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/60 transition-all duration-300 ease-out group-hover:bg-blue-100 dark:group-hover:bg-blue-900/80 group-hover:scale-110 group-hover:rotate-6">
+                      <Users className="h-4 w-4 text-blue-600 dark:text-blue-400 transition-all duration-300 ease-out group-hover:scale-110" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-blue-700 dark:group-hover:text-blue-300 group-hover:scale-105">
+                      {patients.length}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-400">
+                      Currently assigned to you
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                whileHover={{ scale: 1.02, y: -2 }}
+              >
+                <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-green-500 bg-gradient-to-br from-green-50/50 to-green-100/30 dark:from-green-950/40 dark:to-green-900/20 hover:shadow-green-500/10 dark:hover:shadow-green-400/20 hover:from-green-100/60 hover:to-green-200/40 dark:hover:from-green-900/60 dark:hover:to-green-800/40">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                    <CardTitle className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-green-600 dark:group-hover:text-green-400">
+                      Stable Patients
+                    </CardTitle>
+                    <div className="p-2 rounded-lg bg-green-50 dark:bg-green-950/60 transition-all duration-300 ease-out group-hover:bg-green-100 dark:group-hover:bg-green-900/80 group-hover:scale-110 group-hover:rotate-6">
+                      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 transition-all duration-300 ease-out group-hover:scale-110" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-green-700 dark:group-hover:text-green-300 group-hover:scale-105">
+                      {
+                        patients.filter(
+                          (p) => p.status && p.status.toLowerCase() === "stable"
+                        ).length
+                      }
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-400">
+                      In stable condition
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                whileHover={{ scale: 1.02, y: -2 }}
+              >
+                <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-yellow-500 bg-gradient-to-br from-yellow-50/50 to-yellow-100/30 dark:from-yellow-950/40 dark:to-yellow-900/20 hover:shadow-yellow-500/10 dark:hover:shadow-yellow-400/20 hover:from-yellow-100/60 hover:to-yellow-200/40 dark:hover:from-yellow-900/60 dark:hover:to-yellow-800/40">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                    <CardTitle className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-yellow-600 dark:group-hover:text-yellow-400">
+                      Monitoring
+                    </CardTitle>
+                    <div className="p-2 rounded-lg bg-yellow-50 dark:bg-yellow-950/60 transition-all duration-300 ease-out group-hover:bg-yellow-100 dark:group-hover:bg-yellow-900/80 group-hover:scale-110 group-hover:rotate-6">
+                      <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400 transition-all duration-300 ease-out group-hover:scale-110" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-yellow-700 dark:group-hover:text-yellow-300 group-hover:scale-105">
+                      {
+                        patients.filter(
+                          (p) =>
+                            p.status && p.status.toLowerCase() === "monitoring"
+                        ).length
+                      }
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-400">
+                      Under close monitoring
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                whileHover={{ scale: 1.02, y: -2 }}
+              >
+                <Card className="h-full hover:shadow-lg transition-all duration-300 ease-out transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer border-l-4 border-l-transparent hover:border-l-red-500 bg-gradient-to-br from-red-50/50 to-red-100/30 dark:from-red-950/40 dark:to-red-900/20 hover:shadow-red-500/10 dark:hover:shadow-red-400/20 hover:from-red-100/60 hover:to-red-200/40 dark:hover:from-red-900/60 dark:hover:to-red-800/40">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                    <CardTitle className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-red-600 dark:group-hover:text-red-400">
+                      Critical Patients
+                    </CardTitle>
+                    <div className="p-2 rounded-lg bg-red-50 dark:bg-red-950/60 transition-all duration-300 ease-out group-hover:bg-red-100 dark:group-hover:bg-red-900/80 group-hover:scale-110 group-hover:rotate-6">
+                      <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400 transition-all duration-300 ease-out group-hover:scale-110" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-red-700 dark:group-hover:text-red-300 group-hover:scale-105">
+                      {
+                        patients.filter(
+                          (p) => p.status && p.status.toLowerCase() === "critical"
+                        ).length
+                      }
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-400">
+                      Require immediate attention
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+
+            {/* Enhanced Patients List */}
+            <motion.div
+              className="bg-card/50 border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 backdrop-blur-sm"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 1.1 }}
+            >
+              <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-background/50 to-muted/20">
+                <h2 className="text-lg font-semibold text-foreground">
+                  Patient List
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {filteredPatients.length} of {patients.length} patients
+                </p>
+              </div>
+              <div className="divide-y divide-border">
+                {filteredPatients.map((patient, index) => (
+                  <motion.div
+                    key={patient._id}
+                    onClick={() => handlePatientClick(patient)}
+                    className="px-6 py-4 hover:bg-accent/50 cursor-pointer transition-all duration-200 group hover:shadow-sm"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 1.2 + index * 0.05 }}
+                    whileHover={{ x: 4 }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <motion.div
+                          className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 text-primary rounded-xl flex items-center justify-center group-hover:from-primary/30 group-hover:to-primary/20 transition-all duration-200"
+                          whileHover={{ scale: 1.05 }}
+                        >
+                          <User className="w-5 h-5" />
+                        </motion.div>
+                        <div>
+                          <h3 className="font-medium text-foreground group-hover:text-primary transition-colors duration-200">
+                            {patient.name}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {patient.age} years • {patient.gender}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-6">
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-foreground">
+                            {patient.condition}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Last visit: {patient.lastVisit}
+                          </p>
+                        </div>
+                        <div
+                          className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                            patient.status
+                          )}`}
+                        >
+                          {getStatusIcon(patient.status)}
+                          <span>{patient.status || "Unknown"}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="text-right">
+                            <p className="text-xs text-muted-foreground">
+                              Next appointment
+                            </p>
+                            <p className="text-sm font-medium text-foreground">
+                              {patient.nextAppointment}
+                            </p>
+                          </div>
+                          <motion.div
+                            animate={{ x: 0 }}
+                            whileHover={{ x: 4 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                          </motion.div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            {filteredPatients.length === 0 && patients.length > 0 && (
+              <motion.div
+                className="bg-card border border-border rounded-xl p-12 text-center shadow-sm"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 1.3 }}
+              >
+                <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  No patients found
+                </h3>
+                <p className="text-muted-foreground">
+                  Try adjusting your search or filter criteria
+                </p>
+              </motion.div>
+            )}
+
+            {patients.length === 0 && !loading && (
+              <motion.div
+                className="bg-card border border-border rounded-xl p-12 text-center shadow-sm"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 1.3 }}
+              >
+                <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  No patients in database
+                </h3>
+                <p className="text-muted-foreground">
+                  Add your first patient to get started
+                </p>
+              </motion.div>
+            )}
+          </motion.div>
+        </div>
+      ) : (
+        // =================== DETAIL VIEW ===================
+        selectedPatient && (
+          <motion.div
+            className="min-h-screen bg-background"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            {/* Enhanced Header */}
+            <motion.div
+              className="border-b border-border bg-card/80 backdrop-blur-sm"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <motion.button
+                      onClick={handleBackToList}
+                      className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors group"
+                      whileHover={{ x: -4 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ArrowLeft className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+                      <span className="text-sm">Back to Patients</span>
+                    </motion.button>
+                    <div className="flex items-center space-x-3">
                       <motion.div
-                        className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 text-primary rounded-xl flex items-center justify-center group-hover:from-primary/30 group-hover:to-primary/20 transition-all duration-200"
-                        whileHover={{ scale: 1.05 }}
+                        className="w-10 h-10 bg-gradient-to-br from-primary/80 to-primary text-primary-foreground rounded-xl flex items-center justify-center shadow-lg"
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        transition={{ duration: 0.2 }}
                       >
                         <User className="w-5 h-5" />
                       </motion.div>
                       <div>
-                        <h3 className="font-medium text-foreground group-hover:text-primary transition-colors duration-200">
-                          {patient.name}
-                        </h3>
+                        <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                          {selectedPatient.name}
+                        </h1>
                         <p className="text-sm text-muted-foreground">
-                          {patient.age} years • {patient.gender}
+                          Patient Details
                         </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-6">
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-foreground">
-                          {patient.condition}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Last visit: {patient.lastVisit}
-                        </p>
-                      </div>
-                      <div
-                        className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                          patient.status
-                        )}`}
-                      >
-                        {getStatusIcon(patient.status)}
-                        <span>{patient.status || "Unknown"}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="text-right">
-                          <p className="text-xs text-muted-foreground">
-                            Next appointment
-                          </p>
-                          <p className="text-sm font-medium text-foreground">
-                            {patient.nextAppointment}
-                          </p>
-                        </div>
-                        <motion.div
-                          animate={{ x: 0 }}
-                          whileHover={{ x: 4 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                        </motion.div>
                       </div>
                     </div>
                   </div>
-                </motion.div>
-              ))}
+                  <div className="flex items-center space-x-3">
+                    <motion.button
+                      onClick={handleEditPatient}
+                      className="px-4 py-2 bg-gradient-to-r from-secondary/80 to-secondary text-secondary-foreground rounded-xl hover:from-secondary hover:to-secondary/90 transition-all duration-200 flex items-center space-x-2 shadow-sm hover:shadow-md"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Edit className="w-4 h-4" />
+                      <span>Edit</span>
+                    </motion.button>
+
+                    <Link href="prescriptions/new-p">
+                      <motion.button
+                        className="px-4 py-2 bg-gradient-to-r from-secondary/80 to-secondary text-secondary-foreground rounded-xl hover:from-secondary hover:to-secondary/90 transition-all duration-200 flex items-center space-x-2 shadow-sm hover:shadow-md cursor-pointer"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>New Prescription</span>
+                      </motion.button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Patient Detail Content */}
+            <div className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column - Patient Info */}
+                <div className="lg:col-span-1 space-y-6">
+                  {/* Basic Info Card */}
+                  <div className="bg-card border border-border rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-4">
+                      Patient Information
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Age
+                        </span>
+                        <span className="text-sm font-medium text-foreground">
+                          {selectedPatient.age} years
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Gender
+                        </span>
+                        <span className="text-sm font-medium text-foreground">
+                          {selectedPatient.gender}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Blood Type
+                        </span>
+                        <span className="text-sm font-medium text-foreground">
+                          {selectedPatient.bloodType}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Status
+                        </span>
+                        <div
+                          className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                            selectedPatient.status
+                          )}`}
+                        >
+                          {getStatusIcon(selectedPatient.status)}
+                          <span>{selectedPatient.status || "Unknown"}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contact Info Card */}
+                  <div className="bg-card border border-border rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-4">
+                      Contact Information
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <Phone className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm text-foreground">
+                          {selectedPatient.phone}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Mail className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm text-foreground">
+                          {selectedPatient.email}
+                        </span>
+                      </div>
+                      <div className="flex items-start space-x-3">
+                        <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
+                        <span className="text-sm text-foreground">
+                          {selectedPatient.address}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Vitals Card */}
+                  <div className="bg-card border border-border rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-4">
+                      Latest Vitals
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Blood Pressure
+                        </span>
+                        <span className="text-sm font-medium text-foreground">
+                          {selectedPatient.vitals.bloodPressure}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Heart Rate
+                        </span>
+                        <span className="text-sm font-medium text-foreground">
+                          {selectedPatient.vitals.heartRate}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Temperature
+                        </span>
+                        <span className="text-sm font-medium text-foreground">
+                          {selectedPatient.vitals.temperature}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Weight
+                        </span>
+                        <span className="text-sm font-medium text-foreground">
+                          {selectedPatient.vitals.weight}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Height
+                        </span>
+                        <span className="text-sm font-medium text-foreground">
+                          {selectedPatient.vitals.height}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column - Medical Details */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Appointments Card */}
+                  <div className="bg-card border border-border rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-4">
+                      Appointments
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-muted/50 rounded-lg p-4">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Calendar className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm font-medium text-foreground">
+                            Last Visit
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedPatient.lastVisit}
+                        </p>
+                      </div>
+                      <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Calendar className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-medium text-foreground">
+                            Next Appointment
+                          </span>
+                        </div>
+                        <p className="text-sm text-primary font-medium">
+                          {selectedPatient.nextAppointment}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Current Medications */}
+                  <div className="bg-card border border-border rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-4">
+                      Current Medications
+                    </h3>
+                    <div className="space-y-3">
+                      {selectedPatient.medications &&
+                      selectedPatient.medications.length > 0 ? (
+                        selectedPatient.medications.map(
+                          (medication, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg"
+                            >
+                              <Pill className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-sm text-foreground">
+                                {medication}
+                              </span>
+                            </div>
+                          )
+                        )
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          No medications recorded
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Allergies */}
+                  <div className="bg-card border border-border rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-4">
+                      Allergies
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedPatient.allergies &&
+                      selectedPatient.allergies.length > 0 ? (
+                        selectedPatient.allergies.map((allergy, index) => (
+                          <span
+                            key={index}
+                            className="px-3 py-1 bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 rounded-full text-xs font-medium"
+                          >
+                            {allergy}
+                          </span>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          No known allergies
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Medical History */}
+                  <div className="bg-card border border-border rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-4">
+                      Medical History
+                    </h3>
+                    <div className="space-y-4">
+                      {selectedPatient.medicalHistory &&
+                      selectedPatient.medicalHistory.length > 0 ? (
+                        selectedPatient.medicalHistory.map((record, index) => (
+                          <div
+                            key={index}
+                            className="border-l-2 border-primary/20 pl-4 pb-4"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="text-sm font-medium text-foreground">
+                                {record.condition}
+                              </h4>
+                              <span className="text-xs text-muted-foreground">
+                                {record.date}
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {record.notes}
+                            </p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          No medical history recorded
+                        </p>
+                      )}
+                    </div>{" "}
+                  </div>
+                </div>
+              </div>
             </div>
           </motion.div>
+        )
+      )}
 
-          {filteredPatients.length === 0 && patients.length > 0 && (
-            <motion.div
-              className="bg-card border border-border rounded-xl p-12 text-center shadow-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 1.3 }}
-            >
-              <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">
-                No patients found
-              </h3>
-              <p className="text-muted-foreground">
-                Try adjusting your search or filter criteria
-              </p>
-            </motion.div>
-          )}
-
-          {patients.length === 0 && !loading && (
-            <motion.div
-              className="bg-card border border-border rounded-xl p-12 text-center shadow-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 1.3 }}
-            >
-              <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">
-                No patients in database
-              </h3>
-              <p className="text-muted-foreground">
-                Add your first patient to get started
-              </p>
-            </motion.div>
-          )}
-        </motion.div>
-      </div>
+      {/* =================== MODALS (NOW AVAILABLE ON ALL VIEWS) =================== */}
 
       {/* Enhanced Assign Patients Modal */}
       {showAssignModal && (
@@ -1713,7 +1724,7 @@ export default function PatientsPage() {
                       onChange={(e) =>
                         handleInputChange("vitals.height", e.target.value)
                       }
-                      placeholder="5'8&quot;"
+                      placeholder={`5'8"`}
                       className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
@@ -2099,7 +2110,7 @@ export default function PatientsPage() {
                       onChange={(e) =>
                         handleEditInputChange("vitals.height", e.target.value)
                       }
-                      placeholder="5'8&quot;"
+                      placeholder={`5'8"`}
                       className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>

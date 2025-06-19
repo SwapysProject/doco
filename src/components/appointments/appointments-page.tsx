@@ -1240,15 +1240,12 @@ export function AppointmentsPage() {
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-10 w-10 p-0 hover:bg-accent/50 group-hover:bg-accent transition-all duration-200">
+                              <Button variant="ghost" className="h-10 w-10 p-0">
                                 <MoreHorizontal className="h-6 w-6" /> 
                               </Button>
                             </DropdownMenuTrigger>{" "}
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Details
-                              </DropdownMenuItem>
+                              
                               <DropdownMenuItem
                                 onClick={() =>
                                   handleEditAppointment(appointment)

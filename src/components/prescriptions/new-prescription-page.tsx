@@ -1834,20 +1834,19 @@ export function NewPrescriptionPage() {
                                 <Button
                                   onClick={() => editAiMedication(medIndex)}
                                   variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0"
+                                  className="h-9 w-9 p-1"
                                 >
-                                  <Edit3 className="h-3 w-3" />
+                                  <Edit3 className="h-4 w-4" />
                                 </Button>
                                 <Button
                                   onClick={() => removeAiMedication(medIndex)}
                                   variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                                  className="h-9 w-9 p-1 text-red-500 hover:text-red-700"
                                 >
-                                  <Trash2 className="h-3 w-3" />
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
+
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-xs">
                               <span>

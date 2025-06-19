@@ -1278,12 +1278,9 @@ export function PrescriptionsPage() {
                             </DropdownMenuTrigger>
 
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem asChild>
-                                <Link href={`/dashboard/prescriptions/${prescription.id}`}>
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  View Details
-                                </Link>
-                              </DropdownMenuItem>
+                              
+                              
+                              
 
                               <DropdownMenuItem onClick={() => previewPrescription(prescription)}>
                                 <FileText className="mr-2 h-4 w-4" />

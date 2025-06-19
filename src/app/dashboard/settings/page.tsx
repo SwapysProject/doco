@@ -67,9 +67,9 @@ export default function SettingsPage() {
     { id: "profile", label: "Profile", icon: User },
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "security", label: "Security", icon: Shield },
-    { id: "appearance", label: "Appearance", icon: Palette },
-    { id: "data", label: "Data & Privacy", icon: Database },
-    { id: "medical", label: "Medical Settings", icon: Heart },
+    /*{ id: "appearance", label: "Appearance", icon: Palette },*/
+    /*{ id: "data", label: "Data & Privacy", icon: Database },*/
+    /*{ id: "medical", label: "Medical Settings", icon: Heart },*/
   ];
 
   const handleNotificationChange = (key: string) => {
