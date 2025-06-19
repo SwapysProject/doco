@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -163,6 +163,16 @@ interface Patient {
 }
 
 /**
+ * Safe wrapper component for handling search params
+ */
+function SearchParamsWrapper({ children }: { children: (patientId: string | null) => React.ReactNode }) {
+  const searchParams = useSearchParams();
+  const preselectedPatientId = searchParams.get("patientId");
+  
+  return <>{children(preselectedPatientId)}</>;
+}
+
+/**
  * New Prescription Page Component
  *
  * AI-powered prescription generator featuring:
@@ -172,10 +182,8 @@ interface Patient {
  * - Manual review and modification capabilities
  * - Safety warnings and drug interaction checks
  */
-export function NewPrescriptionPage() {
+function NewPrescriptionPageContent({ preselectedPatientId }: { preselectedPatientId: string | null }) {
   const { user } = useAuth();
-  const searchParams = useSearchParams();
-  const preselectedPatientId = searchParams.get("patientId");
   const [patients, setPatients] = useState<Patient[]>([]);
   const [isLoadingPatients, setIsLoadingPatients] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
@@ -325,7 +333,6 @@ export function NewPrescriptionPage() {
     }
   }, [patientSearchQuery, patients]);
 
-  
   const handlePatientSearch = (query: string) => {
     setPatientSearchQuery(query);
     if (!query.trim()) {
@@ -346,8 +353,7 @@ export function NewPrescriptionPage() {
     }
   }, [showPatientDropdown]);
 
-
-  const handlePatientSelect = (patient: Patient) => {
+  const handlePatientSelect = useCallback((patient: Patient) => {
     setSelectedPatient(patient);
     setPatientSearchQuery(patient.name);
     setShowPatientDropdown(false);
@@ -358,17 +364,17 @@ export function NewPrescriptionPage() {
       checkPrescriptionStatus(patientId);
       loadPastPrescriptions(patientId);
     }
-  };
+  }, []);
 
   useEffect(() => {
-  if (!preselectedPatientId || patients.length === 0) return;
-  const match = patients.find(
-    (p) => p.id === preselectedPatientId || p._id === preselectedPatientId
-  );
-  if (match) {
-    handlePatientSelect(match);
-  }
-}, [preselectedPatientId, patients]);
+    if (!preselectedPatientId || patients.length === 0) return;
+    const match = patients.find(
+      (p) => p.id === preselectedPatientId || p._id === preselectedPatientId
+    );
+    if (match) {
+      handlePatientSelect(match);
+    }
+  }, [preselectedPatientId, patients, handlePatientSelect]);
 
   // Load past prescriptions for the selected patient
   const loadPastPrescriptions = async (patientId: string) => {
@@ -1818,5 +1824,18 @@ export function NewPrescriptionPage() {
         </DialogContent>
       </Dialog>
     </motion.div>
+  );
+}
+
+/**
+ * Exported component wrapped with SearchParamsWrapper for safe SSR
+ */
+export function NewPrescriptionPage() {
+  return (
+    <SearchParamsWrapper>
+      {(preselectedPatientId) => (
+        <NewPrescriptionPageContent preselectedPatientId={preselectedPatientId} />
+      )}
+    </SearchParamsWrapper>
   );
 }

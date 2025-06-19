@@ -55,9 +55,6 @@ const nextConfig: NextConfig = {
 
     return config;
   },
-  experimental: {
-    serverComponentsExternalPackages: ["mongodb"],
-  },
   // Explicitly mark these as server-only
   serverExternalPackages: ["mongodb"],
   typescript: {
