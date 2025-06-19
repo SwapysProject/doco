@@ -115,27 +115,28 @@ export default function SettingsPage() {
   };
 
   if (loading) {
-    // This loading state is rendered within DashboardLayout's scrollable main.
-    // So it should just take available space and center itself.
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="flex items-center space-x-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading settings...</span>
+      <DashboardLayout>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Loading settings...</span>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   if (error) {
-    // Same for error state
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="flex items-center space-x-2 text-red-600">
-          <AlertCircle className="h-6 w-6" />
-          <span>Error loading settings: {error}</span>
+      <DashboardLayout>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="flex items-center space-x-2 text-red-600">
+            <AlertCircle className="h-6 w-6" />
+            <span>Error loading settings: {error}</span>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
@@ -316,7 +317,7 @@ export default function SettingsPage() {
                     >
                       <span
                         className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          localNotifications[key as keyof typeof localNotifications]
+                          notifications[key as keyof typeof notifications]
                             ? "translate-x-6"
                             : "translate-x-1"
                         }`}
@@ -708,13 +709,9 @@ export default function SettingsPage() {
   return (
     <>
       <DashboardLayout>
-        {/* This div is the child of DashboardLayout's <main> element, which handles page-level scrolling.
-            It must fill the available height (h-full) and use flex-col to stack its own header and then content side-by-side. */}
-        <div className="flex flex-col h-full bg-background">
-
-          {/* Settings Page Header - NOW STICKY */}
-          {/* This header will stick to the top of the DashboardLayout's `main` scroll area. */}
-          <div className="sticky top-0 z-10 border-b border-border bg-card">
+        <div className="min-h-screen bg-background">
+          {/* Header */}
+          <div className="border-b border-border bg-card">
             <div className="px-6 py-4">
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-3">
@@ -734,16 +731,9 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Container for Inner Sidebar and Main Tab Content.
-              This needs to take up the remaining height (flex-1) after the sticky header.
-              It will be a flex row to place the sidebar and content side-by-side.
-              It needs `overflow-hidden` so its children can correctly manage their own scroll. */}
-          <div className="flex flex-1 overflow-hidden">
-
-            {/* Inner Settings Sidebar - NOW STICKY AND CORRECTLY SIZED */}
-            {/* This sidebar will appear fixed relative to its parent container,
-                and its *own content* will scroll if it overflows. */}
-            <div className="w-64 bg-card border-r border-border overflow-y-auto h-full"> {/* ADDED h-full to make it fill its flex parent */}
+          <div className="flex">
+            {/* Sidebar */}
+            <div className="w-64 bg-card border-r border-border min-h-screen">
               <div className="p-4">
                 <nav className="space-y-2">
                   {settingsTabs.map((tab) => (
@@ -764,12 +754,12 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* Main Tab Content Area - This is the ONLY part that should scroll vertically within SettingsPage's right side */}
-            <div className="flex-1 p-6 overflow-y-auto">
-              <div className="max-w-4xl mx-auto">
+            {/* Main Content */}
+            <div className="flex-1 p-6">
+              <div className="max-w-4xl">
                 {renderTabContent()}
 
-                {/* Save Button - This will scroll with the content */}
+                {/* Save Button */}
                 <div className="mt-8 pt-6 border-t border-border">
                   <div className="flex justify-between items-center">
                     {saveStatus === "success" && (
