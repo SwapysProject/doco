@@ -94,8 +94,8 @@ export function DashboardSidebar({ isOpen, onClose }: DashboardSidebarProps) {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-      >
-        <div className="flex items-center gap-3">
+      > 
+        <Link href="/dashboard/Introduction" className="flex items-center gap-3">
           <motion.div
             className="p-2 bg-blue-600 dark:bg-gray-700 rounded-lg shadow-md"
             whileHover={{ scale: 1.05, rotate: 5 }}
@@ -111,7 +111,7 @@ export function DashboardSidebar({ isOpen, onClose }: DashboardSidebarProps) {
               Medical System
             </p>
           </div>
-        </div>
+        </Link>
         {/* Close Button for Mobile */}
         <button
           onClick={onClose}

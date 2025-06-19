@@ -1269,58 +1269,50 @@ export function PrescriptionsPage() {
                               >
                                 <Button
                                   variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0 hover:bg-accent/50 group-hover:bg-accent transition-all duration-200"
+                                  size="icon"
+                                  className="h-8 w-8 p-0 hover:bg-accent/50 group-hover:bg-accent transition-all duration-200"
                                 >
-                                  <MoreHorizontal className="h-3 w-3" />
+                                  <MoreHorizontal className="h-5 w-5" /> {/* Increased size */}
                                 </Button>
                               </motion.div>
                             </DropdownMenuTrigger>
+
                             <DropdownMenuContent align="end">
-                              {" "}
                               <DropdownMenuItem asChild>
-                                <Link
-                                  href={`/dashboard/prescriptions/${prescription.id}`}
-                                >
+                                <Link href={`/dashboard/prescriptions/${prescription.id}`}>
                                   <Eye className="mr-2 h-4 w-4" />
                                   View Details
                                 </Link>
                               </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  previewPrescription(prescription)
-                                }
-                              >
+
+                              <DropdownMenuItem onClick={() => previewPrescription(prescription)}>
                                 <FileText className="mr-2 h-4 w-4" />
                                 Preview PDF
                               </DropdownMenuItem>
+
                               <DropdownMenuItem>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit Prescription
                               </DropdownMenuItem>
+
                               <DropdownMenuItem>
                                 <Printer className="mr-2 h-4 w-4" />
                                 Print Prescription
                               </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  downloadPrescription(prescription)
-                                }
-                              >
+
+                              <DropdownMenuItem onClick={() => downloadPrescription(prescription)}>
                                 <Download className="mr-2 h-4 w-4" />
                                 Download PDF
-                              </DropdownMenuItem>{" "}
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  displayPrescription(prescription)
-                                }
-                              >
+                              </DropdownMenuItem>
+
+                              <DropdownMenuItem onClick={() => displayPrescription(prescription)}>
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Details
-                              </DropdownMenuItem>{" "}
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
+
                       </motion.tr>
                     ))}{" "}
                   </TableBody>
