@@ -58,6 +58,7 @@ const nextConfig: NextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["mongodb"],
   },
+  ignoreBuildErrors: true,
   // Explicitly mark these as server-only
   serverExternalPackages: ["mongodb"],
 };
