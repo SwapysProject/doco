@@ -867,22 +867,21 @@ export function AppointmentsPage() {
   const cancelledToday = todayAppointments.filter(
     (apt) => apt.status === "cancelled"
   ).length;
-
   return (
-    <div className="space-y-6">
-      {/* Enhanced Header with Animation */}
+    <div className="space-y-4 sm:space-y-6">
+      {/* Enhanced Header with Animation - Mobile Responsive */}
       <motion.div
         className="group"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-blue-700 group-hover:scale-105">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-blue-700 group-hover:scale-105">
               Appointments
             </h1>
-            <p className="text-muted-foreground transition-all duration-300 ease-out group-hover:text-blue-600 group-hover:translate-x-2">
+            <p className="text-sm sm:text-base text-muted-foreground transition-all duration-300 ease-out group-hover:text-blue-600 group-hover:translate-x-2">
               Manage your patient appointments efficiently
             </p>
           </div>
@@ -890,20 +889,22 @@ export function AppointmentsPage() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
+            className="w-full sm:w-auto"
           >
             <Button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+              className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 transition-all duration-300 hover:scale-105 hover:shadow-lg min-h-[44px] px-4 py-2"
             >
               <Plus className="w-4 h-4" />
               <span>New Appointment</span>
             </Button>
           </motion.div>
         </div>
-      </motion.div>{" "}
-      {/* Enhanced Stats Cards */}
+      </motion.div>
+      
+      {/* Enhanced Stats Cards - Mobile Responsive Grid */}
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-4 gap-6"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}

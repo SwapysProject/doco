@@ -50,30 +50,28 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+  };  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-3 sm:p-4">
       <Card
         className="w-full max-w-md mx-auto shadow-lg"
         style={{ maxWidth: "28rem" }}
       >
-        <CardHeader className="text-center space-y-4">
+        <CardHeader className="text-center space-y-3 sm:space-y-4 px-4 sm:px-6">
           <div className="flex justify-center">
-            <div className="p-3 bg-blue-100 rounded-full">
-              <Stethoscope className="h-8 w-8 text-blue-600" />
+            <div className="p-2.5 sm:p-3 bg-blue-100 rounded-full">
+              <Stethoscope className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">
+          <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">
             Doctor Care System
           </CardTitle>
-          <p className="text-gray-600">Sign in to your account</p>
+          <p className="text-sm sm:text-base text-gray-600">Sign in to your account</p>
         </CardHeader>
 
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <CardContent className="px-4 sm:px-6">          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription className="text-sm">{error}</AlertDescription>
               </Alert>
             )}
             <div className="space-y-2">
@@ -91,7 +89,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
-                className="w-full"
+                className="w-full h-11 text-base"
               />
             </div>
             <div className="space-y-2">

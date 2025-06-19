@@ -29,6 +29,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useNotifications } from "@/hooks/useNotifications";
 import { getNotificationColor } from "@/lib/notifications-client";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export function DashboardHeader() {
   const [isDark, setIsDark] = useState(false);
@@ -37,6 +38,7 @@ export function DashboardHeader() {
   const router = useRouter();
   const { notifications, notificationCount, markAsRead, markAllAsRead } =
     useNotifications();
+  const { toggleSidebar } = useSidebar();
 
   // Update time every second
   useEffect(() => {
@@ -96,18 +98,18 @@ export function DashboardHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-900 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-900/60 shadow-sm transition-all duration-300 ease-in-out">
-      <div className="flex h-16 items-center px-6 gap-6">
-        {/* Mobile Menu Button */}
+    <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-900 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-900/60 shadow-sm transition-all duration-300 ease-in-out">      <div className="flex h-14 sm:h-16 items-center px-3 sm:px-4 md:px-6 gap-3 sm:gap-4 md:gap-6">        {/* Mobile Menu Button */}
         <Button
           variant="ghost"
           size="sm"
-          className="md:hidden p-2 hover:scale-105 transition-all duration-200 ease-in-out"
+          onClick={toggleSidebar}
+          className="md:hidden p-2 h-8 w-8 hover:scale-105 transition-all duration-200 ease-in-out"
         >
-          <Menu className="h-5 w-5 transition-transform duration-200 ease-in-out" />
-        </Button>{" "}
-        {/* Enhanced Search */}
-        <div className="flex-1 max-w-lg">
+          <Menu className="h-4 w-4 transition-transform duration-200 ease-in-out" />
+        </Button>
+        
+        {/* Enhanced Search - Hidden on mobile */}
+        <div className="hidden md:flex flex-1 max-w-lg">
           <div className="relative group">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 transition-colors duration-200 ease-in-out group-focus-within:text-blue-500" />
             <Input
@@ -115,8 +117,17 @@ export function DashboardHeader() {
               placeholder="Search patients, appointments..."
               className="pl-10 pr-4 bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 ease-in-out hover:bg-gray-100 focus:scale-[1.02] transform"
             />
-          </div>{" "}
-        </div>{" "}
+          </div>
+        </div>
+        
+        {/* Mobile search button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="md:hidden p-2 h-8 w-8"
+        >
+          <Search className="h-4 w-4" />
+        </Button>
         {/* Digital Time Display */}
         <div className="hidden lg:flex items-center px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
           <div className="font-mono text-lg font-medium text-gray-700">

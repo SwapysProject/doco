@@ -891,48 +891,48 @@ export default function PatientsPage() {
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-background">
-        {/* Enhanced Header */}
+        {/* Enhanced Header - Mobile Responsive */}
         <motion.div
           className="border-b border-border bg-card/80 backdrop-blur-sm"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <div className="px-6 py-6">
-            <div className="flex items-center justify-between">
+          <div className="px-3 sm:px-4 md:px-6 py-4 sm:py-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <motion.div
-                className="flex items-center space-x-4 group"
+                className="flex items-center space-x-3 sm:space-x-4 group"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
               >
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-3 sm:space-x-4">
                   <motion.div
-                    className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 text-white rounded-xl flex items-center justify-center shadow-lg dark:shadow-xl dark:shadow-blue-500/20"
+                    className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 text-white rounded-xl flex items-center justify-center shadow-lg dark:shadow-xl dark:shadow-blue-500/20"
                     whileHover={{ scale: 1.05, rotate: 5 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Users className="w-6 h-6" />
+                    <Users className="w-5 h-5 sm:w-6 sm:h-6" />
                   </motion.div>
                   <div>
-                    <h1 className="text-3xl font-bold transition-all duration-300 ease-out group-hover:scale-105 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold transition-all duration-300 ease-out group-hover:scale-105 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
                       My Patients
                     </h1>
-                    <p className="text-muted-foreground transition-all duration-300 ease-out group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-2">
+                    <p className="text-sm sm:text-base text-muted-foreground transition-all duration-300 ease-out group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-2">
                       Manage and track your assigned patients
                     </p>
                   </div>
                 </div>
               </motion.div>
               <motion.div
-                className="flex items-center space-x-3"
+                className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
                 <motion.button
                   onClick={handleRefresh}
-                  className="px-4 py-2 bg-secondary/80 dark:bg-secondary/90 text-secondary-foreground rounded-lg border border-border shadow-sm hover:shadow-md hover:bg-secondary dark:hover:bg-secondary/100 transition-all duration-200 flex items-center space-x-2 group"
+                  className="px-3 sm:px-4 py-2 bg-secondary/80 dark:bg-secondary/90 text-secondary-foreground rounded-lg border border-border shadow-sm hover:shadow-md hover:bg-secondary dark:hover:bg-secondary/100 transition-all duration-200 flex items-center justify-center space-x-2 group min-h-[44px]"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -943,11 +943,11 @@ export default function PatientsPage() {
                   >
                     <Activity className="w-4 h-4" />
                   </motion.div>
-                  <span>Refresh</span>
+                  <span className="text-sm sm:text-base">Refresh</span>
                 </motion.button>
                 <motion.button
                   onClick={handleAssignPatient}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white rounded-lg shadow-sm hover:shadow-md hover:from-blue-600 hover:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 transition-all duration-200 flex items-center space-x-2 group"
+                  className="px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white rounded-lg shadow-sm hover:shadow-md hover:from-blue-600 hover:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 transition-all duration-200 flex items-center justify-center space-x-2 group min-h-[44px]"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -968,14 +968,14 @@ export default function PatientsPage() {
           </div>
         </motion.div>
 
-        {/* Enhanced Search and Filter Bar */}
+        {/* Enhanced Search and Filter Bar - Mobile Responsive */}
         <motion.div
-          className="px-6 py-4 bg-card/50 dark:bg-card/80 backdrop-blur-sm border-b border-border"
+          className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 bg-card/50 dark:bg-card/80 backdrop-blur-sm border-b border-border"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.3 }}
         >
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
             <motion.div
               className="flex-1 relative group"
               initial={{ opacity: 0, x: -20 }}
@@ -985,10 +985,10 @@ export default function PatientsPage() {
               <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground group-focus-within:text-primary dark:group-focus-within:text-primary transition-colors duration-200" />
               <input
                 type="text"
-                placeholder="Search patients by name, condition, or phone..."
+                placeholder="Search patients..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-background/50 dark:bg-background/80 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 dark:focus:border-primary/60 text-foreground placeholder:text-muted-foreground transition-all duration-200 hover:shadow-sm focus:shadow-md backdrop-blur-sm"
+                className="w-full pl-10 pr-4 py-2.5 bg-background/50 dark:bg-background/80 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 dark:focus:border-primary/60 text-foreground placeholder:text-muted-foreground transition-all duration-200 hover:shadow-sm focus:shadow-md backdrop-blur-sm text-sm sm:text-base"
               />
             </motion.div>
             <motion.div
@@ -1001,7 +1001,7 @@ export default function PatientsPage() {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 bg-background/50 dark:bg-background/80 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 dark:focus:border-primary/60 text-foreground transition-all duration-200 hover:shadow-sm focus:shadow-md backdrop-blur-sm"
+                className="px-3 py-2.5 bg-background/50 dark:bg-background/80 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 dark:focus:border-primary/60 text-foreground transition-all duration-200 hover:shadow-sm focus:shadow-md backdrop-blur-sm text-sm sm:text-base min-w-[120px]"
               >
                 <option value="all">All Status</option>
                 <option value="stable">Stable</option>
@@ -1013,14 +1013,14 @@ export default function PatientsPage() {
           </div>
         </motion.div>
 
-        {/* Enhanced Stats Cards */}
+        {/* Enhanced Stats Cards - Mobile Responsive */}
         <motion.div
-          className="px-6 py-6"
+          className="px-3 sm:px-4 md:px-6 py-4 sm:py-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.6 }}
         >
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
