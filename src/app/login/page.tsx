@@ -36,22 +36,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoLogin = async () => {
-    setError("");
-    setIsLoading(true);
-
-    try {
-      const result = await login("dr.demo@doctorcare.com", "demo123");
-      if (!result.success) {
-        setError(result.message);
-      }
-    } catch (err) {
-      console.error("Demo login error:", err);
-      setError("Demo login failed. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  
 
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-3 sm:p-4 bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-900 dark:via-blue-950 dark:to-slate-800">
@@ -212,34 +197,6 @@ export default function LoginPage() {
                 </>
               ) : (
                 "Sign In"
-              )}
-            </Button>
-            
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-300 dark:border-gray-600" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white dark:bg-slate-900 px-2 text-gray-500 dark:text-gray-400">
-                  Or
-                </span>
-              </div>
-            </div>
-            
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-300 transform hover:scale-105"
-              onClick={handleDemoLogin}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Loading...
-                </>
-              ) : (
-                "Try Demo Login"
               )}
             </Button>
             
