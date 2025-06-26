@@ -618,3 +618,9 @@ body {
     display: none;
   }
 }
+
+.diagnosis-column {
+  white-space: normal; /* Allows text to wrap */
+  overflow-wrap: break-word; /* Breaks long words if they overflow */
+  word-break: break-all; /* Further ensures breaking of long words */
+}

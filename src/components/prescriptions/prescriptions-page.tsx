@@ -1105,7 +1105,7 @@ export function PrescriptionsPage() {
                         Prescription ID
                       </TableHead>
                       <TableHead className="min-w-[180px]">Patient</TableHead>
-                      <TableHead className="min-w-[150px]">Diagnosis</TableHead>
+                      <TableHead className="diagnosis-column min-w-[150px]">Diagnosis</TableHead>
                       <TableHead className="min-w-[200px]">
                         Medications
                       </TableHead>
@@ -1152,7 +1152,7 @@ export function PrescriptionsPage() {
                             )}
                           </div>{" "}
                         </TableCell>{" "}
-                        <TableCell className="w-[120px]">
+                        <TableCell className="w-[20px]">
                           <div className="flex items-center gap-1">
                             {" "}
                             <motion.div
@@ -1182,16 +1182,16 @@ export function PrescriptionsPage() {
                             </div>
                           </div>
                         </TableCell>{" "}
-                        <TableCell className="w-[160px] hidden md:table-cell">
+                        <TableCell className="diagnosis-column w-[300px] hidden md:table-cell">
                           {" "}
                           <span
-                            className="text-sm group-hover:text-primary transition-colors duration-200 font-medium block truncate"
+                            className="diagnosis-column text-sm group-hover:text-primary transition-colors duration-200 font-medium block truncate"
                             title={prescription.diagnosis || "N/A"}
                           >
                             {prescription.diagnosis || "N/A"}
                           </span>
                         </TableCell>{" "}
-                        <TableCell className="w-[180px]">
+                        <TableCell className="w-[120px]">
                           <motion.div
                             className="space-y-1"
                             initial={{ opacity: 0.8 }}
