@@ -1,219 +1,313 @@
 "use client";
-
-import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Stethoscope, Eye, EyeOff, Loader2, Heart, Activity, Shield, Zap } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import {Stethoscope} from "lucide-react";
+// Theme toggle button
+function ThemeToggle() {
+  const [isDark, setIsDark] = useState(false);
 
-export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  useEffect(() => {
+    const stored = localStorage.getItem("dark-mode");
+    if (
+      stored === "true" ||
+      (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches)
+    ) {
+      document.documentElement.classList.add("dark");
+      setIsDark(true);
+    } else {
+      document.documentElement.classList.remove("dark");
+      setIsDark(false);
+    }
+  }, []);
 
-  const { login } = useAuth();
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
-
-    try {
-      const result = await login(email, password);
-      if (!result.success) {
-        setError(result.message);
-      }
-    } catch (err) {
-      console.error("Login error:", err);
-      setError("An unexpected error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
+  const toggleTheme = () => {
+    if (isDark) {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("dark-mode", "false");
+      setIsDark(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("dark-mode", "true");
+      setIsDark(true);
     }
   };
 
-  
-
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-3 sm:p-4 bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-900 dark:via-blue-950 dark:to-slate-800">
-      {/* Animated Background Effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Enhanced Floating Medical Icons */}
-        <div className="absolute top-20 left-10 opacity-25 dark:opacity-10 animate-bounce" style={{ animationDuration: '1.5s' }}>
-          <Heart className="h-14 w-14 text-blue-600 animate-pulse" style={{ animationDuration: '1s' }} />
+    <button
+      aria-label="Toggle dark mode"
+      onClick={toggleTheme}
+      className="rounded-full p-2 bg-blue-100 hover:bg-blue-200 dark:bg-[#11235a] dark:hover:bg-[#2563eb] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-600"
+      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      type="button"
+    >
+      {isDark ? (
+        // Moon icon
+        <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
+        </svg>
+      ) : (
+        // Sun icon
+        <svg className="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="5" />
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
+const features = [
+  {
+    icon: "🤖",
+    title: "Advanced AI-Powered Healthcare",
+    desc: "Gemini AI and MCP server enable safe prescriptions, personalized care, and transparent, real-time AI insights.",
+  },
+  {
+    icon: "👥",
+    title: "Comprehensive Patient Management",
+    desc: "360° patient profiles, smart search, real-time status, assignments, risk assessment, and timeline views.",
+  },
+  {
+    icon: "📅",
+    title: "Intelligent Appointment Scheduling",
+    desc: "AI-powered, conflict-free scheduling for all visit types, with reminders, calendar sync, and virtual/in-person support.",
+  },
+  {
+    icon: "💊",
+    title: "Advanced Prescription Management",
+    desc: "AI-driven prescriptions, digital delivery, tracking, renewals, medication database, and effectiveness analytics.",
+  },
+  {
+    icon: "🔐",
+    title: "Enterprise-Grade Security",
+    desc: "JWT auth, role-based access, HIPAA compliance, audit trails, and advanced encryption for all data.",
+  },
+  {
+    icon: "📊",
+    title: "Real-time Analytics & Insights",
+    desc: "Live dashboards, patient and appointment analytics, interactive charts, and custom exportable reports.",
+  },
+  {
+    icon: "🎨",
+    title: "Modern UI/UX Experience",
+    desc: "Responsive dark/light theme, smooth animations, accessible components, and enhanced micro-interactions.",
+  },
+  {
+    icon: "🔄",
+    title: "Real-time Collaboration Features",
+    desc: "Instant updates, live notifications, messaging, collaborative editing, and data sync across all devices.",
+  },
+  {
+    icon: "🌐",
+    title: "Seamless Data Integration",
+    desc: "Real time medical news display, real-time sync, and up-to-date records for coordinated care.",
+  },
+
+];
+
+const doctorReviews = [
+  {
+    name: "Dr. Swapnil Sutar",
+    specialist: "Neurosurgeon",
+    review:
+      "This dashboard has revolutionized how I manage patient data. The AI insights are accurate and the interface is intuitive.",
+  },
+  {
+    name: "Dr. Swastik Mohanty",
+    specialist: "Cardiologist",
+    review:
+      "Scheduling and prescription management are seamless. It saves me hours every week and improves patient care.",
+  },
+  {
+    name: "Dr. Roshan Kumar Ram",
+    specialist: "Pediatrician",
+    review:
+      "The real-time analytics help me track patient progress efficiently. Highly recommend this platform to my peers.",
+  },
+  {
+    name: "Dr. Anwesh Mishra",
+    specialist: "Orthopedic Surgeon",
+    review:
+      "Security and compliance features give me peace of mind. The dashboard is a must-have for any modern clinic.",
+  },
+]
+
+
+
+export default function LandingPage() {
+  return (
+    <div className="min-h-screen bg-white dark:bg-[#0d1b2a] text-blue-900 dark:text-blue-100 transition-colors duration-300 flex flex-col">
+      {/* Header */}
+      <header className="main-header fixed top-0 left-0 w-full z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6 py-3 text-gray-900 dark:text-gray-100 shadow">
+        <Link href="/login" className="logo-container flex items-center gap-3 ml-7">
+          <motion.div
+            className="stethoscope-logo p-2 bg-blue-600 dark:bg-gray-700 rounded-lg shadow-md"
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Stethoscope className="h-5 w-5 text-white" />
+          </motion.div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              DoctorCare
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Medical System
+            </p>
+          </div>
+        </Link>
+        <nav className="auth-buttons flex gap-2 items-center font-medium">
+          <Link
+            href="#about"
+            className="nav-about-us px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-[#2563eb]/20 transition-colors"
+          >
+            About Us
+          </Link>
+          <Link
+            href="#features"
+            className="nav-features px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-[#2563eb]/20 transition-colors"
+          >
+            Features
+          </Link>
+          <Link
+            href="#reviews"
+            className="nav-reviews px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-[#2563eb]/20 transition-colors"
+          >
+            Reviews
+          </Link>
+          <Link
+            href="/login_page"
+            className="btn login-btn rounded-lg px-4 py-2 border border-blue-600 text-blue-600 bg-white hover:bg-blue-600 hover:text-white transition-colors duration-150 font-semibold shadow-sm dark:bg-[#11235a] dark:border-blue-400 dark:text-blue-100 dark:hover:bg-blue-600 dark:hover:text-white"
+          >
+            Login
+          </Link>
+          <Link
+            href="/register_page"
+            className="btn register-btn rounded-lg px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-150 font-semibold shadow-md dark:bg-blue-500 dark:hover:bg-blue-600"
+          >
+            Register
+          </Link>
+          <ThemeToggle />
+        </nav>
+      </header>
+      <main className="mt-16">
+      {/* Hero Section */}
+      <section className="flex flex-col md:flex-row items-center justify-between px-6 md:px-16 py-20 gap-10 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-[#11235a] dark:to-[#0d1b2a]">
+        <div className="flex-1 animate-fadeInUp">
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight text-blue-800 dark:text-white">
+            Revolutionizing Healthcare with <span className="text-blue-600 dark:text-blue-300">AI</span>
+          </h1>
+          <p className="text-lg md:text-xl mb-8 text-blue-700 dark:text-blue-200 max-w-xl">
+            Doctor Care System is a cutting-edge, AI-powered healthcare management platform that transforms how medical professionals manage patients, prescriptions, and clinical workflows.
+          </p>
+          <Link
+            href="/register_page"
+            className="inline-block bg-blue-600 text-white rounded-xl px-8 py-4 text-lg font-semibold shadow-lg hover:bg-blue-700 transition-all animate-bounce dark:bg-blue-500 dark:hover:bg-blue-600"
+          >
+            Get Started
+          </Link>
         </div>
-        <div className="absolute top-40 right-20 opacity-25 dark:opacity-10 animate-bounce" style={{ animationDuration: '1.8s', animationDelay: '0.3s' }}>
-          <Activity className="h-18 w-18 text-blue-500 animate-pulse" style={{ animationDuration: '1.2s' }} />
-        </div>
-        <div className="absolute bottom-32 left-20 opacity-25 dark:opacity-10 animate-bounce" style={{ animationDuration: '2s', animationDelay: '0.8s' }}>
-          <Shield className="h-16 w-16 text-blue-700 animate-pulse" style={{ animationDuration: '0.8s' }} />
-        </div>
-        <div className="absolute bottom-20 right-32 opacity-25 dark:opacity-10 animate-bounce" style={{ animationDuration: '1.6s', animationDelay: '0.5s' }}>
-          <Zap className="h-12 w-12 text-blue-600 animate-pulse" style={{ animationDuration: '1.3s' }} />
-        </div>
-        <div className="absolute top-32 left-1/2 opacity-25 dark:opacity-10 animate-bounce" style={{ animationDuration: '1.7s', animationDelay: '1s' }}>
-          <Stethoscope className="h-15 w-15 text-indigo-600 animate-pulse" style={{ animationDuration: '0.9s' }} />
-        </div>
-        <div className="absolute bottom-40 left-1/3 opacity-25 dark:opacity-10 animate-bounce" style={{ animationDuration: '1.4s', animationDelay: '0.7s' }}>
-          <Heart className="h-10 w-10 text-blue-800 animate-pulse" style={{ animationDuration: '1.1s' }} />
-        </div>
-        
-        {/* Enhanced Animated Circles with Higher Opacity */}
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-300/30 dark:bg-blue-800/15 rounded-full animate-pulse blur-xl" style={{ animationDuration: '2s' }}></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-indigo-300/35 dark:bg-indigo-800/18 rounded-full animate-pulse blur-xl" style={{ animationDuration: '2.5s', animationDelay: '0.5s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-200/25 dark:bg-blue-900/12 rounded-full animate-pulse blur-2xl" style={{ animationDuration: '3s', animationDelay: '1s' }}></div>
-        <div className="absolute top-1/6 right-1/3 w-48 h-48 bg-cyan-200/30 dark:bg-cyan-800/15 rounded-full animate-pulse blur-lg" style={{ animationDuration: '1.8s', animationDelay: '0.3s' }}></div>
-        <div className="absolute bottom-1/6 left-1/3 w-56 h-56 bg-sky-200/28 dark:bg-sky-800/14 rounded-full animate-pulse blur-xl" style={{ animationDuration: '2.2s', animationDelay: '0.8s' }}></div>
-        
-        {/* Enhanced DNA Helix Animation */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-          <div className="absolute top-10 left-1/4 w-3 h-full bg-gradient-to-b from-blue-400/35 via-blue-300/25 to-transparent dark:from-blue-700/25 dark:via-blue-600/15 animate-pulse transform rotate-12" style={{ animationDuration: '1.5s' }}></div>
-          <div className="absolute top-20 right-1/4 w-3 h-full bg-gradient-to-b from-indigo-400/35 via-indigo-300/25 to-transparent dark:from-indigo-700/25 dark:via-indigo-600/15 animate-pulse transform -rotate-12" style={{ animationDuration: '1.8s', animationDelay: '0.5s' }}></div>
-          <div className="absolute top-5 left-1/3 w-2 h-3/4 bg-gradient-to-b from-cyan-400/30 to-transparent dark:from-cyan-700/20 animate-pulse transform rotate-45" style={{ animationDuration: '2s', animationDelay: '0.2s' }}></div>
-          <div className="absolute bottom-5 right-1/3 w-2 h-3/4 bg-gradient-to-t from-sky-400/30 to-transparent dark:from-sky-700/20 animate-pulse transform -rotate-45" style={{ animationDuration: '2.3s', animationDelay: '0.7s' }}></div>
-        </div>
-        
-        {/* Enhanced Floating Particles */}
-        <div className="absolute inset-0">
-          {[...Array(16)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-3 h-3 bg-blue-500/40 dark:bg-blue-600/25 rounded-full animate-ping"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 2}s`,
-                animationDuration: `${1 + Math.random() * 1.5}s`
-              }}
+        <div className="flex-1 flex justify-center animate-float">
+          {/* Adjusted to rectangular container with reduced height */}
+          <div className="rounded-2xl shadow-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-[#0f172a] dark:to-[#1e293b] px-12 py-6 border border-blue-200 dark:border-blue-800">
+            <img
+              src="/doctor-illustration_2.svg"
+              alt="Doctor Care Illustration"
+              className="w-80 h-64 md:w-96 md:h-72 lg:w-[28rem] lg:h-80 object-contain drop-shadow-lg hover:scale-105 transition-transform duration-300 ease-in-out"
             />
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="py-5 px-6 md:px-16 bg-white dark:bg-[#11235a]">
+        <h2 className="text-3xl md:text-4xl font-bold mb-10 text-center text-blue-700 dark:text-blue-200">
+          Core Features & Execution
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {features.map((feature, i) => (
+            <div
+              key={feature.title}
+              className="bg-blue-50 dark:bg-[#0d1b2a] rounded-2xl shadow-lg p-8 flex flex-col items-center text-center hover:scale-105 transition-transform duration-300 animate-fadeInUp border border-blue-100 dark:border-blue-800"
+              style={{ animationDelay: `${i * 80}ms` }}
+            >
+              <span className="text-5xl mb-4">{feature.icon}</span>
+              <h3 className="text-xl font-semibold mb-2 text-blue-700 dark:text-blue-100">{feature.title}</h3>
+              <p className="text-blue-800 dark:text-blue-100">{feature.desc}</p>
+            </div>
           ))}
         </div>
-        
-        {/* Moving Wave Effect */}
-        <div className="absolute inset-0">
-          <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-blue-400/30 to-transparent dark:via-blue-600/20 animate-pulse top-1/4" style={{ animationDuration: '3s' }}></div>
-          <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-indigo-400/30 to-transparent dark:via-indigo-600/20 animate-pulse bottom-1/4" style={{ animationDuration: '3.5s', animationDelay: '1s' }}></div>
-        </div>
-        
-        {/* Orbiting Elements */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80">
-          <div className="absolute top-0 left-1/2 w-4 h-4 bg-blue-500/50 dark:bg-blue-600/30 rounded-full animate-spin" style={{ animationDuration: '8s', transformOrigin: '0 160px' }}></div>
-          <div className="absolute top-0 left-1/2 w-3 h-3 bg-indigo-500/50 dark:bg-indigo-600/30 rounded-full animate-spin" style={{ animationDuration: '12s', animationDirection: 'reverse', transformOrigin: '0 120px' }}></div>
-        </div>
-      </div>
+      </section>
 
-      {/* Main Content */}
-      <Card className="w-full max-w-md mx-auto shadow-2xl backdrop-blur-sm bg-white/80 dark:bg-slate-900/80 border-blue-200/50 dark:border-blue-800/50 relative z-10 animate-in fade-in-50 slide-in-from-bottom-10 duration-500"
-        style={{ maxWidth: "28rem" }}>
-        <CardHeader className="text-center space-y-3 sm:space-y-4 px-4 sm:px-6">
-          <div className="flex justify-center">
-            <div className="p-2.5 sm:p-3 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 rounded-full shadow-lg animate-pulse">
-              <Stethoscope className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-          <CardTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-            Doctor Care System
-          </CardTitle>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-            Sign in to your account
-          </p>
-        </CardHeader>
-
-        <CardContent className="px-4 sm:px-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <Alert variant="destructive" className="border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/20">
-                <AlertDescription className="text-sm text-red-700 dark:text-red-400">
-                  {error}
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            <div className="space-y-2">
-              <label
-                htmlFor="email"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Email Address
-              </label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="doctor@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isLoading}
-                className="w-full h-11 text-base bg-white/50 dark:bg-slate-800/50 border-blue-200 dark:border-blue-800 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-300 hover:shadow-md"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label
-                htmlFor="password"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={isLoading}
-                  className="w-full pr-10 bg-white/50 dark:bg-slate-800/50 border-blue-200 dark:border-blue-800 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-300 hover:shadow-md"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
-                  disabled={isLoading}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105" 
-              disabled={isLoading}
+      {/* Doctor Reviews Section */}
+      <section id="reviews" className="px-6 py-10 max-w-5xl mx-auto">
+        <h2 className="text-3xl md:text-4xl font-bold mb-10 text-center text-blue-700 dark:text-blue-200">
+          Our Doctors review
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {doctorReviews.map((doc, idx) => (
+            <div
+              key={idx}
+              className="bg-gray-50 dark:bg-gray-800 rounded-lg shadow p-6 flex flex-col items-start"
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign In"
-              )}
-            </Button>
-            
-            <div className="text-center pt-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Don&apos;t have an account?{" "}
-                <Link
-                  href="/register"
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition-colors duration-200"
-                >
-                  Register here
-                </Link>
-              </p>
+              <h4 className="text-lg font-semibold">{doc.name}</h4>
+              <span className="text-blue-600 dark:text-blue-400 text-sm mb-2">
+                {doc.specialist}
+              </span>
+              <p className="text-gray-700 dark:text-gray-300">{doc.review}</p>
             </div>
-          </form>
-        </CardContent>
-      </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* About Us Section */}
+      <section
+        id="about"
+        className="py-10 px-6 md:px-16 bg-blue-50 dark:bg-[#0d1b2a]"
+      >
+        <div className="max-w-3xl mx-auto text-center animate-fadeInUp">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-blue-700 dark:text-blue-100">About Us</h2>
+          <p className="text-lg text-blue-800 dark:text-blue-100 mb-6">
+            We are a team of passionate engineers, and AI specialists dedicated to transforming healthcare delivery. Our mission is to empower medical professionals with intelligent, safe, and efficient tools that put patient outcomes first.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4 mt-6">
+            <span className="bg-blue-100 dark:bg-blue-700 text-blue-900 dark:text-blue-100 px-4 py-2 rounded-full font-medium">AI-Driven</span>
+            <span className="bg-blue-100 dark:bg-blue-700 text-blue-900 dark:text-blue-100 px-4 py-2 rounded-full font-medium">Patient-Centric</span>
+            <span className="bg-blue-100 dark:bg-blue-700 text-blue-900 dark:text-blue-100 px-4 py-2 rounded-full font-medium">Secure</span>
+            <span className="bg-blue-100 dark:bg-blue-700 text-blue-900 dark:text-blue-100 px-4 py-2 rounded-full font-medium">Scalable</span>
+          </div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7, duration: 1 }}
+          className="mt-16 text-center text-blue-600 dark:text-blue-400 relative z-10"
+        >
+          <p className="mb-3 text-base md:text-lg">Built with ❤️ for healthcare by</p>
+          <p className="text-2xl font-bold md:text-3xl text-blue-800 dark:text-blue-200">
+            Team RSA
+          </p>
+          <p className="text-lg font-semibold md:text-xl text-blue-700 dark:text-blue-300">
+            National Institute of Technology Rourkela
+          </p>
+        </motion.div>
+
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-white dark:bg-[#11235a] border-t border-blue-100 dark:border-blue-900 py-0 px-1 md:px-10 flex items-center justify-center text-blue-700 dark:text-blue-200">
+        <div className="text-xs md:text-sm">
+          <span className="font-semibold text-blue-700 dark:text-blue-200">DoctorCare Medical System</span> &copy; {new Date().getFullYear()}
+        </div>
+      </footer>
+      </main>
     </div>
   );
 }
+
+
+
+
+

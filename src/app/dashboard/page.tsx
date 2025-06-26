@@ -7,12 +7,13 @@ import { QuickActions } from "@/components/dashboard/quick-actions";
 import { RecentPatients } from "@/components/dashboard/recent-patients";
 import { UpcomingAppointments } from "@/components/dashboard/upcoming-appointments";
 import { useAuth } from "@/contexts/AuthContext";
+import {WorldNewsCard } from "@/components/dashboard/recent-medical-articles";
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 ">
         {/* Enhanced Page Header with Motion */}
         <div className="group" style={{ animation: "slideInUp 0.6s ease-out" }}>
           <h1 className=" pl-2 text-3xl font-bold text-foreground transition-all duration-300 ease-out group-hover:text-blue-700 group-hover:scale-105">
@@ -48,6 +49,13 @@ export default function DashboardPage() {
               style={{ animation: "slideInLeft 0.6s ease-out 0.6s both" }}
             >
               <RecentPatients />
+            </div>
+
+            <div
+              className="transition-all duration-300 ease-out hover:scale-[1.01]"
+              style={{ animation: "slideInLeft 0.6s ease-out 0.6s both" }}
+            >
+              <WorldNewsCard />
             </div>
           </div>
 

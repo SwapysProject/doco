@@ -82,7 +82,7 @@ export function DashboardSidebar({ isOpen, onClose }: DashboardSidebarProps) {
     // CRITICAL CHANGES HERE FOR MOBILE RESPONSIVENESS
     <div
       className={`
-        fixed top-0 left-0 w-64 h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col shadow-lg z-50
+        fixed top-0 left-0 w-64 h-screen bg-white dark:bg-[#0d1b2a] border-r border-gray-200 dark:border-gray-700 flex flex-col shadow-lg z-50
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} /* Mobile slide in/out */
         md:translate-x-0 /* Always visible on medium screens and up */

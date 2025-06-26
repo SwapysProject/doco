@@ -1,7 +1,7 @@
 // components/dashboard/dashboard-header.tsx
 
 "use client";
-
+import { PatientSearchBar } from "@/components/PatientSearchBar"; // Import the new PatientSearchBar component
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -137,14 +137,12 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
         </Button>{" "}
         {/* Enhanced Search */}
         <div className="flex-1 max-w-lg">
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 transition-colors duration-200 ease-in-out group-focus-within:text-blue-500" />
-            <Input
-              type="search"
-              placeholder="Search patients, appointments..."
-              className="pl-10 pr-4 bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 ease-in-out hover:bg-gray-100 focus:scale-[1.02] transform"
-            />
-          </div>{" "}
+          <div className="flex items-center justify-between">
+      {/* 2. REPLACE THE OLD DIV WITH THIS SINGLE LINE */}
+      <PatientSearchBar />
+
+      {/* ... maybe a button or other elements here */}
+    </div>
         </div>{" "}
         {/* Digital Time Display */}
         <div className="hidden lg:flex items-center px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">

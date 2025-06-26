@@ -216,7 +216,7 @@ export function PatientOverview() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Activity className="h-5 w-5" />
+            <Activity className="h-4 w-5" />
             Average Health Metrics
           </CardTitle>
           <p className="text-sm text-muted-foreground">
@@ -225,7 +225,7 @@ export function PatientOverview() {
         </CardHeader>
 
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-2">
             {healthMetrics.map((metric, index) => {
               const IconComponent = metric.icon;
 
@@ -236,7 +236,7 @@ export function PatientOverview() {
                     metric.status
                   )}`}
                 >
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-2 h-3">
                     <div className="flex items-center gap-2">
                       <IconComponent className="h-4 w-4" />
                       <span className="text-sm font-medium">
@@ -278,15 +278,15 @@ export function PatientOverview() {
 
       {/* Quick Insights */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-0">
           <CardTitle className="text-lg font-semibold">
             Today&apos;s Insights
           </CardTitle>
         </CardHeader>
 
         <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <div className="space-y-2">
+            <div className="flex items-start gap-3 p-2 bg-green-50 border border-green-200 rounded-lg">
               <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
               <div>
                 <div className="text-sm font-medium text-green-800">

@@ -573,3 +573,48 @@ body {
     padding-right: max(1rem, env(safe-area-inset-right));
   }
 }
+
+
+/* Hide these menu items on screens smaller than 768px */
+@media (max-width: 768px) {
+  .nav-about-us,
+  .nav-features,
+  .nav-reviews {
+    display: none;
+  }
+  .auth-buttons .btn {
+    padding: 0.4rem 0.8rem; /* Adjusts button padding */
+    font-size: 0.875rem;   /* Reduces font size */
+  }
+
+  .or{
+    display: none;
+  }
+}
+
+/* Styles for mobile devices */
+@media (max-width: 768px) {
+  /* Hide the specified navigation links on mobile */
+  .nav-item-desktop {
+    display: none;
+  }
+
+  /* Ensure the header container allows for left alignment */
+  .main-header {
+    display: flex;
+    justify-content: space-between; /* Aligns logo to the left and nav to the right */
+    align-items: center;
+    padding-left: 1rem; /* Adds a small space from the edge, can be set to 0 */
+    padding-right: 1rem;
+  }
+
+  /* Remove any extra left-side spacing from the logo container */
+  .logo-container {
+    padding-left: 0;
+    margin-left: 0;
+  }
+
+  .stethoscope-logo {
+    display: none;
+  }
+}
